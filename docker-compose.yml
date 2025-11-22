@@ -10,9 +10,8 @@ services:
     volumes:
       # Persist the SQLite database
       - vehicle-database:/app
-      # Mount source files for development (optional)
-      - ./index.html:/usr/share/nginx/html/index.html:ro
-      - ./app.js:/usr/share/nginx/html/app.js:ro
+      # Mount the entire html directory instead of individual files
+      - ./html:/usr/share/nginx/html:ro
     restart: unless-stopped
     environment:
       - TZ=America/New_York
