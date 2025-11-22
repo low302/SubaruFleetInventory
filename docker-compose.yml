@@ -6,16 +6,18 @@ services:
     container_name: vehicle-inventory-system
     ports:
       - "8080:80"
+      - "3000:3000"
     volumes:
-      # Mount the entire app directory to preserve any changes
+      # Persist the SQLite database
+      - vehicle-database:/app
+      # Mount source files for development (optional)
       - ./index.html:/usr/share/nginx/html/index.html:ro
       - ./app.js:/usr/share/nginx/html/app.js:ro
-      # Create a volume to persist browser data (if using custom nginx config)
-      - vehicle-data:/var/lib/nginx
     restart: unless-stopped
     environment:
       - TZ=America/New_York
+      - NODE_ENV=production
 
 volumes:
-  vehicle-data:
+  vehicle-database:
     driver: local

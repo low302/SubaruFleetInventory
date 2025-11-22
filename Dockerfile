@@ -1,11 +1,37 @@
+# Multi-stage build
+FROM node:18-alpine AS backend
+
+WORKDIR /app
+
+# Copy backend files
+COPY package*.json ./
+COPY server.js ./
+
+# Install dependencies
+RUN npm install --production
+
+# Frontend stage with nginx
 FROM nginx:alpine
 
-# Copy the HTML and JavaScript files to nginx html directory
+# Install Node.js in nginx container
+RUN apk add --update nodejs npm
+
+# Copy backend from previous stage
+COPY --from=backend /app /app
+
+# Copy frontend files to nginx
 COPY index.html /usr/share/nginx/html/
 COPY app.js /usr/share/nginx/html/
 
-# Expose port 80
-EXPOSE 80
+# Copy nginx config
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Create startup script
+COPY start-services.sh /start-services.sh
+RUN chmod +x /start-services.sh
+
+# Expose ports
+EXPOSE 80 3000
+
+# Start both services
+CMD ["/start-services.sh"]
