@@ -8,10 +8,8 @@ services:
       - "8080:80"
       - "3000:3000"
     volumes:
-      # Persist the SQLite database
+      # Only persist the SQLite database - don't mount source files
       - vehicle-database:/app
-      # Mount the entire html directory instead of individual files
-      - ./html:/usr/share/nginx/html:ro
     restart: unless-stopped
     environment:
       - TZ=America/New_York

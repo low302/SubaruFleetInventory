@@ -23,6 +23,11 @@ COPY --from=backend /app /app
 COPY index.html /usr/share/nginx/html/
 COPY app.js /usr/share/nginx/html/
 
+# Set proper permissions for nginx
+RUN chmod 644 /usr/share/nginx/html/index.html && \
+    chmod 644 /usr/share/nginx/html/app.js && \
+    chmod 755 /usr/share/nginx/html
+
 # Copy nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
