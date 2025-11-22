@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test - Brandon Tomes Subaru</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        h1 { color: #0a84ff; }
+        .test-section {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        button {
+            background: #0a84ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover { background: #409cff; }
+        .result {
+            background: #333;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { color: #30d158; }
+        .error { color: #ff453a; }
+        input {
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background: #333;
+            color: #fff;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 API Connection Test</h1>
+    <p>Use this page to test if the backend API is working correctly.</p>
+
+    <div class="test-section">
+        <h2>1. Test API Connectivity</h2>
+        <button onclick="testConnection()">Test Connection</button>
+        <div id="connectionResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test Login</h2>
+        <div>
+            <input type="text" id="testUsername" placeholder="Username" value="Zaid">
+            <input type="password" id="testPassword" placeholder="Password" value="1234">
+        </div>
+        <button onclick="testLogin()">Test Login</button>
+        <div id="loginResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Check Auth Status</h2>
+        <button onclick="checkAuthStatus()">Check Auth</button>
+        <div id="authResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Test Logout</h2>
+        <button onclick="testLogout()">Test Logout</button>
+        <div id="logoutResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Test Data Load</h2>
+        <button onclick="testDataLoad()">Load Inventory</button>
+        <div id="dataResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Navigation</h2>
+        <button onclick="window.location.href='/index.html'">Go to Main App</button>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+
+        async function testConnection() {
+            const result = document.getElementById('connectionResult');
+            result.innerHTML = 'Testing connection...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/status`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                result.innerHTML = `<span class="success">✓ Connection successful!</span>\n` +
+                    `Status: ${response.status}\n` +
+                    `Response: ${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                result.innerHTML = `<span class="error">✗ Connection failed!</span>\n` +
+                    `Error: ${error.message}\n` +
+                    `Check if backend is running.`;
+            }
+        }
+
+        async function testLogin() {
+            const result = document.getElementById('loginResult');
+            const username = document.getElementById('testUsername').value;
+            const password = document.getElementById('testPassword').value;
+            
+            result.innerHTML = 'Attempting login...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    result.innerHTML = `<span class="success">✓ Login successful!</span>\n` +
+                        `Status: ${response.status}\n` +
+                        `Response: ${JSON.stringify(data, null, 2)}\n` +
+                        `Cookie should be set now.`;
+                } else {
+                    result.innerHTML = `<span class="error">✗ Login failed!</span>\n` +
+                        `Status: ${response.status}\n` +
+                        `Response: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                result.innerHTML = `<span class="error">✗ Request failed!</span>\n` +
+                    `Error: ${error.message}`;
+            }
+        }
+
+        async function checkAuthStatus() {
+            const result = document.getElementById('authResult');
+            result.innerHTML = 'Checking authentication...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/status`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                result.innerHTML = `Status: ${response.status}\n` +
+                    `Authenticated: ${data.authenticated ? 'YES ✓' : 'NO ✗'}\n` +
+                    `Username: ${data.username || 'N/A'}\n` +
+                    `Full Response: ${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                result.innerHTML = `<span class="error">✗ Request failed!</span>\n` +
+                    `Error: ${error.message}`;
+            }
+        }
+
+        async function testLogout() {
+            const result = document.getElementById('logoutResult');
+            result.innerHTML = 'Logging out...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/logout`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                result.innerHTML = `<span class="success">✓ Logout successful!</span>\n` +
+                    `Status: ${response.status}\n` +
+                    `Response: ${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                result.innerHTML = `<span class="error">✗ Request failed!</span>\n` +
+                    `Error: ${error.message}`;
+            }
+        }
+
+        async function testDataLoad() {
+            const result = document.getElementById('dataResult');
+            result.innerHTML = 'Loading inventory data...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/inventory`, {
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    result.innerHTML = `<span class="error">✗ Not authenticated or error!</span>\n` +
+                        `Status: ${response.status}\n` +
+                        `Try logging in first.`;
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                result.innerHTML = `<span class="success">✓ Data loaded successfully!</span>\n` +
+                    `Count: ${data.length} vehicles\n` +
+                    `Sample: ${JSON.stringify(data.slice(0, 2), null, 2)}`;
+            } catch (error) {
+                result.innerHTML = `<span class="error">✗ Request failed!</span>\n` +
+                    `Error: ${error.message}`;
+            }
+        }
+
+        // Auto-test on load
+        window.addEventListener('DOMContentLoaded', () => {
+            testConnection();
+        });
+    </script>
+</body>
+</html>
