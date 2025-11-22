@@ -1,28 +1,14 @@
-// Brandon Tomes Subaru Fleet Department - Vehicle Inventory Management System
-// Complete Frontend Application with Backend Integration
-
 const API_BASE = '/api';
-
-// ==================== STATE MANAGEMENT ====================
 let vehicles = [];
 let soldVehicles = [];
 let tradeIns = [];
 let currentVehicle = null;
-let currentFilter = {
-    search: '',
-    make: '',
-    status: ''
-};
-
-// ==================== AUTHENTICATION ====================
+let currentFilter = { search: '', make: '', status: '' };
 
 async function checkAuth() {
     try {
-        const response = await fetch(`${API_BASE}/auth/status`, {
-            credentials: 'include'
-        });
+        const response = await fetch(`${API_BASE}/auth/status`, { credentials: 'include' });
         const data = await response.json();
-        
         if (data.authenticated) {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
@@ -40,23 +26,17 @@ async function checkAuth() {
 
 async function login(event) {
     event.preventDefault();
-    
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
     const errorDiv = document.getElementById('loginError');
-    
     try {
         const response = await fetch(`${API_BASE}/login`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify({ username, password })
         });
-        
         const data = await response.json();
-        
         if (response.ok) {
             errorDiv.textContent = '';
             await checkAuth();
@@ -71,41 +51,24 @@ async function login(event) {
 
 async function logout() {
     try {
-        await fetch(`${API_BASE}/logout`, {
-            method: 'POST',
-            credentials: 'include'
-        });
+        await fetch(`${API_BASE}/logout`, { method: 'POST', credentials: 'include' });
     } catch (error) {
         console.error('Logout error:', error);
     }
-    
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('mainApp').style.display = 'none';
 }
 
-// ==================== DATA LOADING ====================
-
 async function loadAllData() {
-    await Promise.all([
-        loadInventory(),
-        loadSoldVehicles(),
-        loadTradeIns()
-    ]);
-    
+    await Promise.all([loadInventory(), loadSoldVehicles(), loadTradeIns()]);
     updateDashboard();
     renderCurrentPage();
 }
 
 async function loadInventory() {
     try {
-        const response = await fetch(`${API_BASE}/inventory`, {
-            credentials: 'include'
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to load inventory');
-        }
-        
+        const response = await fetch(`${API_BASE}/inventory`, { credentials: 'include' });
+        if (!response.ok) throw new Error('Failed to load inventory');
         vehicles = await response.json();
     } catch (error) {
         console.error('Error loading inventory:', error);
@@ -115,14 +78,8 @@ async function loadInventory() {
 
 async function loadSoldVehicles() {
     try {
-        const response = await fetch(`${API_BASE}/sold-vehicles`, {
-            credentials: 'include'
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to load sold vehicles');
-        }
-        
+        const response = await fetch(`${API_BASE}/sold-vehicles`, { credentials: 'include' });
+        if (!response.ok) throw new Error('Failed to load sold vehicles');
         soldVehicles = await response.json();
     } catch (error) {
         console.error('Error loading sold vehicles:', error);
@@ -132,14 +89,8 @@ async function loadSoldVehicles() {
 
 async function loadTradeIns() {
     try {
-        const response = await fetch(`${API_BASE}/trade-ins`, {
-            credentials: 'include'
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to load trade-ins');
-        }
-        
+        const response = await fetch(`${API_BASE}/trade-ins`, { credentials: 'include' });
+        if (!response.ok) throw new Error('Failed to load trade-ins');
         tradeIns = await response.json();
     } catch (error) {
         console.error('Error loading trade-ins:', error);
@@ -147,11 +98,8 @@ async function loadTradeIns() {
     }
 }
 
-// ==================== VEHICLE MANAGEMENT ====================
-
 async function addVehicle(event) {
     event.preventDefault();
-    
     const vehicle = {
         id: Date.now(),
         stockNumber: document.getElementById('stockNumber').value,
@@ -167,21 +115,14 @@ async function addVehicle(event) {
         customer: null,
         documents: []
     };
-    
     try {
         const response = await fetch(`${API_BASE}/inventory`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify(vehicle)
         });
-        
-        if (!response.ok) {
-            throw new Error('Failed to add vehicle');
-        }
-        
+        if (!response.ok) throw new Error('Failed to add vehicle');
         await loadInventory();
         closeAddModal();
         updateDashboard();
@@ -195,34 +136,20 @@ async function addVehicle(event) {
 
 async function updateVehicleStatus() {
     if (!currentVehicle) return;
-    
     const newStatus = document.getElementById('detailStatus').value;
-    
     if (newStatus === 'sold') {
-        // Move to sold vehicles
-        const soldVehicle = {
-            ...currentVehicle,
-            status: 'sold'
-        };
-        
+        const soldVehicle = { ...currentVehicle, status: 'sold' };
         try {
-            // Add to sold vehicles
             await fetch(`${API_BASE}/sold-vehicles`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify(soldVehicle)
             });
-            
-            // Remove from inventory
             await fetch(`${API_BASE}/inventory/${currentVehicle.id}`, {
                 method: 'DELETE',
                 credentials: 'include'
             });
-            
-            // Check if has trade-in
             if (currentVehicle.customer && currentVehicle.customer.hasTradeIn) {
                 openTradeInModal();
             } else {
@@ -239,21 +166,14 @@ async function updateVehicleStatus() {
         openPickupScheduleModal();
     } else {
         currentVehicle.status = newStatus;
-        
         try {
             const response = await fetch(`${API_BASE}/inventory/${currentVehicle.id}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify(currentVehicle)
             });
-            
-            if (!response.ok) {
-                throw new Error('Failed to update vehicle');
-            }
-            
+            if (!response.ok) throw new Error('Failed to update vehicle');
             await loadInventory();
             closeDetailModal();
             updateDashboard();
@@ -266,20 +186,13 @@ async function updateVehicleStatus() {
 }
 
 async function deleteVehicle(vehicleId) {
-    if (!confirm('Are you sure you want to delete this vehicle?')) {
-        return;
-    }
-    
+    if (!confirm('Are you sure you want to delete this vehicle?')) return;
     try {
         const response = await fetch(`${API_BASE}/inventory/${vehicleId}`, {
             method: 'DELETE',
             credentials: 'include'
         });
-        
-        if (!response.ok) {
-            throw new Error('Failed to delete vehicle');
-        }
-        
+        if (!response.ok) throw new Error('Failed to delete vehicle');
         await loadInventory();
         closeDetailModal();
         updateDashboard();
@@ -290,16 +203,10 @@ async function deleteVehicle(vehicleId) {
     }
 }
 
-// ==================== CUSTOMER INFORMATION ====================
-
 async function saveCustomerInfo(event) {
     event.preventDefault();
-    
     if (!currentVehicle) return;
-    
-    const hasTradeIn = document.getElementById('hasTradeIn') ? 
-        document.getElementById('hasTradeIn').checked : false;
-    
+    const hasTradeIn = document.getElementById('hasTradeIn') ? document.getElementById('hasTradeIn').checked : false;
     currentVehicle.customer = {
         firstName: document.getElementById('customerFirstName').value,
         lastName: document.getElementById('customerLastName').value,
@@ -314,21 +221,14 @@ async function saveCustomerInfo(event) {
         notes: document.getElementById('notes').value,
         hasTradeIn: hasTradeIn
     };
-    
     try {
         const response = await fetch(`${API_BASE}/inventory/${currentVehicle.id}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify(currentVehicle)
         });
-        
-        if (!response.ok) {
-            throw new Error('Failed to save customer info');
-        }
-        
+        if (!response.ok) throw new Error('Failed to save customer info');
         await loadInventory();
         alert('Customer information saved successfully!');
         renderDetailModal(currentVehicle);
@@ -338,11 +238,8 @@ async function saveCustomerInfo(event) {
     }
 }
 
-// ==================== TRADE-INS (FLEET RETURNS) ====================
-
 async function addTradeIn(event) {
     event.preventDefault();
-    
     const tradeIn = {
         id: Date.now(),
         stockNumber: document.getElementById('tradeStockNumber').value,
@@ -358,34 +255,23 @@ async function addTradeIn(event) {
         pickedUpDate: null,
         dateAdded: new Date().toISOString()
     };
-    
     try {
         const response = await fetch(`${API_BASE}/trade-ins`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify(tradeIn)
         });
-        
-        if (!response.ok) {
-            throw new Error('Failed to add trade-in');
-        }
-        
-        // Link trade-in to current vehicle if exists
+        if (!response.ok) throw new Error('Failed to add trade-in');
         if (currentVehicle) {
             currentVehicle.tradeInId = tradeIn.id;
             await fetch(`${API_BASE}/inventory/${currentVehicle.id}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify(currentVehicle)
             });
         }
-        
         await loadAllData();
         closeTradeInModal();
         closeDetailModal();
@@ -401,26 +287,19 @@ async function addTradeIn(event) {
 async function toggleTradeInPickup(tradeInId) {
     const tradeIn = tradeIns.find(t => t.id === tradeInId);
     if (!tradeIn) return;
-    
     if (!tradeIn.pickedUp) {
-        // Open pickup date modal
         currentVehicle = tradeIn;
         openTradePickupModal();
     } else {
-        // Unmark as picked up
         tradeIn.pickedUp = false;
         tradeIn.pickedUpDate = null;
-        
         try {
             await fetch(`${API_BASE}/trade-ins/${tradeInId}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify(tradeIn)
             });
-            
             await loadTradeIns();
             renderCurrentPage();
         } catch (error) {
@@ -432,24 +311,17 @@ async function toggleTradeInPickup(tradeInId) {
 
 async function confirmTradeInPickup(event) {
     event.preventDefault();
-    
     if (!currentVehicle) return;
-    
     const pickupDate = document.getElementById('tradePickupDate').value;
-    
     currentVehicle.pickedUp = true;
     currentVehicle.pickedUpDate = pickupDate;
-    
     try {
         await fetch(`${API_BASE}/trade-ins/${currentVehicle.id}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify(currentVehicle)
         });
-        
         await loadTradeIns();
         closeTradePickupModal();
         renderCurrentPage();
@@ -459,28 +331,20 @@ async function confirmTradeInPickup(event) {
     }
 }
 
-// ==================== PICKUP SCHEDULING ====================
-
 async function schedulePickup(event) {
     event.preventDefault();
-    
     if (!currentVehicle) return;
-    
     currentVehicle.pickupDate = document.getElementById('pickupDate').value;
     currentVehicle.pickupTime = document.getElementById('pickupTime').value;
     currentVehicle.pickupNotes = document.getElementById('pickupNotes').value;
     currentVehicle.status = 'pickup-scheduled';
-    
     try {
         await fetch(`${API_BASE}/inventory/${currentVehicle.id}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify(currentVehicle)
         });
-        
         await loadInventory();
         closePickupScheduleModal();
         closeDetailModal();
@@ -493,18 +357,14 @@ async function schedulePickup(event) {
     }
 }
 
-// ==================== DOCUMENT MANAGEMENT ====================
-
 async function handleFileUpload(event) {
     const files = event.target.files;
     if (!files.length || !currentVehicle) return;
-    
     for (let file of files) {
         if (file.type !== 'application/pdf') {
             alert('Only PDF files are allowed');
             continue;
         }
-        
         const reader = new FileReader();
         reader.onload = async function(e) {
             const document = {
@@ -515,22 +375,15 @@ async function handleFileUpload(event) {
                 data: e.target.result,
                 uploadDate: new Date().toISOString()
             };
-            
-            if (!currentVehicle.documents) {
-                currentVehicle.documents = [];
-            }
+            if (!currentVehicle.documents) currentVehicle.documents = [];
             currentVehicle.documents.push(document);
-            
             try {
                 await fetch(`${API_BASE}/inventory/${currentVehicle.id}`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
                     body: JSON.stringify(currentVehicle)
                 });
-                
                 await loadInventory();
                 renderUploadedFiles();
             } catch (error) {
@@ -540,18 +393,15 @@ async function handleFileUpload(event) {
         };
         reader.readAsDataURL(file);
     }
-    
     event.target.value = '';
 }
 
 function renderUploadedFiles() {
     const container = document.getElementById('uploadedFilesList');
-    
     if (!currentVehicle || !currentVehicle.documents || currentVehicle.documents.length === 0) {
         container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 1rem;">No documents uploaded</p>';
         return;
     }
-    
     container.innerHTML = currentVehicle.documents.map(doc => `
         <div class="uploaded-file-item">
             <div class="file-info">
@@ -562,12 +412,8 @@ function renderUploadedFiles() {
                 </div>
             </div>
             <div class="file-actions">
-                <button class="btn btn-small btn-secondary btn-icon" onclick="downloadDocument(${doc.id})" title="Download">
-                    ⬇️
-                </button>
-                <button class="btn btn-small btn-danger btn-icon" onclick="deleteDocument(${doc.id})" title="Delete">
-                    🗑️
-                </button>
+                <button class="btn btn-small btn-secondary btn-icon" onclick="downloadDocument(${doc.id})" title="Download">⬇️</button>
+                <button class="btn btn-small btn-danger btn-icon" onclick="deleteDocument(${doc.id})" title="Delete">🗑️</button>
             </div>
         </div>
     `).join('');
@@ -576,7 +422,6 @@ function renderUploadedFiles() {
 function downloadDocument(docId) {
     const doc = currentVehicle.documents.find(d => d.id === docId);
     if (!doc) return;
-    
     const link = document.createElement('a');
     link.href = doc.data;
     link.download = doc.name;
@@ -584,22 +429,15 @@ function downloadDocument(docId) {
 }
 
 async function deleteDocument(docId) {
-    if (!confirm('Are you sure you want to delete this document?')) {
-        return;
-    }
-    
+    if (!confirm('Are you sure you want to delete this document?')) return;
     currentVehicle.documents = currentVehicle.documents.filter(d => d.id !== docId);
-    
     try {
         await fetch(`${API_BASE}/inventory/${currentVehicle.id}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify(currentVehicle)
         });
-        
         await loadInventory();
         renderUploadedFiles();
     } catch (error) {
@@ -608,13 +446,9 @@ async function deleteDocument(docId) {
     }
 }
 
-// ==================== LABEL GENERATION ====================
-
 function generateLabel(vehicle) {
     currentVehicle = vehicle;
-    
     document.getElementById('labelStockNumber').textContent = vehicle.stockNumber;
-    
     const labelInfo = document.getElementById('labelInfo');
     labelInfo.innerHTML = `
         <div style="color: #000;"><strong>VIN:</strong> ${vehicle.vin}</div>
@@ -624,10 +458,8 @@ function generateLabel(vehicle) {
         <div style="color: #000;"><strong>Trim:</strong> ${vehicle.trim}</div>
         <div style="color: #000;"><strong>Color:</strong> ${vehicle.color}</div>
     `;
-    
     const qrContainer = document.getElementById('labelQR');
     qrContainer.innerHTML = '';
-    
     const qrData = JSON.stringify({
         stockNumber: vehicle.stockNumber,
         vin: vehicle.vin,
@@ -635,7 +467,6 @@ function generateLabel(vehicle) {
         make: vehicle.make,
         model: vehicle.model
     });
-    
     new QRCode(qrContainer, {
         text: qrData,
         width: 80,
@@ -644,23 +475,15 @@ function generateLabel(vehicle) {
         colorLight: "#ffffff",
         correctLevel: QRCode.CorrectLevel.H
     });
-    
     openLabelModal();
 }
 
-function printLabel() {
-    window.print();
-}
+function printLabel() { window.print(); }
 
 async function saveLabel() {
     const label = document.getElementById('label');
-    
     try {
-        const canvas = await html2canvas(label, {
-            backgroundColor: '#ffffff',
-            scale: 2
-        });
-        
+        const canvas = await html2canvas(label, { backgroundColor: '#ffffff', scale: 2 });
         const link = document.createElement('a');
         link.download = `label-${currentVehicle.stockNumber}.png`;
         link.href = canvas.toDataURL();
@@ -673,18 +496,11 @@ async function saveLabel() {
 
 async function copyLabel() {
     const label = document.getElementById('label');
-    
     try {
-        const canvas = await html2canvas(label, {
-            backgroundColor: '#ffffff',
-            scale: 2
-        });
-        
+        const canvas = await html2canvas(label, { backgroundColor: '#ffffff', scale: 2 });
         canvas.toBlob(async (blob) => {
             try {
-                await navigator.clipboard.write([
-                    new ClipboardItem({ 'image/png': blob })
-                ]);
+                await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
                 alert('Label copied to clipboard!');
             } catch (error) {
                 console.error('Error copying to clipboard:', error);
@@ -697,25 +513,17 @@ async function copyLabel() {
     }
 }
 
-// ==================== UI RENDERING ====================
-
 function updateDashboard() {
-    // Update stats
     document.getElementById('totalVehicles').textContent = vehicles.length;
-    document.getElementById('inStockVehicles').textContent = 
-        vehicles.filter(v => v.status === 'in-stock').length;
+    document.getElementById('inStockVehicles').textContent = vehicles.filter(v => v.status === 'in-stock').length;
     document.getElementById('soldVehicles').textContent = soldVehicles.length;
     document.getElementById('tradeInVehicles').textContent = tradeIns.length;
-    
-    // Update scheduled pickups
     const scheduledPickups = vehicles.filter(v => v.status === 'pickup-scheduled');
     const pickupsContainer = document.getElementById('scheduledPickups');
-    
     if (scheduledPickups.length === 0) {
         pickupsContainer.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">No pickups scheduled</p>';
     } else {
-        pickupsContainer.innerHTML = '<ul class="pickup-list">' +
-            scheduledPickups.map(v => `
+        pickupsContainer.innerHTML = '<ul class="pickup-list">' + scheduledPickups.map(v => `
                 <li class="pickup-item">
                     <div class="pickup-info">
                         <div class="pickup-vehicle">${v.year} ${v.make} ${v.model}</div>
@@ -724,17 +532,10 @@ function updateDashboard() {
                     </div>
                     <button class="btn btn-small" onclick="openVehicleDetail(${v.id})">View</button>
                 </li>
-            `).join('') +
-        '</ul>';
+            `).join('') + '</ul>';
     }
-    
-    // Update oldest vehicles
-    const oldestVehicles = [...vehicles]
-        .sort((a, b) => new Date(a.dateAdded) - new Date(b.dateAdded))
-        .slice(0, 4);
-    
+    const oldestVehicles = [...vehicles].sort((a, b) => new Date(a.dateAdded) - new Date(b.dateAdded)).slice(0, 4);
     const oldestContainer = document.getElementById('oldestVehicles');
-    
     if (oldestVehicles.length === 0) {
         oldestContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🚗</div><p>No vehicles in inventory</p></div>';
     } else {
@@ -745,94 +546,66 @@ function updateDashboard() {
 function renderCurrentPage() {
     const activePage = document.querySelector('.page.active');
     if (!activePage) return;
-    
     const pageId = activePage.id;
-    
     switch(pageId) {
-        case 'dashboard':
-            updateDashboard();
-            break;
-        case 'inventory':
-            renderInventoryPage();
-            break;
-        case 'in-transit':
-            renderStatusPage('in-transit', 'transitGrid', 'transitSearchInput', 'transitMakeFilter');
-            break;
-        case 'pdi':
-            renderStatusPage('pdi', 'pdiGrid', 'pdiSearchInput', 'pdiMakeFilter');
-            break;
-        case 'pending-pickup':
-            renderStatusPage('pending-pickup', 'pendingPickupGrid', 'pendingPickupSearchInput', 'pendingPickupMakeFilter');
-            break;
-        case 'pickup-scheduled':
-            renderStatusPage('pickup-scheduled', 'pickupScheduledGrid', 'pickupScheduledSearchInput', 'pickupScheduledMakeFilter');
-            break;
-        case 'sold':
-            renderSoldPage();
-            break;
-        case 'tradeins':
-            renderTradeInsPage();
-            break;
-        case 'analytics':
-            renderAnalytics();
-            break;
+        case 'dashboard': updateDashboard(); break;
+        case 'inventory': renderInventoryPage(); break;
+        case 'in-transit': renderStatusPage('in-transit', 'transitGrid', 'transitSearchInput', 'transitMakeFilter'); break;
+        case 'pdi': renderStatusPage('pdi', 'pdiGrid', 'pdiSearchInput', 'pdiMakeFilter'); break;
+        case 'pending-pickup': renderStatusPage('pending-pickup', 'pendingPickupGrid', 'pendingPickupSearchInput', 'pendingPickupMakeFilter'); break;
+        case 'pickup-scheduled': renderStatusPage('pickup-scheduled', 'pickupScheduledGrid', 'pickupScheduledSearchInput', 'pickupScheduledMakeFilter'); break;
+        case 'sold': renderSoldPage(); break;
+        case 'tradeins': renderTradeInsPage(); break;
+        case 'analytics': renderAnalytics(); break;
     }
 }
 
 function renderInventoryPage() {
     const filtered = filterVehicles(vehicles);
     const container = document.getElementById('inventoryGrid');
-    
     if (filtered.length === 0) {
         container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🚗</div><p>No vehicles found</p></div>';
     } else {
         container.innerHTML = filtered.map(v => createVehicleCard(v)).join('');
     }
-    
     updateMakeFilter('makeFilter', vehicles);
 }
 
 function renderStatusPage(status, gridId, searchId, makeFilterId) {
     const filtered = vehicles.filter(v => v.status === status);
     const container = document.getElementById(gridId);
-    
     if (filtered.length === 0) {
         container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🚗</div><p>No vehicles in this status</p></div>';
     } else {
         container.innerHTML = filtered.map(v => createVehicleCard(v)).join('');
     }
-    
     updateMakeFilter(makeFilterId, filtered);
 }
 
 function renderSoldPage() {
     const container = document.getElementById('soldGrid');
-    
     if (soldVehicles.length === 0) {
         container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💰</div><p>No sold vehicles</p></div>';
     } else {
         container.innerHTML = soldVehicles.map(v => createVehicleCard(v)).join('');
     }
-    
     updateMakeFilter('soldMakeFilter', soldVehicles);
 }
 
 function renderTradeInsPage() {
     const container = document.getElementById('tradeInGrid');
-    
     if (tradeIns.length === 0) {
         container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔄</div><p>No fleet returns</p></div>';
     } else {
         container.innerHTML = tradeIns.map(t => createTradeInCard(t)).join('');
     }
-    
     updateMakeFilter('tradeInMakeFilter', tradeIns);
 }
 
 function createVehicleCard(vehicle) {
     const statusClass = `status-${vehicle.status}`;
     const statusText = vehicle.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-    
+    const vehicleJson = JSON.stringify(vehicle).replace(/"/g, '&quot;');
     return `
         <div class="vehicle-card">
             <div class="vehicle-header">
@@ -841,32 +614,15 @@ function createVehicleCard(vehicle) {
             </div>
             <div class="vehicle-body">
                 <div class="vehicle-info">
-                    <div class="info-item">
-                        <div class="info-label">VIN</div>
-                        <div class="info-value">${vehicle.vin}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Trim</div>
-                        <div class="info-value">${vehicle.trim}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Color</div>
-                        <div class="info-value">${vehicle.color}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Status</div>
-                        <div class="info-value"><span class="status-badge ${statusClass}">${statusText}</span></div>
-                    </div>
+                    <div class="info-item"><div class="info-label">VIN</div><div class="info-value">${vehicle.vin}</div></div>
+                    <div class="info-item"><div class="info-label">Trim</div><div class="info-value">${vehicle.trim}</div></div>
+                    <div class="info-item"><div class="info-label">Color</div><div class="info-value">${vehicle.color}</div></div>
+                    <div class="info-item"><div class="info-label">Status</div><div class="info-value"><span class="status-badge ${statusClass}">${statusText}</span></div></div>
                 </div>
-                ${vehicle.customer ? `
-                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
-                        <div class="info-label">Customer</div>
-                        <div class="info-value">${vehicle.customer.firstName} ${vehicle.customer.lastName}</div>
-                    </div>
-                ` : ''}
+                ${vehicle.customer ? `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);"><div class="info-label">Customer</div><div class="info-value">${vehicle.customer.firstName} ${vehicle.customer.lastName}</div></div>` : ''}
                 <div class="vehicle-actions">
-                    <button class="btn btn-small btn-secondary" onclick="openVehicleDetail(${vehicle.id})">Details</button>
-                    <button class="btn btn-small btn-secondary" onclick="generateLabel(${JSON.stringify(vehicle).replace(/"/g, '&quot;')})">Label</button>
+                    <button class="btn btn-small btn-secondary" onclick='openVehicleDetail(${vehicle.id})'>Details</button>
+                    <button class="btn btn-small btn-secondary" onclick='generateLabel(${vehicleJson})'>Label</button>
                 </div>
             </div>
         </div>
@@ -882,40 +638,13 @@ function createTradeInCard(tradeIn) {
             </div>
             <div class="vehicle-body">
                 <div class="vehicle-info">
-                    <div class="info-item">
-                        <div class="info-label">VIN</div>
-                        <div class="info-value">${tradeIn.vin}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Color</div>
-                        <div class="info-value">${tradeIn.color}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Mileage</div>
-                        <div class="info-value">${tradeIn.mileage ? tradeIn.mileage.toLocaleString() : 'N/A'}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Status</div>
-                        <div class="info-value">
-                            ${tradeIn.pickedUp ? 
-                                `<span class="picked-up-badge">✓ Picked Up</span>` : 
-                                '<span class="status-badge status-pending-pickup">Awaiting Pickup</span>'
-                            }
-                        </div>
-                    </div>
+                    <div class="info-item"><div class="info-label">VIN</div><div class="info-value">${tradeIn.vin}</div></div>
+                    <div class="info-item"><div class="info-label">Color</div><div class="info-value">${tradeIn.color}</div></div>
+                    <div class="info-item"><div class="info-label">Mileage</div><div class="info-value">${tradeIn.mileage ? tradeIn.mileage.toLocaleString() : 'N/A'}</div></div>
+                    <div class="info-item"><div class="info-label">Status</div><div class="info-value">${tradeIn.pickedUp ? '<span class="picked-up-badge">✓ Picked Up</span>' : '<span class="status-badge status-pending-pickup">Awaiting Pickup</span>'}</div></div>
                 </div>
-                ${tradeIn.notes ? `
-                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
-                        <div class="info-label">Notes</div>
-                        <div class="info-value">${tradeIn.notes}</div>
-                    </div>
-                ` : ''}
-                ${tradeIn.pickedUp && tradeIn.pickedUpDate ? `
-                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
-                        <div class="info-label">Picked Up</div>
-                        <div class="info-value">${formatDate(tradeIn.pickedUpDate)}</div>
-                    </div>
-                ` : ''}
+                ${tradeIn.notes ? `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);"><div class="info-label">Notes</div><div class="info-value">${tradeIn.notes}</div></div>` : ''}
+                ${tradeIn.pickedUp && tradeIn.pickedUpDate ? `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);"><div class="info-label">Picked Up</div><div class="info-value">${formatDate(tradeIn.pickedUpDate)}</div></div>` : ''}
                 <div class="vehicle-actions">
                     <div class="checkbox-group" style="flex: 1;">
                         <input type="checkbox" id="pickup-${tradeIn.id}" ${tradeIn.pickedUp ? 'checked' : ''} onchange="toggleTradeInPickup(${tradeIn.id})">
@@ -930,56 +659,21 @@ function createTradeInCard(tradeIn) {
 function renderDetailModal(vehicle) {
     const isFromSold = soldVehicles.some(v => v.id === vehicle.id);
     const isFromTradeIn = tradeIns.some(t => t.id === vehicle.id);
-    
     const content = document.getElementById('detailContent');
     content.innerHTML = `
         <div class="vehicle-info">
-            <div class="info-item">
-                <div class="info-label">Stock #</div>
-                <div class="info-value">${vehicle.stockNumber}</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">VIN</div>
-                <div class="info-value">${vehicle.vin}</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Year</div>
-                <div class="info-value">${vehicle.year}</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Make</div>
-                <div class="info-value">${vehicle.make}</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Model</div>
-                <div class="info-value">${vehicle.model}</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Trim</div>
-                <div class="info-value">${vehicle.trim}</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Color</div>
-                <div class="info-value">${vehicle.color}</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Fleet Company</div>
-                <div class="info-value">${vehicle.fleetCompany || 'N/A'}</div>
-            </div>
+            <div class="info-item"><div class="info-label">Stock #</div><div class="info-value">${vehicle.stockNumber}</div></div>
+            <div class="info-item"><div class="info-label">VIN</div><div class="info-value">${vehicle.vin}</div></div>
+            <div class="info-item"><div class="info-label">Year</div><div class="info-value">${vehicle.year}</div></div>
+            <div class="info-item"><div class="info-label">Make</div><div class="info-value">${vehicle.make}</div></div>
+            <div class="info-item"><div class="info-label">Model</div><div class="info-value">${vehicle.model}</div></div>
+            <div class="info-item"><div class="info-label">Trim</div><div class="info-value">${vehicle.trim}</div></div>
+            <div class="info-item"><div class="info-label">Color</div><div class="info-value">${vehicle.color}</div></div>
+            <div class="info-item"><div class="info-label">Fleet Company</div><div class="info-value">${vehicle.fleetCompany || 'N/A'}</div></div>
         </div>
-        
-        ${!isFromSold && !isFromTradeIn ? `
-            <div style="margin-top: 2rem;">
-                <button class="btn btn-danger" onclick="deleteVehicle(${vehicle.id})" style="width: 100%;">
-                    Delete Vehicle
-                </button>
-            </div>
-        ` : ''}
+        ${!isFromSold && !isFromTradeIn ? `<div style="margin-top: 2rem;"><button class="btn btn-danger" onclick="deleteVehicle(${vehicle.id})" style="width: 100%;">Delete Vehicle</button></div>` : ''}
     `;
-    
     document.getElementById('detailStatus').value = vehicle.status;
-    
-    // Fill customer form if data exists
     if (vehicle.customer) {
         document.getElementById('customerFirstName').value = vehicle.customer.firstName || '';
         document.getElementById('customerLastName').value = vehicle.customer.lastName || '';
@@ -995,128 +689,49 @@ function renderDetailModal(vehicle) {
     } else {
         document.getElementById('customerForm').reset();
     }
-    
     renderUploadedFiles();
 }
 
 function renderAnalytics() {
-    // Chart by Make
     const makeData = {};
-    vehicles.forEach(v => {
-        makeData[v.make] = (makeData[v.make] || 0) + 1;
-    });
-    
-    const makeChart = new Chart(document.getElementById('makeChart'), {
+    vehicles.forEach(v => { makeData[v.make] = (makeData[v.make] || 0) + 1; });
+    new Chart(document.getElementById('makeChart'), {
         type: 'bar',
         data: {
             labels: Object.keys(makeData),
-            datasets: [{
-                label: 'Vehicles by Make',
-                data: Object.values(makeData),
-                backgroundColor: 'rgba(10, 132, 255, 0.8)',
-                borderColor: 'rgba(10, 132, 255, 1)',
-                borderWidth: 1
-            }]
+            datasets: [{ label: 'Vehicles by Make', data: Object.values(makeData), backgroundColor: 'rgba(10, 132, 255, 0.8)', borderColor: 'rgba(10, 132, 255, 1)', borderWidth: 1 }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    labels: {
-                        color: '#ffffff'
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        color: '#ffffff'
-                    },
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.1)'
-                    }
-                },
-                x: {
-                    ticks: {
-                        color: '#ffffff'
-                    },
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.1)'
-                    }
-                }
-            }
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#ffffff' } } },
+            scales: { y: { beginAtZero: true, ticks: { color: '#ffffff' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }, x: { ticks: { color: '#ffffff' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } } }
         }
     });
-    
-    // Timeline Chart
     const timelineData = {};
     vehicles.forEach(v => {
         const date = new Date(v.dateAdded).toLocaleDateString();
         timelineData[date] = (timelineData[date] || 0) + 1;
     });
-    
-    const timelineChart = new Chart(document.getElementById('timelineChart'), {
+    new Chart(document.getElementById('timelineChart'), {
         type: 'line',
         data: {
             labels: Object.keys(timelineData),
-            datasets: [{
-                label: 'Vehicles Added',
-                data: Object.values(timelineData),
-                backgroundColor: 'rgba(10, 132, 255, 0.2)',
-                borderColor: 'rgba(10, 132, 255, 1)',
-                borderWidth: 2,
-                fill: true
-            }]
+            datasets: [{ label: 'Vehicles Added', data: Object.values(timelineData), backgroundColor: 'rgba(10, 132, 255, 0.2)', borderColor: 'rgba(10, 132, 255, 1)', borderWidth: 2, fill: true }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    labels: {
-                        color: '#ffffff'
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        color: '#ffffff'
-                    },
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.1)'
-                    }
-                },
-                x: {
-                    ticks: {
-                        color: '#ffffff'
-                    },
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.1)'
-                    }
-                }
-            }
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#ffffff' } } },
+            scales: { y: { beginAtZero: true, ticks: { color: '#ffffff' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }, x: { ticks: { color: '#ffffff' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } } }
         }
     });
 }
 
-// ==================== FILTERING & SEARCH ====================
-
 function filterVehicles(vehicleList) {
     return vehicleList.filter(v => {
         const searchTerm = currentFilter.search.toLowerCase();
-        const matchesSearch = !searchTerm || 
-            v.stockNumber.toLowerCase().includes(searchTerm) ||
-            v.vin.toLowerCase().includes(searchTerm) ||
-            v.make.toLowerCase().includes(searchTerm) ||
-            v.model.toLowerCase().includes(searchTerm);
-        
+        const matchesSearch = !searchTerm || v.stockNumber.toLowerCase().includes(searchTerm) || v.vin.toLowerCase().includes(searchTerm) || v.make.toLowerCase().includes(searchTerm) || v.model.toLowerCase().includes(searchTerm);
         const matchesMake = !currentFilter.make || v.make === currentFilter.make;
         const matchesStatus = !currentFilter.status || v.status === currentFilter.status;
-        
         return matchesSearch && matchesMake && matchesStatus;
     });
 }
@@ -1124,180 +739,67 @@ function filterVehicles(vehicleList) {
 function updateMakeFilter(selectId, vehicleList) {
     const select = document.getElementById(selectId);
     if (!select) return;
-    
     const makes = [...new Set(vehicleList.map(v => v.make))].sort();
     const currentValue = select.value;
-    
-    select.innerHTML = '<option value="">All Makes</option>' +
-        makes.map(make => `<option value="${make}" ${make === currentValue ? 'selected' : ''}>${make}</option>`).join('');
+    select.innerHTML = '<option value="">All Makes</option>' + makes.map(make => `<option value="${make}" ${make === currentValue ? 'selected' : ''}>${make}</option>`).join('');
 }
 
-// ==================== MODAL MANAGEMENT ====================
-
-function openAddModal() {
-    document.getElementById('addModal').classList.add('active');
-}
-
-function closeAddModal() {
-    document.getElementById('addModal').classList.remove('active');
-    document.getElementById('vehicleForm').reset();
-}
-
-function openVehicleDetail(vehicleId) {
-    const vehicle = vehicles.find(v => v.id === vehicleId) || 
-                   soldVehicles.find(v => v.id === vehicleId);
-    
-    if (!vehicle) return;
-    
-    currentVehicle = vehicle;
-    renderDetailModal(vehicle);
-    document.getElementById('detailModal').classList.add('active');
-}
-
-function closeDetailModal() {
-    document.getElementById('detailModal').classList.remove('active');
-    currentVehicle = null;
-}
-
-function openLabelModal() {
-    document.getElementById('labelModal').classList.add('active');
-}
-
-function closeLabelModal() {
-    document.getElementById('labelModal').classList.remove('active');
-}
-
-function openTradeInModal() {
-    document.getElementById('tradeInModal').classList.add('active');
-}
-
-function closeTradeInModal() {
-    document.getElementById('tradeInModal').classList.remove('active');
-    document.getElementById('tradeInForm').reset();
-}
-
-function openTradePickupModal() {
-    document.getElementById('tradePickupModal').classList.add('active');
-}
-
-function closeTradePickupModal() {
-    document.getElementById('tradePickupModal').classList.remove('active');
-    document.getElementById('tradePickupForm').reset();
-}
-
-function openPickupScheduleModal() {
-    document.getElementById('pickupScheduleModal').classList.add('active');
-}
-
-function closePickupScheduleModal() {
-    document.getElementById('pickupScheduleModal').classList.remove('active');
-    document.getElementById('pickupScheduleForm').reset();
-}
-
-// ==================== NAVIGATION ====================
+function openAddModal() { document.getElementById('addModal').classList.add('active'); }
+function closeAddModal() { document.getElementById('addModal').classList.remove('active'); document.getElementById('vehicleForm').reset(); }
+function openVehicleDetail(vehicleId) { const vehicle = vehicles.find(v => v.id === vehicleId) || soldVehicles.find(v => v.id === vehicleId); if (!vehicle) return; currentVehicle = vehicle; renderDetailModal(vehicle); document.getElementById('detailModal').classList.add('active'); }
+function closeDetailModal() { document.getElementById('detailModal').classList.remove('active'); currentVehicle = null; }
+function openLabelModal() { document.getElementById('labelModal').classList.add('active'); }
+function closeLabelModal() { document.getElementById('labelModal').classList.remove('active'); }
+function openTradeInModal() { document.getElementById('tradeInModal').classList.add('active'); }
+function closeTradeInModal() { document.getElementById('tradeInModal').classList.remove('active'); document.getElementById('tradeInForm').reset(); }
+function openTradePickupModal() { document.getElementById('tradePickupModal').classList.add('active'); }
+function closeTradePickupModal() { document.getElementById('tradePickupModal').classList.remove('active'); document.getElementById('tradePickupForm').reset(); }
+function openPickupScheduleModal() { document.getElementById('pickupScheduleModal').classList.add('active'); }
+function closePickupScheduleModal() { document.getElementById('pickupScheduleModal').classList.remove('active'); document.getElementById('pickupScheduleForm').reset(); }
 
 function switchPage(pageId) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-    
     document.getElementById(pageId).classList.add('active');
     document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
-    
     renderCurrentPage();
 }
 
-// ==================== UTILITY FUNCTIONS ====================
-
-function formatDate(dateString) {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
-}
-
-function formatFileSize(bytes) {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-}
-
-// ==================== EVENT LISTENERS ====================
+function formatDate(dateString) { if (!dateString) return 'N/A'; return new Date(dateString).toLocaleDateString(); }
+function formatFileSize(bytes) { if (bytes < 1024) return bytes + ' B'; if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'; return (bytes / (1024 * 1024)).toFixed(1) + ' MB'; }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Check authentication on load
     checkAuth();
-    
-    // Login form
     document.getElementById('loginForm').addEventListener('submit', login);
-    
-    // Vehicle form
     document.getElementById('vehicleForm').addEventListener('submit', addVehicle);
-    
-    // Customer form
     document.getElementById('customerForm').addEventListener('submit', saveCustomerInfo);
-    
-    // Trade-in form
     document.getElementById('tradeInForm').addEventListener('submit', addTradeIn);
-    
-    // Trade-in pickup form
     document.getElementById('tradePickupForm').addEventListener('submit', confirmTradeInPickup);
-    
-    // Pickup schedule form
     document.getElementById('pickupScheduleForm').addEventListener('submit', schedulePickup);
-    
-    // Navigation
     document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const pageId = this.getAttribute('data-page');
-            switchPage(pageId);
-        });
+        link.addEventListener('click', function(e) { e.preventDefault(); const pageId = this.getAttribute('data-page'); switchPage(pageId); });
     });
-    
-    // Search and filters
-    document.getElementById('searchInput')?.addEventListener('input', function(e) {
-        currentFilter.search = e.target.value;
-        renderCurrentPage();
-    });
-    
-    document.getElementById('makeFilter')?.addEventListener('change', function(e) {
-        currentFilter.make = e.target.value;
-        renderCurrentPage();
-    });
-    
-    document.getElementById('statusFilter')?.addEventListener('change', function(e) {
-        currentFilter.status = e.target.value;
-        renderCurrentPage();
-    });
-    
-    // File upload drag and drop
+    if (document.getElementById('searchInput')) {
+        document.getElementById('searchInput').addEventListener('input', function(e) { currentFilter.search = e.target.value; renderCurrentPage(); });
+    }
+    if (document.getElementById('makeFilter')) {
+        document.getElementById('makeFilter').addEventListener('change', function(e) { currentFilter.make = e.target.value; renderCurrentPage(); });
+    }
+    if (document.getElementById('statusFilter')) {
+        document.getElementById('statusFilter').addEventListener('change', function(e) { currentFilter.status = e.target.value; renderCurrentPage(); });
+    }
     const uploadArea = document.getElementById('fileUploadArea');
     if (uploadArea) {
-        uploadArea.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            this.classList.add('drag-over');
-        });
-        
-        uploadArea.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-            this.classList.remove('drag-over');
-        });
-        
+        uploadArea.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('drag-over'); });
+        uploadArea.addEventListener('dragleave', function(e) { e.preventDefault(); this.classList.remove('drag-over'); });
         uploadArea.addEventListener('drop', function(e) {
             e.preventDefault();
             this.classList.remove('drag-over');
             const files = e.dataTransfer.files;
-            if (files.length) {
-                document.getElementById('pdfUploadInput').files = files;
-                handleFileUpload({ target: { files: files } });
-            }
+            if (files.length) { document.getElementById('pdfUploadInput').files = files; handleFileUpload({ target: { files: files } }); }
         });
     }
-    
-    // Modal close on background click
     document.querySelectorAll('.modal').forEach(modal => {
-        modal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                this.classList.remove('active');
-            }
-        });
+        modal.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('active'); });
     });
 });
