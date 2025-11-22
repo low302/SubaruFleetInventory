@@ -303,7 +303,7 @@ function renderTradeIns() {
     const container = document.getElementById('tradeInGrid');
     
     if (filtered.length === 0) {
-        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔄</div><p>No trade-ins yet</p></div>';
+        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔄</div><p>No fleet returns yet</p></div>';
         return;
     }
     
@@ -564,7 +564,7 @@ function createSoldVehicleCard(vehicle) {
                 </div>
                 <div class="vehicle-actions">
                     <button class="btn btn-small btn-secondary" onclick="viewSoldDetails(${vehicle.id})">View Details</button>
-                    ${vehicle.tradeInId ? `<button class="btn btn-small btn-secondary" onclick="viewTradeInDetails(${vehicle.tradeInId})">View Trade-In</button>` : ''}
+                    ${vehicle.tradeInId ? `<button class="btn btn-small btn-secondary" onclick="viewTradeInDetails(${vehicle.tradeInId})">View Fleet Return</button>` : ''}
                 </div>
             </div>
         </div>
@@ -579,7 +579,7 @@ function createTradeInCard(vehicle) {
     return `
         <div class="vehicle-card">
             <div class="vehicle-header" style="background: linear-gradient(135deg, #ff9f0a, #ff6b35);">
-                <div class="vehicle-stock">${vehicle.stockNumber ? '#' + vehicle.stockNumber : 'TRADE-IN'}</div>
+                <div class="vehicle-stock">${vehicle.stockNumber ? '#' + vehicle.stockNumber : 'FLEET RETURN'}</div>
                 <div class="vehicle-title">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
             </div>
             <div class="vehicle-body">
@@ -679,7 +679,7 @@ function updateStats() {
     const total = inventory.filter(v => v.status !== 'sold').length;
     const inStock = inventory.filter(v => v.status === 'in-stock').length;
     const sold = soldVehicles.length;
-    const tradeInCount = tradeIns.length;
+    const tradeInCount = tradeIns.filter(v => !v.pickedUp).length; // Only count non-picked-up fleet returns
     
     document.getElementById('totalVehicles').textContent = total;
     document.getElementById('inStockVehicles').textContent = inStock;
@@ -877,7 +877,7 @@ function updateVehicleStatus() {
     
     // If changing to sold status, prompt for trade-in
     if (newStatus === 'sold' && oldStatus !== 'sold') {
-        const hasTradeIn = confirm('Was there a trade-in vehicle with this sale?');
+        const hasTradeIn = confirm('Was there a fleet return vehicle with this sale?');
         
         if (hasTradeIn) {
             // Store the vehicle ID for later association
@@ -1028,7 +1028,7 @@ document.getElementById('tradeInForm').addEventListener('submit', function(e) {
     renderTradeIns();
     updateStats();
     
-    alert('Trade-in vehicle added successfully!');
+    alert('Fleet return vehicle added successfully!');
 });
 
 // Pickup Schedule Form Submission
@@ -1186,8 +1186,8 @@ function viewTradeInDetails(id) {
         ` : ''}
         <div class="vehicle-info" style="grid-template-columns: 1fr;">
             <div class="info-item" style="margin-bottom: 1rem;">
-                <div class="info-label">${vehicle.stockNumber ? 'Stock Number' : 'Trade-In ID'}</div>
-                <div class="info-value" style="font-size: 1.5rem;">${vehicle.stockNumber || 'TRADE-' + vehicle.id}</div>
+                <div class="info-label">${vehicle.stockNumber ? 'Stock Number' : 'Fleet Return ID'}</div>
+                <div class="info-value" style="font-size: 1.5rem;">${vehicle.stockNumber || 'RETURN-' + vehicle.id}</div>
             </div>
             <div class="info-item" style="margin-bottom: 1rem;">
                 <div class="info-label">VIN</div>

@@ -879,7 +879,7 @@
             <li class="nav-item">
                 <a class="nav-link" data-page="tradeins">
                     <span class="nav-icon">🔄</span>
-                    Trade-Ins
+                    Fleet Returns
                 </a>
             </li>
             <li class="nav-item">
@@ -916,9 +916,9 @@
                         <div class="stat-change">This month</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Trade-Ins</div>
+                        <div class="stat-label">Fleet Returns</div>
                         <div class="stat-value" id="tradeInVehicles">0</div>
-                        <div class="stat-change">Total</div>
+                        <div class="stat-change">On Lot</div>
                     </div>
                 </div>
 
@@ -1092,13 +1092,13 @@
             <!-- Trade-Ins Page -->
             <div id="tradeins" class="page">
                 <div class="header">
-                    <h1>Trade-Ins</h1>
-                    <p>Used vehicles received in trade</p>
+                    <h1>Fleet Returns</h1>
+                    <p>Vehicles returned from fleet service</p>
                 </div>
 
                 <div class="search-filter-bar">
                     <div class="search-box">
-                        <input type="text" id="tradeInSearchInput" placeholder="Search trade-ins...">
+                        <input type="text" id="tradeInSearchInput" placeholder="Search fleet returns...">
                     </div>
                     <div class="filter-group">
                         <select id="tradeInMakeFilter" class="filter-select">
@@ -1311,7 +1311,7 @@
     <div id="tradeInModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Add Trade-In Vehicle</h2>
+                <h2>Add Fleet Return Vehicle</h2>
                 <button class="close-btn" onclick="closeTradeInModal()">&times;</button>
             </div>
             <form id="tradeInForm">
@@ -1372,7 +1372,7 @@
     <div id="tradePickupModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Trade-In Pickup Date</h2>
+                <h2>Fleet Return Pickup Date</h2>
                 <button class="close-btn" onclick="closeTradePickupModal()">&times;</button>
             </div>
             <form id="tradePickupForm">
