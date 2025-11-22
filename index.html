@@ -738,6 +738,92 @@
             letter-spacing: 0.05em;
             display: inline-block;
         }
+
+        .file-upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            background: rgba(40, 40, 40, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .file-upload-area:hover {
+            border-color: var(--accent);
+            background: rgba(40, 40, 40, 0.5);
+        }
+
+        .file-upload-area.drag-over {
+            border-color: var(--accent);
+            background: rgba(10, 132, 255, 0.1);
+        }
+
+        .file-upload-input {
+            display: none;
+        }
+
+        .uploaded-files-list {
+            margin-top: 1rem;
+        }
+
+        .uploaded-file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.875rem 1rem;
+            background: rgba(40, 40, 40, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .uploaded-file-item:hover {
+            background: rgba(50, 50, 50, 0.8);
+            border-color: var(--accent);
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 1;
+        }
+
+        .file-icon {
+            font-size: 1.5rem;
+        }
+
+        .file-details {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .file-meta {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+            min-width: auto;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
@@ -1118,6 +1204,20 @@
                     </select>
                 </div>
                 <button class="btn btn-secondary" onclick="updateVehicleStatus()" style="width: 100%;">Update Status</button>
+            </div>
+
+            <!-- Document Upload Section -->
+            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border);">
+                <h3 style="font-size: 1.25rem; margin-bottom: 1rem;">Documents</h3>
+                
+                <div class="file-upload-area" id="fileUploadArea" onclick="document.getElementById('pdfUploadInput').click()">
+                    <input type="file" id="pdfUploadInput" class="file-upload-input" accept=".pdf,application/pdf" multiple onchange="handleFileUpload(event)">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">📄</div>
+                    <div style="font-weight: 600; margin-bottom: 0.25rem;">Click to upload or drag and drop</div>
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">PDF files only</div>
+                </div>
+
+                <div id="uploadedFilesList" class="uploaded-files-list"></div>
             </div>
 
             <!-- Customer Information Section -->

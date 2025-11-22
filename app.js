@@ -802,6 +802,12 @@ function viewDetails(id) {
         document.getElementById('customerForm').reset();
     }
     
+    // Setup drag and drop for file upload
+    setupFileUpload();
+    
+    // Render uploaded files
+    renderUploadedFiles();
+    
     document.getElementById('detailModal').classList.add('active');
 }
 
@@ -1460,3 +1466,215 @@ window.addEventListener('click', (e) => {
         e.target.classList.remove('active');
     }
 });
+
+// File Upload Functions
+function setupFileUpload() {
+    const uploadArea = document.getElementById('fileUploadArea');
+    if (!uploadArea) return;
+    
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    // Highlight drop area when item is dragged over it
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, () => {
+            uploadArea.classList.add('drag-over');
+        }, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, () => {
+            uploadArea.classList.remove('drag-over');
+        }, false);
+    });
+    
+    // Handle dropped files
+    uploadArea.addEventListener('drop', handleDrop, false);
+}
+
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    handleFiles(files);
+}
+
+function handleFileUpload(e) {
+    const files = e.target.files;
+    handleFiles(files);
+}
+
+function handleFiles(files) {
+    const vehicleId = window.currentVehicleId;
+    const vehicleIndex = inventory.findIndex(v => v.id === vehicleId);
+    if (vehicleIndex === -1) return;
+    
+    // Initialize documents array if it doesn't exist
+    if (!inventory[vehicleIndex].documents) {
+        inventory[vehicleIndex].documents = [];
+    }
+    
+    // Process each file
+    Array.from(files).forEach(file => {
+        // Check if it's a PDF
+        if (file.type !== 'application/pdf') {
+            alert(`${file.name} is not a PDF file. Only PDF files are allowed.`);
+            return;
+        }
+        
+        // Check file size (limit to 10MB)
+        const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+        if (file.size > maxSize) {
+            alert(`${file.name} is too large. Maximum file size is 10MB.`);
+            return;
+        }
+        
+        // Read file as base64
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const document = {
+                id: Date.now() + Math.random(),
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                uploadDate: new Date().toISOString(),
+                data: e.target.result
+            };
+            
+            inventory[vehicleIndex].documents.push(document);
+            localStorage.setItem('vehicleInventory', JSON.stringify(inventory));
+            
+            // Re-render the files list
+            renderUploadedFiles();
+        };
+        reader.readAsDataURL(file);
+    });
+    
+    // Clear the file input
+    document.getElementById('pdfUploadInput').value = '';
+}
+
+function renderUploadedFiles() {
+    const vehicleId = window.currentVehicleId;
+    const vehicle = inventory.find(v => v.id === vehicleId);
+    const container = document.getElementById('uploadedFilesList');
+    
+    if (!container) return;
+    
+    if (!vehicle.documents || vehicle.documents.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 1rem; font-size: 0.875rem;">No documents uploaded yet</p>';
+        return;
+    }
+    
+    container.innerHTML = vehicle.documents.map(doc => {
+        const uploadDate = new Date(doc.uploadDate).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        const fileSize = formatFileSize(doc.size);
+        
+        return `
+            <div class="uploaded-file-item">
+                <div class="file-info">
+                    <div class="file-icon">📄</div>
+                    <div class="file-details">
+                        <div class="file-name">${doc.name}</div>
+                        <div class="file-meta">${fileSize} • Uploaded ${uploadDate}</div>
+                    </div>
+                </div>
+                <div class="file-actions">
+                    <button class="btn btn-small btn-secondary btn-icon" onclick="viewDocument(${doc.id})" title="View">
+                        👁️
+                    </button>
+                    <button class="btn btn-small btn-secondary btn-icon" onclick="downloadDocument(${doc.id})" title="Download">
+                        ⬇️
+                    </button>
+                    <button class="btn btn-small btn-danger btn-icon" onclick="deleteDocument(${doc.id})" title="Delete">
+                        🗑️
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+function viewDocument(docId) {
+    const vehicleId = window.currentVehicleId;
+    const vehicle = inventory.find(v => v.id === vehicleId);
+    const document = vehicle.documents.find(d => d.id === docId);
+    
+    if (!document) return;
+    
+    // Open PDF in new window
+    const newWindow = window.open();
+    newWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>${document.name}</title>
+            <style>
+                body {
+                    margin: 0;
+                    padding: 0;
+                    background: #1a1a1a;
+                }
+                iframe {
+                    width: 100vw;
+                    height: 100vh;
+                    border: none;
+                }
+            </style>
+        </head>
+        <body>
+            <iframe src="${document.data}"></iframe>
+        </body>
+        </html>
+    `);
+}
+
+function downloadDocument(docId) {
+    const vehicleId = window.currentVehicleId;
+    const vehicle = inventory.find(v => v.id === vehicleId);
+    const document = vehicle.documents.find(d => d.id === docId);
+    
+    if (!document) return;
+    
+    // Create download link
+    const link = window.document.createElement('a');
+    link.href = document.data;
+    link.download = document.name;
+    link.click();
+}
+
+function deleteDocument(docId) {
+    if (!confirm('Are you sure you want to delete this document?')) return;
+    
+    const vehicleId = window.currentVehicleId;
+    const vehicleIndex = inventory.findIndex(v => v.id === vehicleId);
+    
+    if (vehicleIndex === -1) return;
+    
+    inventory[vehicleIndex].documents = inventory[vehicleIndex].documents.filter(d => d.id !== docId);
+    localStorage.setItem('vehicleInventory', JSON.stringify(inventory));
+    
+    renderUploadedFiles();
+}
