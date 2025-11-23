@@ -8,12 +8,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
@@ -22,236 +18,136 @@
         }
 
         .login-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
+            display: flex; align-items: center; justify-content: center; z-index: 10000;
         }
 
         .login-container {
-            background: rgba(30, 30, 30, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-            padding: 3rem;
-            width: 90%;
-            max-width: 400px;
+            background: rgba(30, 30, 30, 0.95); backdrop-filter: blur(20px);
+            border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); padding: 3rem;
+            width: 90%; max-width: 400px;
         }
 
-        .login-header {
-            text-align: center;
-            margin-bottom: 2rem;
-            color: #0a84ff;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
+        .login-header { text-align: center; margin-bottom: 2rem; color: #0a84ff; }
+        
+        .form-group { margin-bottom: 1.5rem; }
+        
         .form-group label {
-            display: block;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: white;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
+            display: block; font-size: 0.875rem; font-weight: 500;
+            color: white; margin-bottom: 0.5rem; text-transform: uppercase;
             letter-spacing: 0.05em;
         }
-
+        
         .form-group input {
-            width: 100%;
-            padding: 0.875rem 1rem;
-            font-size: 1rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            background: rgba(40, 40, 40, 0.6);
-            color: white;
-            font-family: inherit;
+            width: 100%; padding: 0.875rem 1rem; font-size: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px;
+            background: rgba(40, 40, 40, 0.6); color: white; font-family: inherit;
         }
-
+        
         .form-group input:focus {
-            outline: none;
-            border-color: #0a84ff;
+            outline: none; border-color: #0a84ff;
             box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.2);
             background: rgba(40, 40, 40, 0.9);
         }
 
         .btn {
-            background: #0a84ff;
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            font-size: 0.9rem;
-            font-weight: 600;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            background: #0a84ff; color: white; border: none;
+            padding: 0.75rem 1.5rem; font-size: 0.9rem; font-weight: 600;
+            border-radius: 10px; cursor: pointer; transition: all 0.3s ease;
         }
-
-        .btn:hover {
-            background: #409cff;
-            transform: translateY(-2px);
-        }
-
-        .btn-secondary {
-            background: rgba(60, 60, 60, 0.8);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(70, 70, 70, 0.9);
-        }
+        
+        .btn:hover { background: #409cff; transform: translateY(-2px); }
+        
+        .btn-secondary { background: rgba(60, 60, 60, 0.8); }
+        .btn-secondary:hover { background: rgba(70, 70, 70, 0.9); }
+        
+        .btn-success { background: #30d158; }
+        .btn-success:hover { background: #40e168; }
 
         .login-error {
-            color: #ff453a;
-            font-size: 0.875rem;
-            text-align: center;
-            min-height: 1.25rem;
-            margin: 10px 0;
+            color: #ff453a; font-size: 0.875rem; text-align: center;
+            min-height: 1.25rem; margin: 10px 0;
         }
 
-        #mainApp {
-            display: none;
-            padding: 3rem;
-            max-width: 1200px;
-            margin: 0 auto;
+        #mainApp { display: none; padding: 3rem; max-width: 1200px; margin: 0 auto; }
+
+        .export-buttons {
+            display: flex; gap: 1rem; margin: 2rem 0; flex-wrap: wrap;
         }
 
         .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9);
+            z-index: 1000; align-items: center; justify-content: center;
         }
 
-        .modal.active {
-            display: flex;
-        }
+        .modal.active { display: flex; }
 
         .modal-content {
             background: rgba(25, 25, 25, 0.98);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 2.5rem;
-            max-width: 700px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
+            border-radius: 24px; padding: 2.5rem;
+            max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;
         }
 
         .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 2rem;
         }
 
-        .modal-header h2 {
-            font-size: 1.75rem;
-            font-weight: 700;
-        }
+        .modal-header h2 { font-size: 1.75rem; font-weight: 700; }
 
         .close-btn {
-            background: none;
-            border: none;
-            font-size: 2rem;
-            cursor: pointer;
-            color: rgba(255, 255, 255, 0.6);
-            line-height: 1;
-            padding: 0;
-            width: 32px;
-            height: 32px;
+            background: none; border: none; font-size: 2rem;
+            cursor: pointer; color: rgba(255, 255, 255, 0.6);
+            line-height: 1; padding: 0; width: 32px; height: 32px;
         }
 
-        .close-btn:hover {
-            color: white;
-        }
+        .close-btn:hover { color: white; }
 
-        .label-preview {
-            margin-top: 2rem;
-            text-align: center;
-        }
+        .label-preview { margin-top: 2rem; text-align: center; }
 
-        /* Label preview in modal */
         .label {
-            width: 4in;
-            height: 2in;
-            background: white;
-            border: 5px solid #000;
-            padding: 18px;
-            margin: 0 auto 20px;
-            box-sizing: border-box;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            display: block;
-            position: relative;
+            width: 384px; height: 192px; background: white;
+            border: 5px solid #000; padding: 16px;
+            margin: 0 auto 20px; box-sizing: border-box;
+            font-family: 'Inter', Arial, sans-serif;
         }
 
         .label-header {
-            text-align: center;
-            font-size: 32px;
-            font-weight: 800;
-            margin-bottom: 14px;
-            padding-bottom: 10px;
-            border-bottom: 5px solid #000;
-            color: #000;
-            letter-spacing: 2px;
-            text-transform: uppercase;
+            text-align: center; font-size: 28px; font-weight: 800;
+            margin-bottom: 12px; padding-bottom: 8px;
+            border-bottom: 4px solid #000; color: #000;
+            letter-spacing: 1.5px; text-transform: uppercase;
         }
 
         .label-content {
-            display: flex;
-            gap: 18px;
-            height: calc(100% - 70px);
-            align-items: stretch;
+            display: flex; gap: 16px; height: calc(100% - 56px);
         }
 
         .label-info {
-            flex: 1;
-            font-size: 14px;
-            line-height: 2;
-            color: #000;
-            font-weight: 600;
+            flex: 1; font-size: 13px; line-height: 1.8;
+            color: #000; font-weight: 600;
         }
 
-        .label-info div {
-            margin-bottom: 5px;
-        }
+        .label-info div { margin-bottom: 3px; }
 
         .label-info strong {
-            font-weight: 800;
-            display: inline-block;
-            min-width: 60px;
-            color: #000;
+            font-weight: 800; display: inline-block;
+            min-width: 55px; color: #000;
         }
 
         .label-qr {
-            width: 130px;
-            height: 130px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            border: 3px solid #000;
-            padding: 5px;
-            background: white;
+            width: 115px; height: 115px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; border: 3px solid #000;
+            padding: 4px; background: white;
         }
 
-        .label-qr canvas {
-            display: block !important;
-            max-width: 100%;
-            max-height: 100%;
+        .label-qr canvas, .label-qr img {
+            display: block !important; max-width: 100%; max-height: 100%;
         }
     </style>
 </head>
@@ -281,9 +177,17 @@
     <!-- Main Application -->
     <div id="mainApp">
         <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">✅ Fleet Management System</h1>
-        <p style="font-size: 1.1rem; opacity: 0.9; margin-bottom: 2rem;">Modern labels with separate print window - no modal in print!</p>
+        <p style="font-size: 1.1rem; opacity: 0.9; margin-bottom: 2rem;">Generate labels and export vehicle data</p>
         
-        <button class="btn" onclick="testLabel()" style="font-size: 1.1rem; padding: 1rem 2rem;">🏷️ Generate Test Label</button>
+        <div class="export-buttons">
+            <button class="btn btn-success" onclick="exportSoldVehicles()">📊 Export Sold Vehicles (CSV)</button>
+            <button class="btn btn-success" onclick="exportInStockVehicles()">📊 Export In-Stock Vehicles (CSV)</button>
+            <button class="btn btn-success" onclick="exportTradeIns()">📊 Export Fleet Returns (CSV)</button>
+        </div>
+        
+        <hr style="border: 1px solid rgba(255,255,255,0.2); margin: 2rem 0;">
+        
+        <button class="btn" onclick="testLabel()" style="font-size: 1.1rem; padding: 1rem 2rem;">🏷️ Test Label Generation</button>
         
         <button class="btn btn-secondary" onclick="logout()" style="margin-left: 1rem;">🚪 Logout</button>
     </div>
@@ -297,7 +201,7 @@
             </div>
             <div class="label-preview">
                 <div class="label" id="label">
-                    <div class="label-header" id="labelStockNumber">STOCK#</div>
+                    <div class="label-header" id="labelStockNumber">STOCK</div>
                     <div class="label-content">
                         <div class="label-info" id="labelInfo">
                             <div><strong>VIN:</strong> Loading...</div>
@@ -306,10 +210,9 @@
                     </div>
                 </div>
                 <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                    <button class="btn" onclick="printLabelNewWindow()" style="flex: 1;">🖨️ Print Label</button>
-                    <button class="btn btn-secondary" onclick="saveLabel()" style="flex: 1;">💾 Save PNG</button>
+                    <button class="btn" onclick="printLabelWindow()" style="flex: 1;">🖨️ Print</button>
+                    <button class="btn btn-secondary" onclick="downloadLabelImage()" style="flex: 1;">💾 Download</button>
                 </div>
-                <p style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.7;">Print opens in new window with ONLY the label!</p>
             </div>
         </div>
     </div>
@@ -317,6 +220,9 @@
     <script>
 const API_BASE = '/api';
 let currentVehicle = null;
+let vehicles = [];
+let soldVehicles = [];
+let tradeIns = [];
 
 async function checkAuth() {
     try {
@@ -325,9 +231,26 @@ async function checkAuth() {
         if (data.authenticated) {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
+            await loadAllData();
         }
     } catch (error) {
         console.error('Auth check failed:', error);
+    }
+}
+
+async function loadAllData() {
+    try {
+        const [invResp, soldResp, tradeResp] = await Promise.all([
+            fetch(API_BASE + '/inventory', { credentials: 'include' }),
+            fetch(API_BASE + '/sold-vehicles', { credentials: 'include' }),
+            fetch(API_BASE + '/trade-ins', { credentials: 'include' })
+        ]);
+        vehicles = await invResp.json();
+        soldVehicles = await soldResp.json();
+        tradeIns = await tradeResp.json();
+        console.log('Data loaded:', { vehicles: vehicles.length, sold: soldVehicles.length, tradeIns: tradeIns.length });
+    } catch (error) {
+        console.error('Error loading data:', error);
     }
 }
 
@@ -349,8 +272,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         
         if (response.ok) {
             errorDiv.textContent = '';
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
+            await checkAuth();
         } else {
             errorDiv.textContent = data.error || 'Login failed';
         }
@@ -367,6 +289,54 @@ function logout() {
             document.getElementById('mainApp').style.display = 'none';
         });
 }
+
+// ==================== EXPORT FUNCTIONS ====================
+
+function exportToCSV(data, filename) {
+    if (!data || data.length === 0) {
+        alert('No data to export!');
+        return;
+    }
+    
+    const headers = Object.keys(data[0]).filter(key => key !== 'documents' && key !== 'customer');
+    
+    let csv = headers.join(',') + '\n';
+    
+    data.forEach(row => {
+        const values = headers.map(header => {
+            let value = row[header];
+            if (value === null || value === undefined) value = '';
+            if (typeof value === 'object') value = JSON.stringify(value);
+            value = String(value).replace(/"/g, '""');
+            return `"${value}"`;
+        });
+        csv += values.join(',') + '\n';
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+}
+
+function exportSoldVehicles() {
+    const filename = `sold-vehicles-${new Date().toISOString().split('T')[0]}.csv`;
+    exportToCSV(soldVehicles, filename);
+}
+
+function exportInStockVehicles() {
+    const inStock = vehicles.filter(v => v.status === 'in-stock');
+    const filename = `in-stock-vehicles-${new Date().toISOString().split('T')[0]}.csv`;
+    exportToCSV(inStock, filename);
+}
+
+function exportTradeIns() {
+    const filename = `fleet-returns-${new Date().toISOString().split('T')[0]}.csv`;
+    exportToCSV(tradeIns, filename);
+}
+
+// ==================== LABEL FUNCTIONS ====================
 
 function testLabel() {
     const testVehicle = {
@@ -409,8 +379,8 @@ function generateLabel(vehicle) {
     
     new QRCode(qrContainer, {
         text: qrData,
-        width: 120,
-        height: 120,
+        width: 107,
+        height: 107,
         colorDark: "#000000",
         colorLight: "#ffffff",
         correctLevel: QRCode.CorrectLevel.H
@@ -427,146 +397,50 @@ function closeLabelModal() {
     document.getElementById('labelModal').classList.remove('active');
 }
 
-function printLabelNewWindow() {
+function printLabelWindow() {
     if (!currentVehicle) return;
     
-    // Create a new window with ONLY the label
-    const printWindow = window.open('', '_blank', 'width=600,height=400');
+    const qrCanvas = document.querySelector('#labelQR canvas');
+    const qrDataUrl = qrCanvas ? qrCanvas.toDataURL() : '';
     
-    const qrDataUrl = document.querySelector('#labelQR canvas').toDataURL();
-    
-    printWindow.document.write(`
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Label - ${currentVehicle.stockNumber}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        @page {
-            size: 4in 2in;
-            margin: 0;
-        }
-        
-        body {
-            width: 4in;
-            height: 2in;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-        
-        .label {
-            width: 4in;
-            height: 2in;
-            background: white;
-            border: 5px solid #000;
-            padding: 18px;
-            box-sizing: border-box;
-        }
-        
-        .label-header {
-            text-align: center;
-            font-size: 32px;
-            font-weight: 800;
-            margin-bottom: 14px;
-            padding-bottom: 10px;
-            border-bottom: 5px solid #000;
-            color: #000;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-        
-        .label-content {
-            display: flex;
-            gap: 18px;
-            height: calc(100% - 70px);
-            align-items: stretch;
-        }
-        
-        .label-info {
-            flex: 1;
-            font-size: 14px;
-            line-height: 2;
-            color: #000;
-            font-weight: 600;
-        }
-        
-        .label-info div {
-            margin-bottom: 5px;
-        }
-        
-        .label-info strong {
-            font-weight: 800;
-            display: inline-block;
-            min-width: 60px;
-            color: #000;
-        }
-        
-        .label-qr {
-            width: 130px;
-            height: 130px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            border: 3px solid #000;
-            padding: 5px;
-            background: white;
-        }
-        
-        .label-qr img {
-            max-width: 100%;
-            max-height: 100%;
-            display: block;
-        }
-        
-        @media print {
-            body {
-                margin: 0;
-                padding: 0;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="label">
-        <div class="label-header">${currentVehicle.stockNumber}</div>
-        <div class="label-content">
-            <div class="label-info">
-                <div><strong>VIN:</strong> ${currentVehicle.vin}</div>
-                <div><strong>Year:</strong> ${currentVehicle.year}</div>
-                <div><strong>Make:</strong> ${currentVehicle.make}</div>
-                <div><strong>Model:</strong> ${currentVehicle.model}</div>
-                <div><strong>Trim:</strong> ${currentVehicle.trim}</div>
-                <div><strong>Color:</strong> ${currentVehicle.color}</div>
-            </div>
-            <div class="label-qr">
-                <img src="${qrDataUrl}" alt="QR Code">
-            </div>
-        </div>
-    </div>
-    <script>
-        window.onload = function() {
-            setTimeout(function() {
-                window.print();
-            }, 250);
-        };
-    </script>
-</body>
-</html>
-    `);
-    
-    printWindow.document.close();
+    const printWin = window.open('', '', 'width=600,height=400');
+    printWin.document.write(`<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Label ${currentVehicle.stockNumber}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;800&display=swap" rel="stylesheet">
+<style>
+@page { size: 4in 2in; margin: 0; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 4in; height: 2in; margin: 0; padding: 0; }
+.label { width: 384px; height: 192px; background: white; border: 5px solid #000; padding: 16px; box-sizing: border-box; font-family: 'Inter', Arial, sans-serif; }
+.label-header { text-align: center; font-size: 28px; font-weight: 800; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 4px solid #000; color: #000; letter-spacing: 1.5px; text-transform: uppercase; }
+.label-content { display: flex; gap: 16px; height: calc(100% - 56px); }
+.label-info { flex: 1; font-size: 13px; line-height: 1.8; color: #000; font-weight: 600; }
+.label-info div { margin-bottom: 3px; }
+.label-info strong { font-weight: 800; display: inline-block; min-width: 55px; color: #000; }
+.label-qr { width: 115px; height: 115px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 3px solid #000; padding: 4px; background: white; }
+.label-qr img { max-width: 100%; max-height: 100%; display: block; }
+</style>
+</head><body>
+<div class="label">
+<div class="label-header">${currentVehicle.stockNumber}</div>
+<div class="label-content">
+<div class="label-info">
+<div><strong>VIN:</strong> ${currentVehicle.vin}</div>
+<div><strong>Year:</strong> ${currentVehicle.year}</div>
+<div><strong>Make:</strong> ${currentVehicle.make}</div>
+<div><strong>Model:</strong> ${currentVehicle.model}</div>
+<div><strong>Trim:</strong> ${currentVehicle.trim}</div>
+<div><strong>Color:</strong> ${currentVehicle.color}</div>
+</div>
+<div class="label-qr"><img src="${qrDataUrl}" alt="QR"></div>
+</div>
+</div>
+<script>window.onload=function(){setTimeout(function(){window.print();},300);}</script>
+</body></html>`);
+    printWin.document.close();
 }
 
-async function saveLabel() {
+async function downloadLabelImage() {
     const label = document.getElementById('label');
     try {
         const canvas = await html2canvas(label, {
@@ -575,20 +449,17 @@ async function saveLabel() {
             logging: false
         });
         const link = document.createElement('a');
-        const stockNum = document.getElementById('labelStockNumber').textContent;
-        link.download = `label-${stockNum}.png`;
+        link.download = `label-${currentVehicle.stockNumber}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
     } catch (error) {
-        console.error('Error saving label:', error);
-        alert('Failed to save label: ' + error.message);
+        console.error('Error downloading label:', error);
+        alert('Failed to download label: ' + error.message);
     }
 }
 
 document.getElementById('labelModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeLabelModal();
-    }
+    if (e.target === this) closeLabelModal();
 });
 
 checkAuth();
