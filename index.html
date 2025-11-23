@@ -435,7 +435,7 @@ body { width: 4in; height: 2in; margin: 0; padding: 0; }
 <div class="label-qr"><img src="${qrDataUrl}" alt="QR"></div>
 </div>
 </div>
-<script>window.onload=function(){setTimeout(function(){window.print();},300);}</script>
+<script>window.onload=function(){setTimeout(function(){window.print();},300);}<\/script>
 </body></html>`);
     printWin.document.close();
 }
@@ -458,10 +458,12 @@ async function downloadLabelImage() {
     }
 }
 
+// Close modal when clicking outside
 document.getElementById('labelModal').addEventListener('click', function(e) {
     if (e.target === this) closeLabelModal();
 });
 
+// Initialize on page load
 checkAuth();
     </script>
 </body>

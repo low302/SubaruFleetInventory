@@ -9,24 +9,48 @@ const session = require('express-session');
 const app = express();
 const PORT = 3000;
 
-// Middleware
+// Middleware - FIXED CORS CONFIGURATION
 app.use(cors({
-    origin: true, // Allow same origin
-    credentials: true
+    origin: function (origin, callback) {
+        // Allow requests with no origin (mobile apps, curl, etc)
+        if (!origin) return callback(null, true);
+        // Allow localhost on any port (development)
+        if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+            return callback(null, true);
+        }
+        // In production, you would specify exact origins
+        callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+
+// FIXED SESSION CONFIGURATION
 app.use(session({
     secret: 'brandon-tomes-subaru-fleet-secret-2024',
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: false,
+        secure: false,      // Set to true only if using HTTPS
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        sameSite: 'lax'
-    }
+        sameSite: 'lax',    // Works for same-origin requests through nginx
+        path: '/'           // Explicit path
+    },
+    name: 'fleet.sid'       // Custom session name for easier debugging
 }));
+
+// Debug middleware (comment out in production)
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+    console.log('Session ID:', req.sessionID);
+    console.log('User ID:', req.session?.userId);
+    next();
+});
 
 // Initialize SQLite database
 const db = new sqlite3.Database('./fleet-inventory.db', (err) => {
@@ -118,7 +142,7 @@ function initializeDatabase() {
                 if (err) {
                     console.error('Error creating default user:', err);
                 } else {
-                    console.log('Default admin user created/verified');
+                    console.log('Default admin user created/verified (username: Zaid, password: 1234)');
                 }
             }
         );
@@ -130,6 +154,7 @@ function isAuthenticated(req, res, next) {
     if (req.session && req.session.userId) {
         return next();
     }
+    console.log('Authentication failed - no session or userId');
     res.status(401).json({ error: 'Not authenticated' });
 }
 
@@ -138,44 +163,66 @@ function isAuthenticated(req, res, next) {
 // Login
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
+    
+    console.log('Login attempt:', username);
 
     db.get('SELECT * FROM users WHERE username = ?', [username], (err, user) => {
         if (err) {
+            console.error('Database error during login:', err);
             return res.status(500).json({ error: 'Database error' });
         }
 
         if (!user) {
+            console.log('User not found:', username);
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
         bcrypt.compare(password, user.password, (err, isMatch) => {
             if (err) {
+                console.error('Password comparison error:', err);
                 return res.status(500).json({ error: 'Authentication error' });
             }
 
             if (!isMatch) {
+                console.log('Password mismatch for user:', username);
                 return res.status(401).json({ error: 'Invalid credentials' });
             }
 
+            // Set session data
             req.session.userId = user.id;
             req.session.username = user.username;
-            res.json({ success: true, username: user.username });
+            
+            // Save session explicitly before responding
+            req.session.save((err) => {
+                if (err) {
+                    console.error('Session save error:', err);
+                    return res.status(500).json({ error: 'Session creation failed' });
+                }
+                
+                console.log('Login successful for user:', username, 'Session ID:', req.sessionID);
+                res.json({ success: true, username: user.username });
+            });
         });
     });
 });
 
 // Logout
 app.post('/api/logout', (req, res) => {
+    console.log('Logout request for session:', req.sessionID);
     req.session.destroy((err) => {
         if (err) {
+            console.error('Logout error:', err);
             return res.status(500).json({ error: 'Logout failed' });
         }
+        res.clearCookie('fleet.sid');
+        console.log('Logout successful');
         res.json({ success: true });
     });
 });
 
 // Check auth status
 app.get('/api/auth/status', (req, res) => {
+    console.log('Auth status check - Session ID:', req.sessionID, 'User ID:', req.session?.userId);
     if (req.session && req.session.userId) {
         res.json({ authenticated: true, username: req.session.username });
     } else {
@@ -189,6 +236,7 @@ app.get('/api/auth/status', (req, res) => {
 app.get('/api/inventory', isAuthenticated, (req, res) => {
     db.all('SELECT * FROM inventory ORDER BY dateAdded DESC', [], (err, rows) => {
         if (err) {
+            console.error('Error fetching inventory:', err);
             return res.status(500).json({ error: err.message });
         }
         // Parse JSON fields
@@ -226,8 +274,10 @@ app.post('/api/inventory', isAuthenticated, (req, res) => {
 
     db.run(sql, params, function(err) {
         if (err) {
+            console.error('Error adding vehicle:', err);
             return res.status(500).json({ error: err.message });
         }
+        console.log('Vehicle added successfully, ID:', this.lastID);
         res.json({ success: true, id: this.lastID });
     });
 });
@@ -263,8 +313,10 @@ app.put('/api/inventory/:id', isAuthenticated, (req, res) => {
 
     db.run(sql, params, function(err) {
         if (err) {
+            console.error('Error updating vehicle:', err);
             return res.status(500).json({ error: err.message });
         }
+        console.log('Vehicle updated successfully, changes:', this.changes);
         res.json({ success: true, changes: this.changes });
     });
 });
@@ -273,8 +325,10 @@ app.put('/api/inventory/:id', isAuthenticated, (req, res) => {
 app.delete('/api/inventory/:id', isAuthenticated, (req, res) => {
     db.run('DELETE FROM inventory WHERE id = ?', [req.params.id], function(err) {
         if (err) {
+            console.error('Error deleting vehicle:', err);
             return res.status(500).json({ error: err.message });
         }
+        console.log('Vehicle deleted successfully, changes:', this.changes);
         res.json({ success: true, changes: this.changes });
     });
 });
@@ -285,6 +339,7 @@ app.delete('/api/inventory/:id', isAuthenticated, (req, res) => {
 app.get('/api/sold-vehicles', isAuthenticated, (req, res) => {
     db.all('SELECT * FROM sold_vehicles ORDER BY created_at DESC', [], (err, rows) => {
         if (err) {
+            console.error('Error fetching sold vehicles:', err);
             return res.status(500).json({ error: err.message });
         }
         const soldVehicles = rows.map(row => ({
@@ -322,8 +377,10 @@ app.post('/api/sold-vehicles', isAuthenticated, (req, res) => {
 
     db.run(sql, params, function(err) {
         if (err) {
+            console.error('Error adding sold vehicle:', err);
             return res.status(500).json({ error: err.message });
         }
+        console.log('Sold vehicle added successfully, ID:', this.lastID);
         res.json({ success: true, id: this.lastID });
     });
 });
@@ -334,6 +391,7 @@ app.post('/api/sold-vehicles', isAuthenticated, (req, res) => {
 app.get('/api/trade-ins', isAuthenticated, (req, res) => {
     db.all('SELECT * FROM trade_ins ORDER BY dateAdded DESC', [], (err, rows) => {
         if (err) {
+            console.error('Error fetching trade-ins:', err);
             return res.status(500).json({ error: err.message });
         }
         res.json(rows);
@@ -365,8 +423,10 @@ app.post('/api/trade-ins', isAuthenticated, (req, res) => {
 
     db.run(sql, params, function(err) {
         if (err) {
+            console.error('Error adding trade-in:', err);
             return res.status(500).json({ error: err.message });
         }
+        console.log('Trade-in added successfully, ID:', this.lastID);
         res.json({ success: true, id: this.lastID });
     });
 });
@@ -397,8 +457,10 @@ app.put('/api/trade-ins/:id', isAuthenticated, (req, res) => {
 
     db.run(sql, params, function(err) {
         if (err) {
+            console.error('Error updating trade-in:', err);
             return res.status(500).json({ error: err.message });
         }
+        console.log('Trade-in updated successfully, changes:', this.changes);
         res.json({ success: true, changes: this.changes });
     });
 });
@@ -407,19 +469,25 @@ app.put('/api/trade-ins/:id', isAuthenticated, (req, res) => {
 app.delete('/api/trade-ins/:id', isAuthenticated, (req, res) => {
     db.run('DELETE FROM trade_ins WHERE id = ?', [req.params.id], function(err) {
         if (err) {
+            console.error('Error deleting trade-in:', err);
             return res.status(500).json({ error: err.message });
         }
+        console.log('Trade-in deleted successfully, changes:', this.changes);
         res.json({ success: true, changes: this.changes });
     });
 });
 
 // Start server
 app.listen(PORT, () => {
+    console.log(`===========================================`);
     console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Default login: username=Zaid, password=1234`);
+    console.log(`===========================================`);
 });
 
 // Graceful shutdown
 process.on('SIGINT', () => {
+    console.log('\nShutting down gracefully...');
     db.close((err) => {
         if (err) {
             console.error(err.message);
