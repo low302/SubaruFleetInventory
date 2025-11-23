@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vehicle Inventory Management System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -184,13 +184,13 @@
             text-align: center;
         }
 
-        /* ==================== LABEL STYLES - SCREEN VIEW ==================== */
+        /* Label preview in modal */
         .label {
             width: 4in;
             height: 2in;
             background: white;
-            border: 4px solid #000;
-            padding: 16px;
+            border: 5px solid #000;
+            padding: 18px;
             margin: 0 auto 20px;
             box-sizing: border-box;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -200,50 +200,51 @@
 
         .label-header {
             text-align: center;
-            font-size: 28px;
+            font-size: 32px;
             font-weight: 800;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 4px solid #000;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 5px solid #000;
             color: #000;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
 
         .label-content {
             display: flex;
-            gap: 16px;
-            height: calc(100% - 60px);
+            gap: 18px;
+            height: calc(100% - 70px);
             align-items: stretch;
         }
 
         .label-info {
             flex: 1;
-            font-size: 13px;
-            line-height: 1.8;
+            font-size: 14px;
+            line-height: 2;
             color: #000;
             font-weight: 600;
         }
 
         .label-info div {
-            margin-bottom: 4px;
+            margin-bottom: 5px;
         }
 
         .label-info strong {
             font-weight: 800;
             display: inline-block;
-            min-width: 55px;
+            min-width: 60px;
             color: #000;
         }
 
         .label-qr {
-            width: 120px;
-            height: 120px;
+            width: 130px;
+            height: 130px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            border: 2px solid #000;
-            padding: 4px;
+            border: 3px solid #000;
+            padding: 5px;
             background: white;
         }
 
@@ -251,71 +252,6 @@
             display: block !important;
             max-width: 100%;
             max-height: 100%;
-        }
-
-        /* ==================== PRINT STYLES ==================== */
-        @media print {
-            @page {
-                size: 4in 2in;
-                margin: 0;
-            }
-
-            /* Hide EVERYTHING */
-            * {
-                visibility: hidden !important;
-                display: none !important;
-            }
-
-            /* Show ONLY the label */
-            .label,
-            .label *,
-            .label-header,
-            .label-content,
-            .label-info,
-            .label-info *,
-            .label-qr,
-            .label-qr *,
-            .label-qr canvas {
-                visibility: visible !important;
-                display: block !important;
-            }
-
-            .label-content {
-                display: flex !important;
-            }
-
-            .label-qr {
-                display: flex !important;
-            }
-
-            /* Position label for printing */
-            html, body {
-                width: 4in;
-                height: 2in;
-                margin: 0;
-                padding: 0;
-            }
-
-            .label {
-                position: absolute !important;
-                left: 0 !important;
-                top: 0 !important;
-                width: 4in !important;
-                height: 2in !important;
-                margin: 0 !important;
-                padding: 16px !important;
-                border: 4px solid #000 !important;
-                background: white !important;
-                page-break-after: avoid !important;
-            }
-
-            .label-header {
-                display: block !important;
-            }
-
-            .label-info div {
-                display: block !important;
-            }
         }
     </style>
 </head>
@@ -345,7 +281,7 @@
     <!-- Main Application -->
     <div id="mainApp">
         <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">✅ Fleet Management System</h1>
-        <p style="font-size: 1.1rem; opacity: 0.9; margin-bottom: 2rem;">Test the improved label with modern fonts and print-only functionality</p>
+        <p style="font-size: 1.1rem; opacity: 0.9; margin-bottom: 2rem;">Modern labels with separate print window - no modal in print!</p>
         
         <button class="btn" onclick="testLabel()" style="font-size: 1.1rem; padding: 1rem 2rem;">🏷️ Generate Test Label</button>
         
@@ -370,16 +306,17 @@
                     </div>
                 </div>
                 <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                    <button class="btn" onclick="printLabel()" style="flex: 1;">🖨️ Print Label</button>
+                    <button class="btn" onclick="printLabelNewWindow()" style="flex: 1;">🖨️ Print Label</button>
                     <button class="btn btn-secondary" onclick="saveLabel()" style="flex: 1;">💾 Save PNG</button>
                 </div>
-                <p style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.7;">When you click Print, only the label will print - no buttons or modal!</p>
+                <p style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.7;">Print opens in new window with ONLY the label!</p>
             </div>
         </div>
     </div>
 
     <script>
 const API_BASE = '/api';
+let currentVehicle = null;
 
 async function checkAuth() {
     try {
@@ -445,12 +382,10 @@ function testLabel() {
 }
 
 function generateLabel(vehicle) {
-    console.log('Generating label for:', vehicle);
+    currentVehicle = vehicle;
     
-    // Set stock number
     document.getElementById('labelStockNumber').textContent = vehicle.stockNumber;
     
-    // Set vehicle info with modern styling
     const labelInfo = document.getElementById('labelInfo');
     labelInfo.innerHTML = `
         <div><strong>VIN:</strong> ${vehicle.vin}</div>
@@ -461,7 +396,6 @@ function generateLabel(vehicle) {
         <div><strong>Color:</strong> ${vehicle.color}</div>
     `;
     
-    // Generate QR code
     const qrContainer = document.getElementById('labelQR');
     qrContainer.innerHTML = '';
     
@@ -473,18 +407,15 @@ function generateLabel(vehicle) {
         model: vehicle.model
     });
     
-    console.log('Creating QR code with data:', qrData);
-    
     new QRCode(qrContainer, {
         text: qrData,
-        width: 112,
-        height: 112,
+        width: 120,
+        height: 120,
         colorDark: "#000000",
         colorLight: "#ffffff",
         correctLevel: QRCode.CorrectLevel.H
     });
     
-    console.log('Opening label modal');
     openLabelModal();
 }
 
@@ -496,9 +427,143 @@ function closeLabelModal() {
     document.getElementById('labelModal').classList.remove('active');
 }
 
-function printLabel() {
-    console.log('Print button clicked');
-    window.print();
+function printLabelNewWindow() {
+    if (!currentVehicle) return;
+    
+    // Create a new window with ONLY the label
+    const printWindow = window.open('', '_blank', 'width=600,height=400');
+    
+    const qrDataUrl = document.querySelector('#labelQR canvas').toDataURL();
+    
+    printWindow.document.write(`
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Label - ${currentVehicle.stockNumber}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        @page {
+            size: 4in 2in;
+            margin: 0;
+        }
+        
+        body {
+            width: 4in;
+            height: 2in;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .label {
+            width: 4in;
+            height: 2in;
+            background: white;
+            border: 5px solid #000;
+            padding: 18px;
+            box-sizing: border-box;
+        }
+        
+        .label-header {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 5px solid #000;
+            color: #000;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        
+        .label-content {
+            display: flex;
+            gap: 18px;
+            height: calc(100% - 70px);
+            align-items: stretch;
+        }
+        
+        .label-info {
+            flex: 1;
+            font-size: 14px;
+            line-height: 2;
+            color: #000;
+            font-weight: 600;
+        }
+        
+        .label-info div {
+            margin-bottom: 5px;
+        }
+        
+        .label-info strong {
+            font-weight: 800;
+            display: inline-block;
+            min-width: 60px;
+            color: #000;
+        }
+        
+        .label-qr {
+            width: 130px;
+            height: 130px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border: 3px solid #000;
+            padding: 5px;
+            background: white;
+        }
+        
+        .label-qr img {
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+        }
+        
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="label">
+        <div class="label-header">${currentVehicle.stockNumber}</div>
+        <div class="label-content">
+            <div class="label-info">
+                <div><strong>VIN:</strong> ${currentVehicle.vin}</div>
+                <div><strong>Year:</strong> ${currentVehicle.year}</div>
+                <div><strong>Make:</strong> ${currentVehicle.make}</div>
+                <div><strong>Model:</strong> ${currentVehicle.model}</div>
+                <div><strong>Trim:</strong> ${currentVehicle.trim}</div>
+                <div><strong>Color:</strong> ${currentVehicle.color}</div>
+            </div>
+            <div class="label-qr">
+                <img src="${qrDataUrl}" alt="QR Code">
+            </div>
+        </div>
+    </div>
+    <script>
+        window.onload = function() {
+            setTimeout(function() {
+                window.print();
+            }, 250);
+        };
+    </script>
+</body>
+</html>
+    `);
+    
+    printWindow.document.close();
 }
 
 async function saveLabel() {
@@ -514,24 +579,19 @@ async function saveLabel() {
         link.download = `label-${stockNum}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
-        console.log('Label saved as PNG');
     } catch (error) {
         console.error('Error saving label:', error);
         alert('Failed to save label: ' + error.message);
     }
 }
 
-// Close modal on background click
 document.getElementById('labelModal').addEventListener('click', function(e) {
     if (e.target === this) {
         closeLabelModal();
     }
 });
 
-// Check auth on load
 checkAuth();
-
-console.log('App initialized - ready to generate labels!');
     </script>
 </body>
 </html>
