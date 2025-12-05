@@ -1177,6 +1177,13 @@
                     <button type="submit" class="btn" style="width: 100%;">Save Customer Information</button>
                 </form>
             </div>
+
+            <!-- Delete Vehicle Section -->
+            <div id="detailDeleteSection" style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border);">
+                <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--danger);">Danger Zone</h3>
+                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Once you delete a vehicle, there is no going back. Please be certain.</p>
+                <button class="btn btn-danger" onclick="deleteVehicle(window.currentVehicleId)" style="width: 100%;">Delete Vehicle</button>
+            </div>
         </div>
     </div>
 
@@ -1493,7 +1500,7 @@
                     return `
                         <li class="pickup-item">
                             <div class="pickup-info">
-                                <div class="pickup-vehicle">${vehicle.year} ${vehicle.make} ${vehicle.model} - #${vehicle.stockNumber}</div>
+                                <div class="pickup-vehicle">${vehicle.year} ${vehicle.make} ${vehicle.model} - ${vehicle.stockNumber}</div>
                                 <div class="pickup-customer">👤 ${customerName}</div>
                                 <div class="pickup-datetime">📅 ${formattedDate} at ${formattedTime}</div>
                             </div>
@@ -1810,7 +1817,7 @@
             return `
                 <div class="vehicle-card">
                     <div class="vehicle-header">
-                        <div class="vehicle-stock">#${vehicle.stockNumber}</div>
+                        <div class="vehicle-stock">${vehicle.stockNumber}</div>
                         <div class="vehicle-title">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
                     </div>
                     <div class="vehicle-body">
@@ -1835,10 +1842,28 @@
                                 <div class="info-value">${vehicle.fleetCompany || 'N/A'}</div>
                             </div>
                         </div>
+                        ${vehicle.customer && (vehicle.customer.firstName || vehicle.customer.lastName) ? `
+                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                            <div class="info-label">Customer</div>
+                            <div class="info-value" style="font-weight: 600; margin-bottom: 0.5rem;">${vehicle.customer.firstName || ''} ${vehicle.customer.lastName || ''}</div>
+                            ${vehicle.customer.phone ? `<div class="info-value" style="font-size: 0.875rem; color: var(--text-secondary);">📞 ${vehicle.customer.phone}</div>` : ''}
+                            ${vehicle.customer.email ? `<div class="info-value" style="font-size: 0.875rem; color: var(--text-secondary);">📧 ${vehicle.customer.email}</div>` : ''}
+                        </div>
+                        ` : ''}
+                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                            <div class="info-label" style="margin-bottom: 0.5rem;">Change Status</div>
+                            <select class="filter-select" style="width: 100%; margin-bottom: 0.5rem;" onchange="quickStatusChange(${vehicle.id}, this.value)">
+                                <option value="in-stock" ${vehicle.status === 'in-stock' ? 'selected' : ''}>In Stock</option>
+                                <option value="in-transit" ${vehicle.status === 'in-transit' ? 'selected' : ''}>In-Transit</option>
+                                <option value="pdi" ${vehicle.status === 'pdi' ? 'selected' : ''}>PDI</option>
+                                <option value="pending-pickup" ${vehicle.status === 'pending-pickup' ? 'selected' : ''}>Pending Pickup</option>
+                                <option value="pickup-scheduled" ${vehicle.status === 'pickup-scheduled' ? 'selected' : ''}>Pickup Scheduled</option>
+                                <option value="sold" ${vehicle.status === 'sold' ? 'selected' : ''}>Sold</option>
+                            </select>
+                        </div>
                         <div class="vehicle-actions">
                             <button class="btn btn-small btn-secondary" onclick="viewDetails(${vehicle.id})">Details</button>
                             <button class="btn btn-small btn-secondary" onclick="generateLabel(${vehicle.id})">Label</button>
-                            <button class="btn btn-small btn-danger" onclick="deleteVehicle(${vehicle.id})">Delete</button>
                         </div>
                     </div>
                 </div>
@@ -1850,7 +1875,7 @@
             return `
                 <div class="vehicle-card">
                     <div class="vehicle-header">
-                        <div class="vehicle-stock">#${vehicle.stockNumber}</div>
+                        <div class="vehicle-stock">${vehicle.stockNumber}</div>
                         <div class="vehicle-title">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
                     </div>
                     <div class="vehicle-body">
@@ -1876,6 +1901,12 @@
                                 <div class="info-value">${vehicle.customer?.saleDate ? new Date(vehicle.customer.saleDate).toLocaleDateString() : 'N/A'}</div>
                             </div>
                         </div>
+                        ${vehicle.customer && (vehicle.customer.phone || vehicle.customer.email) ? `
+                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                            ${vehicle.customer.phone ? `<div class="info-value" style="font-size: 0.875rem; color: var(--text-secondary);">📞 ${vehicle.customer.phone}</div>` : ''}
+                            ${vehicle.customer.email ? `<div class="info-value" style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.25rem;">📧 ${vehicle.customer.email}</div>` : ''}
+                        </div>
+                        ` : ''}
                         <div class="vehicle-actions">
                             <button class="btn btn-small btn-secondary" onclick="viewSoldDetails(${vehicle.id})">View Details</button>
                             ${vehicle.tradeInId ? `<button class="btn btn-small btn-secondary" onclick="viewTradeInDetails(${vehicle.tradeInId})">View Trade-In</button>` : ''}
@@ -1893,7 +1924,7 @@
             return `
                 <div class="vehicle-card">
                     <div class="vehicle-header" style="background: linear-gradient(135deg, #ff9f0a, #ff6b35);">
-                        <div class="vehicle-stock">${vehicle.stockNumber ? '#' + vehicle.stockNumber : 'TRADE-IN'}</div>
+                        <div class="vehicle-stock">${vehicle.stockNumber ? vehicle.stockNumber : 'TRADE-IN'}</div>
                         <div class="vehicle-title">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
                     </div>
                     <div class="vehicle-body">
@@ -1953,7 +1984,7 @@
             return `
                 <div class="vehicle-card">
                     <div class="vehicle-header" style="background: linear-gradient(135deg, #64d2ff, #4facfe);">
-                        <div class="vehicle-stock">#${vehicle.stockNumber}</div>
+                        <div class="vehicle-stock">${vehicle.stockNumber}</div>
                         <div class="vehicle-title">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
                     </div>
                     <div class="vehicle-body">
@@ -1978,10 +2009,26 @@
                                 <div class="info-value">${vehicle.vin}</div>
                             </div>
                         </div>
+                        ${vehicle.customer && vehicle.customer.phone ? `
+                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                            <div class="info-value" style="font-size: 0.875rem; color: var(--text-secondary);">📞 ${vehicle.customer.phone}</div>
+                            ${vehicle.customer.email ? `<div class="info-value" style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.25rem;">📧 ${vehicle.customer.email}</div>` : ''}
+                        </div>
+                        ` : ''}
+                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                            <div class="info-label" style="margin-bottom: 0.5rem;">Change Status</div>
+                            <select class="filter-select" style="width: 100%; margin-bottom: 0.5rem;" onchange="quickStatusChange(${vehicle.id}, this.value)">
+                                <option value="in-stock">In Stock</option>
+                                <option value="in-transit">In-Transit</option>
+                                <option value="pdi">PDI</option>
+                                <option value="pending-pickup">Pending Pickup</option>
+                                <option value="pickup-scheduled" selected>Pickup Scheduled</option>
+                                <option value="sold">Sold</option>
+                            </select>
+                        </div>
                         <div class="vehicle-actions">
                             <button class="btn btn-small btn-secondary" onclick="viewDetails(${vehicle.id})">Details</button>
                             <button class="btn btn-small btn-secondary" onclick="generateLabel(${vehicle.id})">Label</button>
-                            <button class="btn btn-small btn-danger" onclick="deleteVehicle(${vehicle.id})">Delete</button>
                         </div>
                     </div>
                 </div>
@@ -2098,6 +2145,14 @@
             // Set the status dropdown
             document.getElementById('detailStatus').value = vehicle.status;
             
+            // Show/hide delete button section based on whether it's a sold vehicle
+            const deleteSection = document.getElementById('detailDeleteSection');
+            if (soldVehicles.some(v => v.id === vehicle.id)) {
+                deleteSection.style.display = 'none';
+            } else {
+                deleteSection.style.display = 'block';
+            }
+            
             // Populate customer form if customer data exists
             if (vehicle.customer) {
                 document.getElementById('customerFirstName').value = vehicle.customer.firstName || '';
@@ -2164,6 +2219,60 @@
             });
             
             document.getElementById('labelModal').classList.add('active');
+        }
+
+        // Quick Status Change from Card
+        function quickStatusChange(vehicleId, newStatus) {
+            const vehicleIndex = inventory.findIndex(v => v.id === vehicleId);
+            if (vehicleIndex === -1) return;
+            
+            const vehicle = inventory[vehicleIndex];
+            const oldStatus = vehicle.status;
+            
+            // If changing to pickup-scheduled, show modal
+            if (newStatus === 'pickup-scheduled') {
+                window.pendingStatusChangeVehicleId = vehicleId;
+                openPickupScheduleModal();
+                return;
+            }
+            
+            // If changing to sold status, prompt for trade-in
+            if (newStatus === 'sold' && oldStatus !== 'sold') {
+                const hasTradeIn = confirm('Was there a trade-in vehicle with this sale?');
+                
+                if (hasTradeIn) {
+                    window.pendingSoldVehicleId = vehicleId;
+                    openTradeInModal();
+                    return;
+                } else {
+                    vehicle.status = 'sold';
+                    soldVehicles.unshift(vehicle);
+                    localStorage.setItem('soldVehicles', JSON.stringify(soldVehicles));
+                    localStorage.setItem('vehicleInventory', JSON.stringify(inventory));
+                    
+                    renderDashboard();
+                    renderInventory();
+                    renderInTransit();
+                    renderPDI();
+                    renderPendingPickup();
+                    renderPickupScheduled();
+                    renderSoldVehicles();
+                    updateStats();
+                    return;
+                }
+            }
+            
+            // Regular status change
+            inventory[vehicleIndex].status = newStatus;
+            localStorage.setItem('vehicleInventory', JSON.stringify(inventory));
+            
+            renderDashboard();
+            renderInventory();
+            renderInTransit();
+            renderPDI();
+            renderPendingPickup();
+            renderPickupScheduled();
+            updateStats();
         }
 
         // Update Vehicle Status
