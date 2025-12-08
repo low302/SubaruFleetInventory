@@ -12,6 +12,11 @@ async function checkAuth() {
         if (data.authenticated) {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
+            // FIX: Set the username display
+            const userDisplay = document.getElementById('currentUserDisplay');
+            if (userDisplay && data.username) {
+                userDisplay.textContent = data.username;
+            }
             await loadAllData();
         } else {
             document.getElementById('loginScreen').style.display = 'flex';
