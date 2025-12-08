@@ -38,6 +38,61 @@
             color: var(--text-primary);
         }
 
+        /* Login Screen Styles */
+        .login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+
+        .login-container {
+            background: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 3rem;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .login-header p {
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .login-error {
+            color: var(--danger);
+            font-size: 0.875rem;
+            margin: 1rem 0;
+            text-align: center;
+            min-height: 1.25rem;
+        }
+
+        #mainApp {
+            width: 100%;
+            height: 100vh;
+        }
+
         .sidebar {
             position: fixed;
             left: 0;
@@ -50,13 +105,16 @@
             box-shadow: 2px 0 20px var(--shadow);
             z-index: 100;
             border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
         }
 
         .logo {
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             font-weight: 700;
             margin-bottom: 3rem;
             color: var(--accent);
+            line-height: 1.3;
         }
 
         .nav-menu {
@@ -482,6 +540,7 @@
             margin-bottom: 8px;
             padding-bottom: 4px;
             border-bottom: 2px solid #000;
+            color: #000;
         }
 
         .label-content {
@@ -493,10 +552,17 @@
             flex: 1;
             font-size: 8px;
             line-height: 1.4;
+            color: #000;
         }
 
         .label-info div {
             margin-bottom: 2px;
+            color: #000;
+        }
+
+        .label-info strong {
+            color: #000;
+            font-weight: bold;
         }
 
         .label-qr {
@@ -738,11 +804,98 @@
             letter-spacing: 0.05em;
             display: inline-block;
         }
+
+        /* Status Popup */
+        .status-popup {
+            position: fixed;
+            background: rgba(30, 30, 30, 0.98);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 0.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            min-width: 200px;
+            max-width: 250px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .status-popup.active {
+            display: block;
+        }
+
+        .status-popup-option {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .status-popup-option:hover {
+            background: rgba(10, 132, 255, 0.2);
+            color: var(--accent);
+        }
+
+        .status-popup-option.selected {
+            background: rgba(10, 132, 255, 0.3);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Custom scrollbar for status popup */
+        .status-popup::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .status-popup::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        .status-popup::-webkit-scrollbar-thumb {
+            background: rgba(10, 132, 255, 0.5);
+            border-radius: 10px;
+        }
+
+        .status-popup::-webkit-scrollbar-thumb:hover {
+            background: rgba(10, 132, 255, 0.7);
+        }
     </style>
 </head>
 <body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-container">
+            <div class="login-header">
+                <h1>Brandon Tomes Subaru</h1>
+                <p>Fleet Department</p>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" required autofocus>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required>
+                </div>
+                <div id="loginError" class="login-error"></div>
+                <button type="submit" class="btn" style="width: 100%;">Sign In</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Application (hidden until logged in) -->
+    <div id="mainApp" style="display: none;">
     <div class="sidebar">
-        <div class="logo">🚗 AutoDealer</div>
+        <div class="logo">
+            <div>Brandon Tomes Subaru</div>
+            <div style="font-size: 0.85em; margin-top: 0.25rem;">Fleet Department</div>
+        </div>
         <ul class="nav-menu">
             <li class="nav-item">
                 <a class="nav-link active" data-page="dashboard">
@@ -799,6 +952,26 @@
                 </a>
             </li>
         </ul>
+        
+        <!-- User Info Section -->
+        <div style="margin-top: auto; padding: 1rem 0; border-top: 1px solid var(--border);">
+            <div style="text-align: center; margin-bottom: 1rem;">
+                <div style="font-size: 0.875rem; color: var(--text-secondary);">Logged in as</div>
+                <div id="currentUserDisplay" style="font-weight: 600; color: var(--accent); margin-top: 0.25rem;">Zaid</div>
+            </div>
+        </div>
+        
+        <!-- Export Section -->
+        <div style="padding-top: 1rem; border-top: 1px solid var(--border);">
+            <button class="btn" onclick="openExportModal()" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                <span>📤</span>
+                <span>Export Data</span>
+            </button>
+            <button class="btn btn-danger" onclick="logout()" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                <span>🚪</span>
+                <span>Logout</span>
+            </button>
+        </div>
     </div>
 
     <div class="main-content">
@@ -807,7 +980,6 @@
             <div id="dashboard" class="page active">
                 <div class="header">
                     <h1>Dashboard</h1>
-                    <p>Overview of your dealership inventory</p>
                 </div>
 
                 <div class="stats-grid">
@@ -1120,6 +1292,13 @@
                 <button class="btn btn-secondary" onclick="updateVehicleStatus()" style="width: 100%;">Update Status</button>
             </div>
 
+            <!-- Label Section -->
+            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border);">
+                <h3 style="font-size: 1.25rem; margin-bottom: 1rem;">Vehicle Label</h3>
+                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Generate a QR code label for this vehicle.</p>
+                <button class="btn btn-secondary" onclick="generateLabelFromDetail()" style="width: 100%;">🏷️ Generate Label</button>
+            </div>
+
             <!-- Customer Information Section -->
             <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border);">
                 <h3 style="font-size: 1.25rem; margin-bottom: 1rem;">Customer Information</h3>
@@ -1318,7 +1497,147 @@
         </div>
     </div>
 
+    <!-- Status Popup -->
+    <div id="statusPopup" class="status-popup"></div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📤 Export Data</h2>
+                <button class="close-btn" onclick="closeExportModal()">&times;</button>
+            </div>
+            <div style="padding: 1rem 0;">
+                <p style="color: var(--text-secondary); margin-bottom: 2rem;">Choose which data you want to export as CSV:</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <button class="btn" onclick="exportAllInventory()" style="width: 100%; text-align: left; display: flex; align-items: center; gap: 1rem;">
+                        <span style="font-size: 1.5rem;">🚘</span>
+                        <div>
+                            <div style="font-weight: 600;">All Inventory</div>
+                            <div style="font-size: 0.875rem; opacity: 0.7;">Export all vehicles (excluding sold)</div>
+                        </div>
+                    </button>
+                    
+                    <button class="btn" onclick="exportByStatus('in-stock')" style="width: 100%; text-align: left; display: flex; align-items: center; gap: 1rem;">
+                        <span style="font-size: 1.5rem;">✅</span>
+                        <div>
+                            <div style="font-weight: 600;">In Stock Only</div>
+                            <div style="font-size: 0.875rem; opacity: 0.7;">Vehicles currently in stock</div>
+                        </div>
+                    </button>
+                    
+                    <button class="btn" onclick="exportByStatus('in-transit')" style="width: 100%; text-align: left; display: flex; align-items: center; gap: 1rem;">
+                        <span style="font-size: 1.5rem;">🚚</span>
+                        <div>
+                            <div style="font-weight: 600;">In-Transit</div>
+                            <div style="font-size: 0.875rem; opacity: 0.7;">Vehicles being shipped</div>
+                        </div>
+                    </button>
+                    
+                    <button class="btn" onclick="exportByStatus('pickup-scheduled')" style="width: 100%; text-align: left; display: flex; align-items: center; gap: 1rem;">
+                        <span style="font-size: 1.5rem;">📅</span>
+                        <div>
+                            <div style="font-weight: 600;">Pickup Scheduled</div>
+                            <div style="font-size: 0.875rem; opacity: 0.7;">Vehicles with scheduled pickups</div>
+                        </div>
+                    </button>
+                    
+                    <button class="btn btn-secondary" onclick="exportSoldVehicles()" style="width: 100%; text-align: left; display: flex; align-items: center; gap: 1rem;">
+                        <span style="font-size: 1.5rem;">💰</span>
+                        <div>
+                            <div style="font-weight: 600;">Sold Vehicles</div>
+                            <div style="font-size: 0.875rem; opacity: 0.7;">All sold vehicles with customer info</div>
+                        </div>
+                    </button>
+                    
+                    <button class="btn btn-secondary" onclick="exportTradeIns()" style="width: 100%; text-align: left; display: flex; align-items: center; gap: 1rem;">
+                        <span style="font-size: 1.5rem;">🔄</span>
+                        <div>
+                            <div style="font-weight: 600;">Trade-Ins</div>
+                            <div style="font-size: 0.875rem; opacity: 0.7;">All trade-in vehicles</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div> <!-- End of mainApp -->
+
     <script>
+        // Authentication System
+        const USERS = {
+            'Zaid': '1234'  // Admin account
+        };
+
+        let currentUser = localStorage.getItem('currentUser');
+
+        // Check authentication on page load
+        function checkAuth() {
+            if (!currentUser) {
+                showLogin();
+            } else {
+                showMainApp();
+            }
+        }
+
+        function showLogin() {
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('mainApp').style.display = 'none';
+        }
+
+        function showMainApp() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            
+            // Update user display
+            const userDisplay = document.getElementById('currentUserDisplay');
+            if (userDisplay && currentUser) {
+                userDisplay.textContent = currentUser;
+            }
+        }
+
+        // Handle login form submission
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+
+            document.getElementById('loginForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                const errorDiv = document.getElementById('loginError');
+
+                // Validate credentials
+                if (USERS[username] && USERS[username] === password) {
+                    // Successful login
+                    localStorage.setItem('currentUser', username);
+                    currentUser = username;
+                    errorDiv.textContent = '';
+                    showMainApp();
+                    
+                    // Initialize the app
+                    initializeApp();
+                } else {
+                    // Failed login
+                    errorDiv.textContent = 'Invalid username or password';
+                    document.getElementById('password').value = '';
+                }
+            });
+        });
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('currentUser');
+                currentUser = null;
+                showLogin();
+                // Clear form
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+            }
+        }
+
+        // Data and Variables
         let inventory = JSON.parse(localStorage.getItem('vehicleInventory')) || [];
         let soldVehicles = JSON.parse(localStorage.getItem('soldVehicles')) || [];
         let tradeIns = JSON.parse(localStorage.getItem('tradeIns')) || [];
@@ -1326,8 +1645,185 @@
         let makeChart = null;
         let timelineChart = null;
 
+        // Export Modal Functions
+        function openExportModal() {
+            document.getElementById('exportModal').classList.add('active');
+        }
+
+        function closeExportModal() {
+            document.getElementById('exportModal').classList.remove('active');
+        }
+
+        // Export Functions
+        function exportToCSV(data, filename) {
+            if (!data || data.length === 0) {
+                alert('No data to export!');
+                return;
+            }
+
+            // Get all unique keys from all objects
+            const allKeys = new Set();
+            data.forEach(item => {
+                Object.keys(item).forEach(key => {
+                    // Exclude nested objects and arrays for cleaner export
+                    if (key !== 'customer' && key !== 'documents') {
+                        allKeys.add(key);
+                    }
+                });
+                // Add customer fields if they exist
+                if (item.customer) {
+                    Object.keys(item.customer).forEach(key => {
+                        allKeys.add('customer_' + key);
+                    });
+                }
+            });
+
+            const headers = Array.from(allKeys);
+            
+            // Create CSV header row
+            let csv = headers.join(',') + '\n';
+            
+            // Create CSV data rows
+            data.forEach(item => {
+                const values = headers.map(header => {
+                    let value;
+                    
+                    // Handle customer fields
+                    if (header.startsWith('customer_')) {
+                        const customerKey = header.replace('customer_', '');
+                        value = item.customer ? item.customer[customerKey] : '';
+                    } else {
+                        value = item[header];
+                    }
+                    
+                    // Handle different data types
+                    if (value === null || value === undefined) {
+                        return '';
+                    }
+                    
+                    // Convert to string and escape quotes
+                    value = String(value).replace(/"/g, '""');
+                    
+                    // Wrap in quotes if contains comma, newline, or quote
+                    if (value.includes(',') || value.includes('\n') || value.includes('"')) {
+                        return `"${value}"`;
+                    }
+                    
+                    return value;
+                });
+                
+                csv += values.join(',') + '\n';
+            });
+            
+            // Create download link
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            closeExportModal();
+            alert(`Exported ${data.length} records to ${filename}`);
+        }
+
+        function exportAllInventory() {
+            const data = inventory.map(v => ({
+                stockNumber: v.stockNumber,
+                vin: v.vin,
+                year: v.year,
+                make: v.make,
+                model: v.model,
+                trim: v.trim,
+                color: v.color,
+                fleetCompany: v.fleetCompany || '',
+                status: v.status,
+                dateAdded: v.dateAdded,
+                pickupDate: v.pickupDate || '',
+                pickupTime: v.pickupTime || ''
+            }));
+            
+            const filename = `inventory-all-${new Date().toISOString().split('T')[0]}.csv`;
+            exportToCSV(data, filename);
+        }
+
+        function exportByStatus(status) {
+            const filtered = inventory.filter(v => v.status === status);
+            
+            const data = filtered.map(v => ({
+                stockNumber: v.stockNumber,
+                vin: v.vin,
+                year: v.year,
+                make: v.make,
+                model: v.model,
+                trim: v.trim,
+                color: v.color,
+                fleetCompany: v.fleetCompany || '',
+                status: v.status,
+                dateAdded: v.dateAdded,
+                pickupDate: v.pickupDate || '',
+                pickupTime: v.pickupTime || ''
+            }));
+            
+            const statusName = status.replace('-', '_');
+            const filename = `inventory-${statusName}-${new Date().toISOString().split('T')[0]}.csv`;
+            exportToCSV(data, filename);
+        }
+
+        function exportSoldVehicles() {
+            const data = soldVehicles.map(v => {
+                const row = {
+                    stockNumber: v.stockNumber,
+                    vin: v.vin,
+                    year: v.year,
+                    make: v.make,
+                    model: v.model,
+                    trim: v.trim,
+                    color: v.color,
+                    fleetCompany: v.fleetCompany || '',
+                    status: v.status,
+                    dateAdded: v.dateAdded
+                };
+                
+                // Add customer information
+                if (v.customer) {
+                    row.customer = v.customer;
+                }
+                
+                return row;
+            });
+            
+            const filename = `sold-vehicles-${new Date().toISOString().split('T')[0]}.csv`;
+            exportToCSV(data, filename);
+        }
+
+        function exportTradeIns() {
+            const data = tradeIns.map(t => ({
+                stockNumber: t.stockNumber || '',
+                vin: t.vin,
+                year: t.year,
+                make: t.make,
+                model: t.model,
+                trim: t.trim || '',
+                color: t.color,
+                mileage: t.mileage || '',
+                notes: t.notes || '',
+                pickedUp: t.pickedUp ? 'Yes' : 'No',
+                pickedUpDate: t.pickedUpDate || '',
+                dateAdded: t.dateAdded
+            }));
+            
+            const filename = `trade-ins-${new Date().toISOString().split('T')[0]}.csv`;
+            exportToCSV(data, filename);
+        }
+
         // Initialize
-        window.addEventListener('DOMContentLoaded', () => {
+        function initializeApp() {
             renderDashboard();
             renderInventory();
             renderInTransit();
@@ -1339,6 +1835,15 @@
             setupNavigation();
             setupSearch();
             updateStats();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // Auth check happens in the DOMContentLoaded listener above
+            // initializeApp() is called after successful login
+            // If already logged in, initialize immediately
+            if (currentUser) {
+                initializeApp();
+            }
         });
 
         // Navigation
@@ -1850,20 +2355,9 @@
                             ${vehicle.customer.email ? `<div class="info-value" style="font-size: 0.875rem; color: var(--text-secondary);">📧 ${vehicle.customer.email}</div>` : ''}
                         </div>
                         ` : ''}
-                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
-                            <div class="info-label" style="margin-bottom: 0.5rem;">Change Status</div>
-                            <select class="filter-select" style="width: 100%; margin-bottom: 0.5rem;" onchange="quickStatusChange(${vehicle.id}, this.value)">
-                                <option value="in-stock" ${vehicle.status === 'in-stock' ? 'selected' : ''}>In Stock</option>
-                                <option value="in-transit" ${vehicle.status === 'in-transit' ? 'selected' : ''}>In-Transit</option>
-                                <option value="pdi" ${vehicle.status === 'pdi' ? 'selected' : ''}>PDI</option>
-                                <option value="pending-pickup" ${vehicle.status === 'pending-pickup' ? 'selected' : ''}>Pending Pickup</option>
-                                <option value="pickup-scheduled" ${vehicle.status === 'pickup-scheduled' ? 'selected' : ''}>Pickup Scheduled</option>
-                                <option value="sold" ${vehicle.status === 'sold' ? 'selected' : ''}>Sold</option>
-                            </select>
-                        </div>
                         <div class="vehicle-actions">
                             <button class="btn btn-small btn-secondary" onclick="viewDetails(${vehicle.id})">Details</button>
-                            <button class="btn btn-small btn-secondary" onclick="generateLabel(${vehicle.id})">Label</button>
+                            <button class="btn btn-small btn-secondary" onclick="openStatusPopup(${vehicle.id}, this)">Status</button>
                         </div>
                     </div>
                 </div>
@@ -2015,20 +2509,9 @@
                             ${vehicle.customer.email ? `<div class="info-value" style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.25rem;">📧 ${vehicle.customer.email}</div>` : ''}
                         </div>
                         ` : ''}
-                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
-                            <div class="info-label" style="margin-bottom: 0.5rem;">Change Status</div>
-                            <select class="filter-select" style="width: 100%; margin-bottom: 0.5rem;" onchange="quickStatusChange(${vehicle.id}, this.value)">
-                                <option value="in-stock">In Stock</option>
-                                <option value="in-transit">In-Transit</option>
-                                <option value="pdi">PDI</option>
-                                <option value="pending-pickup">Pending Pickup</option>
-                                <option value="pickup-scheduled" selected>Pickup Scheduled</option>
-                                <option value="sold">Sold</option>
-                            </select>
-                        </div>
                         <div class="vehicle-actions">
                             <button class="btn btn-small btn-secondary" onclick="viewDetails(${vehicle.id})">Details</button>
-                            <button class="btn btn-small btn-secondary" onclick="generateLabel(${vehicle.id})">Label</button>
+                            <button class="btn btn-small btn-secondary" onclick="openStatusPopup(${vehicle.id}, this)">Status</button>
                         </div>
                     </div>
                 </div>
@@ -2174,55 +2657,163 @@
             document.getElementById('detailModal').classList.add('active');
         }
 
+        // Generate Label from Detail Modal
+        function generateLabelFromDetail() {
+            if (!window.currentVehicleId) return;
+            const vehicle = inventory.find(v => v.id === window.currentVehicleId) || 
+                           soldVehicles.find(v => v.id === window.currentVehicleId);
+            if (!vehicle) return;
+            generateLabel(vehicle.id);
+        }
+
         // Generate Label
         function generateLabel(id) {
-            const vehicle = inventory.find(v => v.id === id);
-            if (!vehicle) return;
+            // Find vehicle in inventory or sold vehicles
+            const vehicle = inventory.find(v => v.id === id) || 
+                           soldVehicles.find(v => v.id === id);
             
-            currentVehicle = vehicle;
+            if (!vehicle) {
+                console.error('Vehicle not found for label generation:', id);
+                alert('Vehicle not found. Please try again.');
+                return;
+            }
+            
+            window.currentVehicleId = id;
             
             // Set stock number header
             document.getElementById('labelStockNumber').textContent = vehicle.stockNumber;
 
-            // Set vehicle info
+            // Set vehicle info with explicit black text color
             const labelInfo = document.getElementById('labelInfo');
             labelInfo.innerHTML = `
-                <div><strong>VIN:</strong> ${vehicle.vin}</div>
-                <div><strong>Year:</strong> ${vehicle.year}</div>
-                <div><strong>Make:</strong> ${vehicle.make}</div>
-                <div><strong>Model:</strong> ${vehicle.model}</div>
-                <div><strong>Trim:</strong> ${vehicle.trim}</div>
-                <div><strong>Color:</strong> ${vehicle.color}</div>
-                ${vehicle.fleetCompany ? `<div><strong>Fleet:</strong> ${vehicle.fleetCompany}</div>` : ''}
+                <div style="color: #000;"><strong>VIN:</strong> ${vehicle.vin}</div>
+                <div style="color: #000;"><strong>Year:</strong> ${vehicle.year}</div>
+                <div style="color: #000;"><strong>Make:</strong> ${vehicle.make}</div>
+                <div style="color: #000;"><strong>Model:</strong> ${vehicle.model}</div>
+                <div style="color: #000;"><strong>Trim:</strong> ${vehicle.trim}</div>
+                <div style="color: #000;"><strong>Color:</strong> ${vehicle.color}</div>
+                ${vehicle.fleetCompany ? `<div style="color: #000;"><strong>Fleet:</strong> ${vehicle.fleetCompany}</div>` : ''}
             `;
 
-            // Generate QR code
+            // Generate QR code with just the VIN
             const qrContainer = document.getElementById('labelQR');
             qrContainer.innerHTML = '';
-            
-            const qrData = JSON.stringify({
-                stockNumber: vehicle.stockNumber,
-                vin: vehicle.vin,
-                year: vehicle.year,
-                make: vehicle.make,
-                model: vehicle.model,
-                trim: vehicle.trim,
-                color: vehicle.color,
-                fleetCompany: vehicle.fleetCompany
-            });
 
             new QRCode(qrContainer, {
-                text: qrData,
+                text: vehicle.vin,
                 width: 80,
                 height: 80,
-                correctLevel: QRCode.CorrectLevel.M
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
             });
             
             document.getElementById('labelModal').classList.add('active');
         }
 
+        // Open Status Popup
+        function openStatusPopup(vehicleId, buttonOrEvent) {
+            // Handle both event object and button element
+            const button = buttonOrEvent?.target || buttonOrEvent;
+            
+            // Prevent event bubbling if it's an event object
+            if (buttonOrEvent && buttonOrEvent.stopPropagation) {
+                buttonOrEvent.stopPropagation();
+            }
+            
+            // Find vehicle in inventory or sold vehicles
+            const vehicle = inventory.find(v => v.id === vehicleId) || 
+                           soldVehicles.find(v => v.id === vehicleId);
+            
+            if (!vehicle) {
+                console.error('Vehicle not found:', vehicleId);
+                return;
+            }
+            
+            const popup = document.getElementById('statusPopup');
+            
+            if (!popup) {
+                console.error('Status popup element not found!');
+                return;
+            }
+            
+            const rect = button.getBoundingClientRect();
+            
+            // Create status options
+            const statuses = [
+                { value: 'in-stock', label: 'In Stock' },
+                { value: 'in-transit', label: 'In-Transit' },
+                { value: 'pdi', label: 'PDI' },
+                { value: 'pending-pickup', label: 'Pending Pickup' },
+                { value: 'pickup-scheduled', label: 'Pickup Scheduled' },
+                { value: 'sold', label: 'Sold' }
+            ];
+            
+            popup.innerHTML = statuses.map(status => `
+                <div class="status-popup-option ${vehicle.status === status.value ? 'selected' : ''}" 
+                     onclick="quickStatusChange(${vehicleId}, '${status.value}')">
+                    ${status.label}
+                </div>
+            `).join('');
+            
+            // Measure popup height while invisible
+            popup.style.visibility = 'hidden';
+            popup.style.display = 'block';
+            const popupHeight = popup.offsetHeight;
+            popup.style.display = 'none';
+            popup.style.visibility = 'visible';
+            
+            // Calculate available space below and above button
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+            
+            // Position popup intelligently
+            if (spaceBelow >= popupHeight + 10) {
+                // Enough space below - show below button
+                popup.style.top = (rect.bottom + 5) + 'px';
+                popup.style.bottom = 'auto';
+            } else if (spaceAbove >= popupHeight + 10) {
+                // Not enough space below but enough above - show above button
+                popup.style.bottom = (window.innerHeight - rect.top + 5) + 'px';
+                popup.style.top = 'auto';
+            } else {
+                // Not enough space either way - position at bottom of button and let it scroll
+                popup.style.top = (rect.bottom + 5) + 'px';
+                popup.style.bottom = 'auto';
+                popup.style.maxHeight = Math.min(300, spaceBelow - 10) + 'px';
+            }
+            
+            // Position horizontally
+            const spaceRight = window.innerWidth - rect.left;
+            if (spaceRight >= 200) {
+                popup.style.left = rect.left + 'px';
+                popup.style.right = 'auto';
+            } else {
+                popup.style.right = (window.innerWidth - rect.right) + 'px';
+                popup.style.left = 'auto';
+            }
+            
+            // Remove inline display style so CSS class can work
+            popup.style.display = '';
+            
+            popup.classList.add('active');
+            
+            // Close popup when clicking outside
+            setTimeout(() => {
+                document.addEventListener('click', closeStatusPopup);
+            }, 0);
+        }
+        
+        function closeStatusPopup() {
+            const popup = document.getElementById('statusPopup');
+            popup.classList.remove('active');
+            document.removeEventListener('click', closeStatusPopup);
+        }
+
         // Quick Status Change from Card
         function quickStatusChange(vehicleId, newStatus) {
+            closeStatusPopup(); // Close the popup
+            
             const vehicleIndex = inventory.findIndex(v => v.id === vehicleId);
             if (vehicleIndex === -1) return;
             
