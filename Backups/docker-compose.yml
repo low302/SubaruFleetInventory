@@ -8,9 +8,8 @@ services:
       - "8080:80"
       - "3000:3000"
     volumes:
-      # CRITICAL FIX: Only persist the database file, NOT the entire /app directory
-      # This allows the container to use the updated server.js from the image
-      - vehicle-database:/app/data
+      # Only persist the SQLite database - don't mount source files
+      - vehicle-database:/app
     restart: unless-stopped
     environment:
       - TZ=America/New_York

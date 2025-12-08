@@ -5,6 +5,7 @@ const cors = require('cors');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
+const fs = require('fs');
 
 const app = express();
 const PORT = 3000;
@@ -63,12 +64,19 @@ app.use((req, res, next) => {
     next();
 });
 
+// Ensure data directory exists
+const dataDir = '/app/data';
+if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+    console.log('Created data directory:', dataDir);
+}
+
 // Initialize SQLite database
-const db = new sqlite3.Database('./fleet-inventory.db', (err) => {
+const db = new sqlite3.Database('/app/data/fleet-inventory.db', (err) => {
     if (err) {
         console.error('Error opening database:', err);
     } else {
-        console.log('Connected to SQLite database');
+        console.log('Connected to SQLite database at /app/data/fleet-inventory.db');
         initializeDatabase();
     }
 });
@@ -494,6 +502,7 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on http://0.0.0.0:${PORT}`);
     console.log(`Access from any device on your network`);
     console.log(`Default login: username=Zaid, password=1234`);
+    console.log(`Database location: /app/data/fleet-inventory.db`);
     console.log(`===========================================`);
 });
 
