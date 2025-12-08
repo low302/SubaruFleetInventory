@@ -9,28 +9,17 @@ const session = require('express-session');
 const app = express();
 const PORT = 3000;
 
-// Middleware - CORS CONFIGURATION FOR LOCAL NETWORK
+// Middleware - FIXED CORS CONFIGURATION
 app.use(cors({
     origin: function (origin, callback) {
         // Allow requests with no origin (mobile apps, curl, etc)
         if (!origin) return callback(null, true);
-        
-        // Allow localhost on any port
+        // Allow localhost on any port (development)
         if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
             return callback(null, true);
         }
-        
-        // Allow any IP address on local network (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
-        const localNetworkPattern = /^https?:\/\/(192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3})(:\d+)?$/;
-        if (origin && localNetworkPattern.test(origin)) {
-            return callback(null, true);
-        }
-        
-        // For development, allow all origins (comment out in production if needed)
-        return callback(null, true);
-        
-        // Uncomment this line for production to block unknown origins:
-        // callback(new Error('Not allowed by CORS'));
+        // In production, you would specify exact origins
+        callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -40,7 +29,7 @@ app.use(cors({
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
-// SESSION CONFIGURATION
+// FIXED SESSION CONFIGURATION
 app.use(session({
     secret: 'brandon-tomes-subaru-fleet-secret-2024',
     resave: false,
@@ -57,7 +46,7 @@ app.use(session({
 
 // Debug middleware (comment out in production)
 app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${req.headers.origin || 'none'}`);
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
     console.log('Session ID:', req.sessionID);
     console.log('User ID:', req.session?.userId);
     next();
@@ -175,7 +164,7 @@ function isAuthenticated(req, res, next) {
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
     
-    console.log('Login attempt:', username, 'from origin:', req.headers.origin);
+    console.log('Login attempt:', username);
 
     db.get('SELECT * FROM users WHERE username = ?', [username], (err, user) => {
         if (err) {
@@ -233,7 +222,7 @@ app.post('/api/logout', (req, res) => {
 
 // Check auth status
 app.get('/api/auth/status', (req, res) => {
-    console.log('Auth status check - Session ID:', req.sessionID, 'User ID:', req.session?.userId, 'Origin:', req.headers.origin);
+    console.log('Auth status check - Session ID:', req.sessionID, 'User ID:', req.session?.userId);
     if (req.session && req.session.userId) {
         res.json({ authenticated: true, username: req.session.username });
     } else {
@@ -489,10 +478,9 @@ app.delete('/api/trade-ins/:id', isAuthenticated, (req, res) => {
 });
 
 // Start server
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, () => {
     console.log(`===========================================`);
-    console.log(`Server running on http://0.0.0.0:${PORT}`);
-    console.log(`Access from any device on your network`);
+    console.log(`Server running on http://localhost:${PORT}`);
     console.log(`Default login: username=Zaid, password=1234`);
     console.log(`===========================================`);
 });
