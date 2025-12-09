@@ -1292,13 +1292,6 @@
                 <button class="btn btn-secondary" onclick="updateVehicleStatus()" style="width: 100%;">Update Status</button>
             </div>
 
-            <!-- Label Section -->
-            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border);">
-                <h3 style="font-size: 1.25rem; margin-bottom: 1rem;">Vehicle Label</h3>
-                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Generate a QR code label for this vehicle.</p>
-                <button class="btn btn-secondary" onclick="generateLabelFromDetail()" style="width: 100%;">🏷️ Generate Label</button>
-            </div>
-
             <!-- Customer Information Section -->
             <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border);">
                 <h3 style="font-size: 1.25rem; margin-bottom: 1rem;">Customer Information</h3>
@@ -1496,6 +1489,28 @@
             </form>
         </div>
     </div>
+    <!-- Sold Vehicle Modal -->
+    <div id="soldModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Mark Vehicle as Sold</h2>
+                <button class="close-btn" onclick="closeSoldModal()">&times;</button>
+            </div>
+            <form id="soldForm">
+                <div class="form-group">
+                    <label for="soldSaleDate">Sale Date</label>
+                    <input type="date" id="soldSaleDate" required>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="soldHasTrade">
+                    <label for="soldHasTrade">Has Trade-In Vehicle?</label>
+                </div>
+
+                <button type="submit" class="btn" style="width: 100%;">Mark as Sold</button>
+            </form>
+        </div>
+    </div>    
 
     <!-- Status Popup -->
     <div id="statusPopup" class="status-popup"></div>

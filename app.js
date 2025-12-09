@@ -141,34 +141,58 @@ async function addVehicle(event) {
 async function updateVehicleStatus() {
     if (!currentVehicle) return;
     const newStatus = document.getElementById('detailStatus').value;
-    if (newStatus === 'sold') {
-        const soldVehicle = { ...currentVehicle, status: 'sold' };
+    const currentlyInSold = soldVehicles.some(v => v.id === currentVehicle.id);
+    
+    // Moving TO sold status - show sold modal
+    if (newStatus === 'sold' && !currentlyInSold) {
+        closeDetailModal();
+        openSoldModal();
+        return;
+    } 
+    // Moving FROM sold back to inventory
+    else if (newStatus !== 'sold' && currentlyInSold) {
+        const inventoryVehicle = { ...currentVehicle, status: newStatus };
         try {
-            await fetch(`${API_BASE}/sold-vehicles`, {
+            // First add back to inventory
+            const inventoryResponse = await fetch(`${API_BASE}/inventory`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify(soldVehicle)
+                body: JSON.stringify(inventoryVehicle)
             });
-            await fetch(`${API_BASE}/inventory/${currentVehicle.id}`, {
+            
+            if (!inventoryResponse.ok) {
+                const errorData = await inventoryResponse.json();
+                throw new Error(errorData.error || 'Failed to add to inventory');
+            }
+            
+            // Then delete from sold vehicles
+            const deleteResponse = await fetch(`${API_BASE}/sold-vehicles/${currentVehicle.id}`, {
                 method: 'DELETE',
                 credentials: 'include'
             });
-            if (currentVehicle.customer && currentVehicle.customer.hasTradeIn) {
-                openTradeInModal();
-            } else {
-                await loadAllData();
-                closeDetailModal();
-                updateDashboard();
-                renderCurrentPage();
+            
+            if (!deleteResponse.ok) {
+                throw new Error('Failed to remove from sold vehicles');
             }
+            
+            await loadAllData();
+            closeDetailModal();
+            updateDashboard();
+            renderCurrentPage();
+            alert('Vehicle moved back to inventory successfully!');
+            
         } catch (error) {
-            console.error('Error moving vehicle to sold:', error);
-            alert('Failed to update vehicle status. Please try again.');
+            console.error('Error moving vehicle from sold:', error);
+            alert('Failed to update vehicle status: ' + error.message);
         }
-    } else if (newStatus === 'pickup-scheduled') {
+    }
+    // Pickup scheduled (requires additional info)
+    else if (newStatus === 'pickup-scheduled') {
         openPickupScheduleModal();
-    } else {
+    } 
+    // Regular status update within inventory
+    else {
         currentVehicle.status = newStatus;
         try {
             const response = await fetch(`${API_BASE}/inventory/${currentVehicle.id}`, {
@@ -537,7 +561,15 @@ function createVehicleCard(vehicle) {
                 ${vehicle.customer ? `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);"><div class="info-label">Customer</div><div class="info-value">${vehicle.customer.firstName} ${vehicle.customer.lastName}</div></div>` : ''}
                 <div class="vehicle-actions">
                     <button class="btn btn-small btn-secondary" onclick='openVehicleDetail(${vehicle.id})'>Details</button>
-                    <button class="btn btn-small btn-secondary" onclick='generateLabel(${vehicleJson})'>Label</button>
+                    <select class="filter-select btn-small" style="flex: 1; padding: 0.5rem;" onchange='quickStatusChange(${vehicle.id}, this.value)'>
+                        <option value="">Change Status...</option>
+                        <option value="in-stock" ${vehicle.status === 'in-stock' ? 'selected' : ''}>In Stock</option>
+                        <option value="in-transit" ${vehicle.status === 'in-transit' ? 'selected' : ''}>In-Transit</option>
+                        <option value="pdi" ${vehicle.status === 'pdi' ? 'selected' : ''}>PDI</option>
+                        <option value="pending-pickup" ${vehicle.status === 'pending-pickup' ? 'selected' : ''}>Pending Pickup</option>
+                        <option value="pickup-scheduled" ${vehicle.status === 'pickup-scheduled' ? 'selected' : ''}>Pickup Scheduled</option>
+                        <option value="sold" ${vehicle.status === 'sold' ? 'selected' : ''}>Sold</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -574,6 +606,7 @@ function createTradeInCard(tradeIn) {
 function renderDetailModal(vehicle) {
     const isFromSold = soldVehicles.some(v => v.id === vehicle.id);
     const isFromTradeIn = tradeIns.some(t => t.id === vehicle.id);
+    const vehicleJson = JSON.stringify(vehicle).replace(/"/g, '&quot;');
     const content = document.getElementById('detailContent');
     content.innerHTML = `
         <div class="vehicle-info">
@@ -586,7 +619,10 @@ function renderDetailModal(vehicle) {
             <div class="info-item"><div class="info-label">Color</div><div class="info-value">${vehicle.color}</div></div>
             <div class="info-item"><div class="info-label">Fleet Company</div><div class="info-value">${vehicle.fleetCompany || 'N/A'}</div></div>
         </div>
-        ${!isFromSold && !isFromTradeIn ? `<div style="margin-top: 2rem;"><button class="btn btn-danger" onclick="deleteVehicle(${vehicle.id})" style="width: 100%;">Delete Vehicle</button></div>` : ''}
+        <div style="margin-top: 2rem;">
+            <button class="btn btn-secondary" onclick='generateLabel(${vehicleJson})' style="width: 100%;">🏷️ Generate Label</button>
+        </div>
+        ${!isFromSold && !isFromTradeIn ? `<div style="margin-top: 1rem;"><button class="btn btn-danger" onclick="deleteVehicle(${vehicle.id})" style="width: 100%;">Delete Vehicle</button></div>` : ''}
     `;
     document.getElementById('detailStatus').value = vehicle.status;
     if (vehicle.customer) {
@@ -670,6 +706,103 @@ function openTradePickupModal() { document.getElementById('tradePickupModal').cl
 function closeTradePickupModal() { document.getElementById('tradePickupModal').classList.remove('active'); document.getElementById('tradePickupForm').reset(); }
 function openPickupScheduleModal() { document.getElementById('pickupScheduleModal').classList.add('active'); }
 function closePickupScheduleModal() { document.getElementById('pickupScheduleModal').classList.remove('active'); document.getElementById('pickupScheduleForm').reset(); }
+function openSoldModal() { document.getElementById('soldModal').classList.add('active'); }
+function closeSoldModal() { document.getElementById('soldModal').classList.remove('active'); document.getElementById('soldForm').reset(); }
+
+// Quick status change from card dropdown
+async function quickStatusChange(vehicleId, newStatus) {
+    if (!newStatus) return; // User selected "Change Status..." placeholder
+    
+    const vehicle = vehicles.find(v => v.id === vehicleId);
+    if (!vehicle) return;
+    
+    currentVehicle = vehicle;
+    
+    // If changing to sold, show sold modal
+    if (newStatus === 'sold') {
+        openSoldModal();
+        return;
+    }
+    
+    // If changing to pickup-scheduled, show pickup schedule modal
+    if (newStatus === 'pickup-scheduled') {
+        openPickupScheduleModal();
+        return;
+    }
+    
+    // Regular status change
+    vehicle.status = newStatus;
+    try {
+        const response = await fetch(`${API_BASE}/inventory/${vehicleId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(vehicle)
+        });
+        if (!response.ok) throw new Error('Failed to update vehicle');
+        await loadInventory();
+        updateDashboard();
+        renderCurrentPage();
+    } catch (error) {
+        console.error('Error updating vehicle:', error);
+        alert('Failed to update vehicle status. Please try again.');
+    }
+}
+
+async function handleSoldSubmit(event) {
+    event.preventDefault();
+    if (!currentVehicle) return;
+    
+    const saleDate = document.getElementById('soldSaleDate').value;
+    const hasTrade = document.getElementById('soldHasTrade').checked;
+    
+    // Update vehicle with sale date
+    currentVehicle.customer = currentVehicle.customer || {};
+    currentVehicle.customer.saleDate = saleDate;
+    
+    const soldVehicle = { ...currentVehicle, status: 'sold' };
+    
+    try {
+        // Add to sold vehicles
+        const soldResponse = await fetch(`${API_BASE}/sold-vehicles`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(soldVehicle)
+        });
+        
+        if (!soldResponse.ok) {
+            const errorData = await soldResponse.json();
+            throw new Error(errorData.error || 'Failed to add sold vehicle');
+        }
+        
+        // Delete from inventory
+        const deleteResponse = await fetch(`${API_BASE}/inventory/${currentVehicle.id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        
+        if (!deleteResponse.ok) {
+            throw new Error('Failed to remove from inventory');
+        }
+        
+        await loadAllData();
+        closeSoldModal();
+        updateDashboard();
+        renderCurrentPage();
+        
+        // If has trade, open trade-in modal
+        if (hasTrade) {
+            openTradeInModal();
+        } else {
+            alert('Vehicle marked as sold successfully!');
+        }
+        
+    } catch (error) {
+        console.error('Error marking vehicle as sold:', error);
+        alert('Failed to mark vehicle as sold: ' + error.message);
+    }
+}
 
 function switchPage(pageId) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -689,6 +822,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('tradeInForm').addEventListener('submit', addTradeIn);
     document.getElementById('tradePickupForm').addEventListener('submit', confirmTradeInPickup);
     document.getElementById('pickupScheduleForm').addEventListener('submit', schedulePickup);
+    document.getElementById('soldForm').addEventListener('submit', handleSoldSubmit);
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', function(e) { e.preventDefault(); const pageId = this.getAttribute('data-page'); switchPage(pageId); });
     });

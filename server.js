@@ -29,9 +29,6 @@ app.use(cors({
         
         // For development, allow all origins (comment out in production if needed)
         return callback(null, true);
-        
-        // Uncomment this line for production to block unknown origins:
-        // callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -50,10 +47,10 @@ app.use(session({
         secure: false,      // Set to true only if using HTTPS
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        sameSite: 'lax',    // Works for same-origin requests through nginx
-        path: '/'           // Explicit path
+        sameSite: 'lax',
+        path: '/'
     },
-    name: 'fleet.sid'       // Custom session name for easier debugging
+    name: 'fleet.sid'
 }));
 
 // Debug middleware (comment out in production)
@@ -401,6 +398,18 @@ app.post('/api/sold-vehicles', isAuthenticated, (req, res) => {
         }
         console.log('Sold vehicle added successfully, ID:', this.lastID);
         res.json({ success: true, id: this.lastID });
+    });
+});
+
+// Delete sold vehicle
+app.delete('/api/sold-vehicles/:id', isAuthenticated, (req, res) => {
+    db.run('DELETE FROM sold_vehicles WHERE id = ?', [req.params.id], function(err) {
+        if (err) {
+            console.error('Error deleting sold vehicle:', err);
+            return res.status(500).json({ error: err.message });
+        }
+        console.log('Sold vehicle deleted successfully, changes:', this.changes);
+        res.json({ success: true, changes: this.changes });
     });
 });
 
