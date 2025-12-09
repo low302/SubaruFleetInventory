@@ -729,10 +729,45 @@ function openStatusPopup(vehicleId, event) {
         </div>
     `).join('');
     
-    // Position popup below button
-    popup.style.top = (rect.bottom + window.scrollY + 5) + 'px';
-    popup.style.left = rect.left + 'px';
+    // Show popup temporarily to get its height
+    popup.style.visibility = 'hidden';
     popup.classList.add('active');
+    
+    // Calculate positions
+    const popupHeight = popup.offsetHeight;
+    const popupWidth = popup.offsetWidth;
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+    
+    let top = rect.bottom + window.scrollY + 5;
+    let left = rect.left + window.scrollX;
+    
+    // Check if popup goes off bottom of screen
+    if (rect.bottom + popupHeight + 5 > viewportHeight) {
+        // Position above button instead
+        top = rect.top + window.scrollY - popupHeight - 5;
+    }
+    
+    // Check if popup goes off right of screen
+    if (left + popupWidth > viewportWidth) {
+        // Align to right edge of button
+        left = rect.right + window.scrollX - popupWidth;
+    }
+    
+    // Make sure it doesn't go off left edge
+    if (left < 0) {
+        left = 10;
+    }
+    
+    // Make sure it doesn't go off top edge
+    if (top < window.scrollY) {
+        top = window.scrollY + 10;
+    }
+    
+    // Position popup
+    popup.style.top = top + 'px';
+    popup.style.left = left + 'px';
+    popup.style.visibility = 'visible';
     
     // Close popup when clicking outside
     setTimeout(() => {
