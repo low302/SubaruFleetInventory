@@ -561,15 +561,7 @@ function createVehicleCard(vehicle) {
                 ${vehicle.customer ? `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);"><div class="info-label">Customer</div><div class="info-value">${vehicle.customer.firstName} ${vehicle.customer.lastName}</div></div>` : ''}
                 <div class="vehicle-actions">
                     <button class="btn btn-small btn-secondary" onclick='openVehicleDetail(${vehicle.id})'>Details</button>
-                    <select class="filter-select btn-small" style="flex: 1; padding: 0.5rem;" onchange='quickStatusChange(${vehicle.id}, this.value)'>
-                        <option value="">Change Status...</option>
-                        <option value="in-stock" ${vehicle.status === 'in-stock' ? 'selected' : ''}>In Stock</option>
-                        <option value="in-transit" ${vehicle.status === 'in-transit' ? 'selected' : ''}>In-Transit</option>
-                        <option value="pdi" ${vehicle.status === 'pdi' ? 'selected' : ''}>PDI</option>
-                        <option value="pending-pickup" ${vehicle.status === 'pending-pickup' ? 'selected' : ''}>Pending Pickup</option>
-                        <option value="pickup-scheduled" ${vehicle.status === 'pickup-scheduled' ? 'selected' : ''}>Pickup Scheduled</option>
-                        <option value="sold" ${vehicle.status === 'sold' ? 'selected' : ''}>Sold</option>
-                    </select>
+                    <button class="btn btn-small btn-secondary" onclick='openStatusPopup(${vehicle.id}, event)'>Status</button>
                 </div>
             </div>
         </div>
@@ -709,9 +701,56 @@ function closePickupScheduleModal() { document.getElementById('pickupScheduleMod
 function openSoldModal() { document.getElementById('soldModal').classList.add('active'); }
 function closeSoldModal() { document.getElementById('soldModal').classList.remove('active'); document.getElementById('soldForm').reset(); }
 
+// Open status popup
+function openStatusPopup(vehicleId, event) {
+    event.stopPropagation();
+    
+    const vehicle = vehicles.find(v => v.id === vehicleId);
+    if (!vehicle) return;
+    
+    const button = event.target;
+    const popup = document.getElementById('statusPopup');
+    const rect = button.getBoundingClientRect();
+    
+    // Create status options
+    const statuses = [
+        { value: 'in-stock', label: 'In Stock', class: 'status-in-stock' },
+        { value: 'in-transit', label: 'In-Transit', class: 'status-in-transit' },
+        { value: 'pdi', label: 'PDI', class: 'status-pdi' },
+        { value: 'pending-pickup', label: 'Pending Pickup', class: 'status-pending-pickup' },
+        { value: 'pickup-scheduled', label: 'Pickup Scheduled', class: 'status-pickup-scheduled' },
+        { value: 'sold', label: 'Sold', class: 'status-sold' }
+    ];
+    
+    popup.innerHTML = statuses.map(status => `
+        <div class="status-popup-option ${vehicle.status === status.value ? 'selected' : ''}" 
+             onclick="quickStatusChange(${vehicleId}, '${status.value}')">
+            <span class="status-badge ${status.class}" style="margin-right: 0.5rem;">${status.label}</span>
+        </div>
+    `).join('');
+    
+    // Position popup below button
+    popup.style.top = (rect.bottom + window.scrollY + 5) + 'px';
+    popup.style.left = rect.left + 'px';
+    popup.classList.add('active');
+    
+    // Close popup when clicking outside
+    setTimeout(() => {
+        document.addEventListener('click', closeStatusPopup);
+    }, 0);
+}
+
+function closeStatusPopup() {
+    const popup = document.getElementById('statusPopup');
+    popup.classList.remove('active');
+    document.removeEventListener('click', closeStatusPopup);
+}
+
 // Quick status change from card dropdown
 async function quickStatusChange(vehicleId, newStatus) {
-    if (!newStatus) return; // User selected "Change Status..." placeholder
+    closeStatusPopup(); // Close the popup immediately
+    
+    if (!newStatus) return;
     
     const vehicle = vehicles.find(v => v.id === vehicleId);
     if (!vehicle) return;
