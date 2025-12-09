@@ -19,6 +19,9 @@ RUN apk add --update nodejs npm
 # Copy backend from previous stage
 COPY --from=backend /app /app
 
+# Create data directory with proper permissions
+RUN mkdir -p /app/data && chmod 777 /app/data
+
 # Copy frontend files to nginx
 COPY index.html /usr/share/nginx/html/
 COPY app.js /usr/share/nginx/html/

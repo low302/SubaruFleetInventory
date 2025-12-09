@@ -12,7 +12,6 @@ async function checkAuth() {
         if (data.authenticated) {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
-            // FIX: Set the username display
             const userDisplay = document.getElementById('currentUserDisplay');
             if (userDisplay && data.username) {
                 userDisplay.textContent = data.username;
@@ -31,8 +30,8 @@ async function checkAuth() {
 
 async function login(event) {
     event.preventDefault();
-    const username = document.getElementById('loginUsername').value;
-    const password = document.getElementById('loginPassword').value;
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
     const errorDiv = document.getElementById('loginError');
     try {
         const response = await fetch(`${API_BASE}/login`, {
@@ -362,95 +361,6 @@ async function schedulePickup(event) {
     }
 }
 
-async function handleFileUpload(event) {
-    const files = event.target.files;
-    if (!files.length || !currentVehicle) return;
-    for (let file of files) {
-        if (file.type !== 'application/pdf') {
-            alert('Only PDF files are allowed');
-            continue;
-        }
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-            const document = {
-                id: Date.now() + Math.random(),
-                name: file.name,
-                type: file.type,
-                size: file.size,
-                data: e.target.result,
-                uploadDate: new Date().toISOString()
-            };
-            if (!currentVehicle.documents) currentVehicle.documents = [];
-            currentVehicle.documents.push(document);
-            try {
-                await fetch(`${API_BASE}/inventory/${currentVehicle.id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify(currentVehicle)
-                });
-                await loadInventory();
-                renderUploadedFiles();
-            } catch (error) {
-                console.error('Error uploading document:', error);
-                alert('Failed to upload document. Please try again.');
-            }
-        };
-        reader.readAsDataURL(file);
-    }
-    event.target.value = '';
-}
-
-function renderUploadedFiles() {
-    const container = document.getElementById('uploadedFilesList');
-    if (!currentVehicle || !currentVehicle.documents || currentVehicle.documents.length === 0) {
-        container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 1rem;">No documents uploaded</p>';
-        return;
-    }
-    container.innerHTML = currentVehicle.documents.map(doc => `
-        <div class="uploaded-file-item">
-            <div class="file-info">
-                <div class="file-icon">📄</div>
-                <div class="file-details">
-                    <div class="file-name">${doc.name}</div>
-                    <div class="file-meta">${formatFileSize(doc.size)} • ${formatDate(doc.uploadDate)}</div>
-                </div>
-            </div>
-            <div class="file-actions">
-                <button class="btn btn-small btn-secondary btn-icon" onclick="downloadDocument(${doc.id})" title="Download">⬇️</button>
-                <button class="btn btn-small btn-danger btn-icon" onclick="deleteDocument(${doc.id})" title="Delete">🗑️</button>
-            </div>
-        </div>
-    `).join('');
-}
-
-function downloadDocument(docId) {
-    const doc = currentVehicle.documents.find(d => d.id === docId);
-    if (!doc) return;
-    const link = document.createElement('a');
-    link.href = doc.data;
-    link.download = doc.name;
-    link.click();
-}
-
-async function deleteDocument(docId) {
-    if (!confirm('Are you sure you want to delete this document?')) return;
-    currentVehicle.documents = currentVehicle.documents.filter(d => d.id !== docId);
-    try {
-        await fetch(`${API_BASE}/inventory/${currentVehicle.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify(currentVehicle)
-        });
-        await loadInventory();
-        renderUploadedFiles();
-    } catch (error) {
-        console.error('Error deleting document:', error);
-        alert('Failed to delete document. Please try again.');
-    }
-}
-
 function generateLabel(vehicle) {
     currentVehicle = vehicle;
     document.getElementById('labelStockNumber').textContent = vehicle.stockNumber;
@@ -694,7 +604,6 @@ function renderDetailModal(vehicle) {
     } else {
         document.getElementById('customerForm').reset();
     }
-    renderUploadedFiles();
 }
 
 function renderAnalytics() {
@@ -771,7 +680,6 @@ function switchPage(pageId) {
 }
 
 function formatDate(dateString) { if (!dateString) return 'N/A'; return new Date(dateString).toLocaleDateString(); }
-function formatFileSize(bytes) { if (bytes < 1024) return bytes + ' B'; if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'; return (bytes / (1024 * 1024)).toFixed(1) + ' MB'; }
 
 document.addEventListener('DOMContentLoaded', function() {
     checkAuth();
@@ -792,17 +700,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (document.getElementById('statusFilter')) {
         document.getElementById('statusFilter').addEventListener('change', function(e) { currentFilter.status = e.target.value; renderCurrentPage(); });
-    }
-    const uploadArea = document.getElementById('fileUploadArea');
-    if (uploadArea) {
-        uploadArea.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('drag-over'); });
-        uploadArea.addEventListener('dragleave', function(e) { e.preventDefault(); this.classList.remove('drag-over'); });
-        uploadArea.addEventListener('drop', function(e) {
-            e.preventDefault();
-            this.classList.remove('drag-over');
-            const files = e.dataTransfer.files;
-            if (files.length) { document.getElementById('pdfUploadInput').files = files; handleFileUpload({ target: { files: files } }); }
-        });
     }
     document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('active'); });
