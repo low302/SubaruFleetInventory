@@ -89,7 +89,7 @@ function initializeDatabase() {
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )`);
 
-        // Inventory table
+        // Inventory table - UPDATED WITH operationCompany
         db.run(`CREATE TABLE IF NOT EXISTS inventory (
             id INTEGER PRIMARY KEY,
             stockNumber TEXT NOT NULL,
@@ -100,6 +100,7 @@ function initializeDatabase() {
             trim TEXT NOT NULL,
             color TEXT NOT NULL,
             fleetCompany TEXT,
+            operationCompany TEXT,
             status TEXT NOT NULL,
             dateAdded DATETIME NOT NULL,
             customer TEXT,
@@ -112,7 +113,7 @@ function initializeDatabase() {
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )`);
 
-        // Sold Vehicles table
+        // Sold Vehicles table - UPDATED WITH operationCompany
         db.run(`CREATE TABLE IF NOT EXISTS sold_vehicles (
             id INTEGER PRIMARY KEY,
             stockNumber TEXT NOT NULL,
@@ -123,6 +124,7 @@ function initializeDatabase() {
             trim TEXT NOT NULL,
             color TEXT NOT NULL,
             fleetCompany TEXT,
+            operationCompany TEXT,
             status TEXT NOT NULL,
             dateAdded DATETIME NOT NULL,
             customer TEXT,
@@ -265,12 +267,12 @@ app.get('/api/inventory', isAuthenticated, (req, res) => {
     });
 });
 
-// Add vehicle to inventory
+// Add vehicle to inventory - UPDATED WITH operationCompany
 app.post('/api/inventory', isAuthenticated, (req, res) => {
     const vehicle = req.body;
     const sql = `INSERT INTO inventory 
-        (id, stockNumber, vin, year, make, model, trim, color, fleetCompany, status, dateAdded, customer, documents)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        (id, stockNumber, vin, year, make, model, trim, color, fleetCompany, operationCompany, status, dateAdded, customer, documents)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     
     const params = [
         vehicle.id,
@@ -282,6 +284,7 @@ app.post('/api/inventory', isAuthenticated, (req, res) => {
         vehicle.trim,
         vehicle.color,
         vehicle.fleetCompany || '',
+        vehicle.operationCompany || '',
         vehicle.status,
         vehicle.dateAdded,
         vehicle.customer ? JSON.stringify(vehicle.customer) : null,
@@ -298,12 +301,12 @@ app.post('/api/inventory', isAuthenticated, (req, res) => {
     });
 });
 
-// Update vehicle
+// Update vehicle - UPDATED WITH operationCompany
 app.put('/api/inventory/:id', isAuthenticated, (req, res) => {
     const vehicle = req.body;
     const sql = `UPDATE inventory SET 
         stockNumber = ?, vin = ?, year = ?, make = ?, model = ?, trim = ?, 
-        color = ?, fleetCompany = ?, status = ?, customer = ?, documents = ?,
+        color = ?, fleetCompany = ?, operationCompany = ?, status = ?, customer = ?, documents = ?,
         pickupDate = ?, pickupTime = ?, pickupNotes = ?, tradeInId = ?,
         updated_at = CURRENT_TIMESTAMP
         WHERE id = ?`;
@@ -317,6 +320,7 @@ app.put('/api/inventory/:id', isAuthenticated, (req, res) => {
         vehicle.trim,
         vehicle.color,
         vehicle.fleetCompany || '',
+        vehicle.operationCompany || '',
         vehicle.status,
         vehicle.customer ? JSON.stringify(vehicle.customer) : null,
         vehicle.documents ? JSON.stringify(vehicle.documents) : '[]',
@@ -367,12 +371,12 @@ app.get('/api/sold-vehicles', isAuthenticated, (req, res) => {
     });
 });
 
-// Add sold vehicle
+// Add sold vehicle - UPDATED WITH operationCompany
 app.post('/api/sold-vehicles', isAuthenticated, (req, res) => {
     const vehicle = req.body;
     const sql = `INSERT INTO sold_vehicles 
-        (id, stockNumber, vin, year, make, model, trim, color, fleetCompany, status, dateAdded, customer, documents, tradeInId)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        (id, stockNumber, vin, year, make, model, trim, color, fleetCompany, operationCompany, status, dateAdded, customer, documents, tradeInId)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     
     const params = [
         vehicle.id,
@@ -384,6 +388,7 @@ app.post('/api/sold-vehicles', isAuthenticated, (req, res) => {
         vehicle.trim,
         vehicle.color,
         vehicle.fleetCompany || '',
+        vehicle.operationCompany || '',
         vehicle.status,
         vehicle.dateAdded,
         vehicle.customer ? JSON.stringify(vehicle.customer) : null,

@@ -114,6 +114,7 @@ async function addVehicle(event) {
         trim: document.getElementById('trim').value,
         color: document.getElementById('color').value,
         fleetCompany: document.getElementById('fleetCompany').value,
+        operationCompany: document.getElementById('addOperationCompany').value,
         status: document.getElementById('status').value,
         dateAdded: new Date().toISOString(),
         customer: null,
@@ -264,12 +265,7 @@ async function saveCustomerInfo(event) {
     currentVehicle.customer = {
         firstName: document.getElementById('customerFirstName').value,
         lastName: document.getElementById('customerLastName').value,
-        email: document.getElementById('customerEmail').value,
         phone: document.getElementById('customerPhone').value,
-        address: document.getElementById('customerAddress').value,
-        city: document.getElementById('customerCity').value,
-        state: document.getElementById('customerState').value,
-        zip: document.getElementById('customerZip').value,
         paymentType: document.getElementById('paymentType').value,
         saleDate: document.getElementById('saleDate').value,
         notes: document.getElementById('notes').value,
@@ -289,6 +285,28 @@ async function saveCustomerInfo(event) {
     } catch (error) {
         console.error('Error saving customer info:', error);
         alert('Failed to save customer information. Please try again.');
+    }
+}
+
+async function saveOperationCompany() {
+    if (!currentVehicle) return;
+    
+    currentVehicle.operationCompany = document.getElementById('operationCompany').value;
+    
+    try {
+        const response = await fetch(`${API_BASE}/inventory/${currentVehicle.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(currentVehicle)
+        });
+        if (!response.ok) throw new Error('Failed to save operation company');
+        await loadInventory();
+        alert('Operation Company saved successfully!');
+        renderDetailModal(currentVehicle);
+    } catch (error) {
+        console.error('Error saving operation company:', error);
+        alert('Failed to save operation company. Please try again.');
     }
 }
 
@@ -411,6 +429,17 @@ async function schedulePickup(event) {
     }
 }
 
+function completePickup(vehicleId) {
+    const vehicle = vehicles.find(v => v.id === vehicleId);
+    if (!vehicle) return;
+    
+    // Set the current vehicle
+    currentVehicle = vehicle;
+    
+    // Open the sold modal to complete the sale
+    openSoldModal();
+}
+
 function generateLabel(vehicle) {
     currentVehicle = vehicle;
     document.getElementById('labelStockNumber').textContent = vehicle.stockNumber;
@@ -495,7 +524,10 @@ function updateDashboard() {
                         <div class="pickup-customer">${v.customer ? `${v.customer.firstName} ${v.customer.lastName}` : 'No customer info'}</div>
                         <div class="pickup-datetime">📅 ${formatDate(v.pickupDate)} at ${v.pickupTime}</div>
                     </div>
-                    <button class="btn btn-small" onclick="openVehicleDetail(${v.id})">View</button>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn btn-small btn-secondary" onclick="openVehicleDetail(${v.id})">View</button>
+                        <button class="btn btn-small" onclick="completePickup(${v.id})" style="background: var(--success);">✓ Complete</button>
+                    </div>
                 </li>
             `).join('') + '</ul>';
     }
@@ -636,6 +668,7 @@ function renderDetailModal(vehicle) {
             <div class="info-item"><div class="info-label">Trim</div><div class="info-value">${vehicle.trim}</div></div>
             <div class="info-item"><div class="info-label">Color</div><div class="info-value">${vehicle.color}</div></div>
             <div class="info-item"><div class="info-label">Fleet Company</div><div class="info-value">${vehicle.fleetCompany || 'N/A'}</div></div>
+            <div class="info-item"><div class="info-label">Operation Company</div><div class="info-value">${vehicle.operationCompany || 'N/A'}</div></div>
         </div>
         <div style="margin-top: 2rem;">
             <button class="btn btn-secondary" onclick='generateLabel(${vehicleJson})' style="width: 100%;">🏷️ Generate Label</button>
@@ -643,15 +676,14 @@ function renderDetailModal(vehicle) {
         ${!isFromTradeIn ? `<div style="margin-top: 1rem;"><button class="btn btn-danger" onclick="deleteVehicle(${vehicle.id})" style="width: 100%;">Delete Vehicle</button></div>` : ''}
     `;
     document.getElementById('detailStatus').value = vehicle.status;
+    
+    // Populate Operation Company field
+    document.getElementById('operationCompany').value = vehicle.operationCompany || '';
+    
     if (vehicle.customer) {
         document.getElementById('customerFirstName').value = vehicle.customer.firstName || '';
         document.getElementById('customerLastName').value = vehicle.customer.lastName || '';
-        document.getElementById('customerEmail').value = vehicle.customer.email || '';
         document.getElementById('customerPhone').value = vehicle.customer.phone || '';
-        document.getElementById('customerAddress').value = vehicle.customer.address || '';
-        document.getElementById('customerCity').value = vehicle.customer.city || '';
-        document.getElementById('customerState').value = vehicle.customer.state || '';
-        document.getElementById('customerZip').value = vehicle.customer.zip || '';
         document.getElementById('paymentType').value = vehicle.customer.paymentType || '';
         document.getElementById('saleDate').value = vehicle.customer.saleDate || '';
         document.getElementById('notes').value = vehicle.customer.notes || '';

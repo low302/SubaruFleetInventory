@@ -1250,6 +1250,11 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="addOperationCompany">Operation Company</label>
+                    <input type="text" id="addOperationCompany">
+                </div>
+
+                <div class="form-group">
                     <label for="status">Status</label>
                     <select id="status" required>
                         <option value="in-stock">In Stock</option>
@@ -1276,7 +1281,7 @@
             <div id="detailContent"></div>
             
             <!-- Status Update Section -->
-            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border);">
+             <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border);">
                 <h3 style="font-size: 1.25rem; margin-bottom: 1rem;">Update Status</h3>
                 <div class="form-group">
                     <label for="detailStatus">Vehicle Status</label>
@@ -1292,7 +1297,17 @@
                 <button class="btn btn-secondary" onclick="updateVehicleStatus()" style="width: 100%;">Update Status</button>
             </div>
 
-            <!-- Customer Information Section -->
+            <!-- Operation Company Section -->
+            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border);">
+                <h3 style="font-size: 1.25rem; margin-bottom: 1rem;">Operation Company</h3>
+                <div class="form-group">
+                    <label for="operationCompany">Operation Company</label>
+                    <input type="text" id="operationCompany">
+                </div>
+                <button class="btn btn-secondary" onclick="saveOperationCompany()" style="width: 100%;">Save Operation Company</button>
+            </div>
+
+             <!-- Customer Information Section -->
             <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border);">
                 <h3 style="font-size: 1.25rem; margin-bottom: 1rem;">Customer Information</h3>
                 <form id="customerForm" onsubmit="saveCustomerInfo(event)">
@@ -1307,40 +1322,18 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="customerEmail">Email</label>
-                        <input type="email" id="customerEmail">
-                    </div>
-                    <div class="form-group">
                         <label for="customerPhone">Phone Number</label>
                         <input type="tel" id="customerPhone">
                     </div>
-                    <div class="form-group">
-                        <label for="customerAddress">Address</label>
-                        <input type="text" id="customerAddress">
-                    </div>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label for="customerCity">City</label>
-                            <input type="text" id="customerCity">
-                        </div>
-                        <div class="form-group">
-                            <label for="customerState">State</label>
-                            <input type="text" id="customerState">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="customerZip">ZIP Code</label>
-                            <input type="text" id="customerZip">
-                        </div>
                         <div class="form-group">
                             <label for="paymentType">Payment Type</label>
                             <input type="text" id="paymentType" placeholder="e.g., Cash, Finance, Lease">
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="saleDate">Sale Date</label>
-                        <input type="date" id="saleDate">
+                        <div class="form-group">
+                            <label for="saleDate">Sale Date</label>
+                            <input type="date" id="saleDate">
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="notes">Notes</label>
