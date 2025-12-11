@@ -214,20 +214,46 @@ async function updateVehicleStatus() {
 }
 
 async function deleteVehicle(vehicleId) {
-    if (!confirm('Are you sure you want to delete this vehicle?')) return;
+    if (!confirm('Are you sure you want to delete this vehicle? This action cannot be undone.')) return;
+    
     try {
-        const response = await fetch(`${API_BASE}/inventory/${vehicleId}`, {
-            method: 'DELETE',
-            credentials: 'include'
-        });
-        if (!response.ok) throw new Error('Failed to delete vehicle');
-        await loadInventory();
+        // Check if vehicle is in sold vehicles
+        const isInSold = soldVehicles.some(v => v.id === vehicleId);
+        
+        if (isInSold) {
+            // Delete from sold vehicles table
+            const response = await fetch(`${API_BASE}/sold-vehicles/${vehicleId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to delete sold vehicle');
+            }
+            console.log('Deleted vehicle from sold_vehicles table');
+        } else {
+            // Delete from inventory table
+            const response = await fetch(`${API_BASE}/inventory/${vehicleId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to delete vehicle');
+            }
+            console.log('Deleted vehicle from inventory table');
+        }
+        
+        // Reload all data
+        await loadAllData();
         closeDetailModal();
         updateDashboard();
         renderCurrentPage();
+        alert('Vehicle deleted successfully!');
+        
     } catch (error) {
         console.error('Error deleting vehicle:', error);
-        alert('Failed to delete vehicle. Please try again.');
+        alert('Failed to delete vehicle: ' + error.message);
     }
 }
 
@@ -614,7 +640,7 @@ function renderDetailModal(vehicle) {
         <div style="margin-top: 2rem;">
             <button class="btn btn-secondary" onclick='generateLabel(${vehicleJson})' style="width: 100%;">🏷️ Generate Label</button>
         </div>
-        ${!isFromSold && !isFromTradeIn ? `<div style="margin-top: 1rem;"><button class="btn btn-danger" onclick="deleteVehicle(${vehicle.id})" style="width: 100%;">Delete Vehicle</button></div>` : ''}
+        ${!isFromTradeIn ? `<div style="margin-top: 1rem;"><button class="btn btn-danger" onclick="deleteVehicle(${vehicle.id})" style="width: 100%;">Delete Vehicle</button></div>` : ''}
     `;
     document.getElementById('detailStatus').value = vehicle.status;
     if (vehicle.customer) {
