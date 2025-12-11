@@ -418,6 +418,42 @@ app.delete('/api/sold-vehicles/:id', isAuthenticated, (req, res) => {
     });
 });
 
+// Update sold vehicle
+app.put('/api/sold-vehicles/:id', isAuthenticated, (req, res) => {
+    const vehicle = req.body;
+    const sql = `UPDATE sold_vehicles SET 
+        stockNumber = ?, vin = ?, year = ?, make = ?, model = ?, trim = ?, 
+        color = ?, fleetCompany = ?, operationCompany = ?, status = ?, customer = ?, documents = ?,
+        tradeInId = ?
+        WHERE id = ?`;
+    
+    const params = [
+        vehicle.stockNumber,
+        vehicle.vin,
+        vehicle.year,
+        vehicle.make,
+        vehicle.model,
+        vehicle.trim,
+        vehicle.color,
+        vehicle.fleetCompany || '',
+        vehicle.operationCompany || '',
+        vehicle.status,
+        vehicle.customer ? JSON.stringify(vehicle.customer) : null,
+        vehicle.documents ? JSON.stringify(vehicle.documents) : '[]',
+        vehicle.tradeInId || null,
+        vehicle.id
+    ];
+
+    db.run(sql, params, function(err) {
+        if (err) {
+            console.error('Error updating sold vehicle:', err);
+            return res.status(500).json({ error: err.message });
+        }
+        console.log('Sold vehicle updated successfully, changes:', this.changes);
+        res.json({ success: true, changes: this.changes });
+    });
+});
+
 // ==================== TRADE-INS (FLEET RETURNS) ROUTES ====================
 
 // Get all trade-ins

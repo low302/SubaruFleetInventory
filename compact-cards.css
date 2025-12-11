@@ -1,0 +1,87 @@
+/* Compact Vehicle Card Styles */
+.vehicle-card-compact {
+    background: rgba(30, 30, 30, 0.95);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.vehicle-card-compact:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    border-color: rgba(10, 132, 255, 0.3);
+}
+
+.vehicle-header-compact {
+    background: linear-gradient(135deg, #0a84ff, #0051a8);
+    color: white;
+    padding: 0.75rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.vehicle-stock-compact {
+    font-size: 1.125rem;
+    font-weight: 700;
+}
+
+.vehicle-body-compact {
+    padding: 0.875rem 1rem;
+}
+
+.vehicle-title-compact {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.625rem;
+    color: var(--text-primary);
+}
+
+.vehicle-info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.info-row {
+    display: flex;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+}
+
+.info-label-compact {
+    color: var(--text-secondary);
+    font-weight: 500;
+    min-width: 80px;
+    flex-shrink: 0;
+}
+
+.info-value-compact {
+    color: var(--text-primary);
+    font-weight: 400;
+    flex: 1;
+}
+
+.vehicle-actions-compact {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+}
+
+/* Adjust grid for compact cards */
+.vehicle-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1rem;
+}
+
+@media (max-width: 1024px) {
+    .vehicle-grid {
+        grid-template-columns: 1fr;
+    }
+}

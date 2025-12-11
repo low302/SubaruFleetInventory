@@ -310,6 +310,63 @@ async function saveOperationCompany() {
     }
 }
 
+function enableEditMode(vehicleId) {
+    window.currentlyEditingVehicle = vehicleId;
+    const vehicle = vehicles.find(v => v.id === vehicleId) || soldVehicles.find(v => v.id === vehicleId);
+    if (vehicle) {
+        currentVehicle = vehicle;
+        renderDetailModal(vehicle);
+    }
+}
+
+function cancelEditMode() {
+    window.currentlyEditingVehicle = null;
+    if (currentVehicle) {
+        renderDetailModal(currentVehicle);
+    }
+}
+
+async function saveVehicleEdit(event) {
+    event.preventDefault();
+    if (!currentVehicle) return;
+    
+    // Update vehicle with edited values
+    currentVehicle.stockNumber = document.getElementById('editStockNumber').value;
+    currentVehicle.vin = document.getElementById('editVin').value.toUpperCase();
+    currentVehicle.year = parseInt(document.getElementById('editYear').value);
+    currentVehicle.make = document.getElementById('editMake').value;
+    currentVehicle.model = document.getElementById('editModel').value;
+    currentVehicle.trim = document.getElementById('editTrim').value;
+    currentVehicle.color = document.getElementById('editColor').value;
+    currentVehicle.fleetCompany = document.getElementById('editFleetCompany').value;
+    currentVehicle.operationCompany = document.getElementById('editOperationCompany').value;
+    
+    try {
+        const isInSold = soldVehicles.some(v => v.id === currentVehicle.id);
+        const endpoint = isInSold ? 'sold-vehicles' : 'inventory';
+        
+        const response = await fetch(`${API_BASE}/${endpoint}/${currentVehicle.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(currentVehicle)
+        });
+        
+        if (!response.ok) throw new Error('Failed to save vehicle changes');
+        
+        await loadAllData();
+        window.currentlyEditingVehicle = null;
+        renderDetailModal(currentVehicle);
+        updateDashboard();
+        renderCurrentPage();
+        alert('Vehicle updated successfully!');
+        
+    } catch (error) {
+        console.error('Error saving vehicle:', error);
+        alert('Failed to save vehicle changes. Please try again.');
+    }
+}
+
 async function addTradeIn(event) {
     event.preventDefault();
     const tradeIn = {
@@ -603,21 +660,28 @@ function createVehicleCard(vehicle) {
     const statusClass = `status-${vehicle.status}`;
     const statusText = vehicle.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     const vehicleJson = JSON.stringify(vehicle).replace(/"/g, '&quot;');
+    const customerName = vehicle.customer ? `${vehicle.customer.firstName || ''} ${vehicle.customer.lastName || ''}`.trim() : null;
+    const dateAdded = new Date(vehicle.dateAdded).toLocaleDateString();
+    
     return `
-        <div class="vehicle-card">
-            <div class="vehicle-header">
-                <div class="vehicle-stock">${vehicle.stockNumber}</div>
-                <div class="vehicle-title">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
+        <div class="vehicle-card vehicle-card-compact">
+            <div class="vehicle-header-compact">
+                <div class="vehicle-stock-compact">${vehicle.stockNumber}</div>
+                <span class="status-badge ${statusClass}">${statusText}</span>
             </div>
-            <div class="vehicle-body">
-                <div class="vehicle-info">
-                    <div class="info-item"><div class="info-label">VIN</div><div class="info-value">${vehicle.vin}</div></div>
-                    <div class="info-item"><div class="info-label">Trim</div><div class="info-value">${vehicle.trim}</div></div>
-                    <div class="info-item"><div class="info-label">Color</div><div class="info-value">${vehicle.color}</div></div>
-                    <div class="info-item"><div class="info-label">Status</div><div class="info-value"><span class="status-badge ${statusClass}">${statusText}</span></div></div>
+            <div class="vehicle-body-compact">
+                <div class="vehicle-title-compact">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
+                <div class="vehicle-info-grid">
+                    <div class="info-row"><span class="info-label-compact">VIN:</span> <span class="info-value-compact">${vehicle.vin}</span></div>
+                    <div class="info-row"><span class="info-label-compact">Trim:</span> <span class="info-value-compact">${vehicle.trim}</span></div>
+                    <div class="info-row"><span class="info-label-compact">Color:</span> <span class="info-value-compact">${vehicle.color}</span></div>
+                    ${vehicle.fleetCompany ? `<div class="info-row"><span class="info-label-compact">Fleet:</span> <span class="info-value-compact">${vehicle.fleetCompany}</span></div>` : ''}
+                    ${vehicle.operationCompany ? `<div class="info-row"><span class="info-label-compact">Operation:</span> <span class="info-value-compact">${vehicle.operationCompany}</span></div>` : ''}
+                    ${customerName ? `<div class="info-row"><span class="info-label-compact">Customer:</span> <span class="info-value-compact">${customerName}</span></div>` : ''}
+                    ${vehicle.customer?.phone ? `<div class="info-row"><span class="info-label-compact">Phone:</span> <span class="info-value-compact">${vehicle.customer.phone}</span></div>` : ''}
+                    <div class="info-row"><span class="info-label-compact">Added:</span> <span class="info-value-compact">${dateAdded}</span></div>
                 </div>
-                ${vehicle.customer ? `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);"><div class="info-label">Customer</div><div class="info-value">${vehicle.customer.firstName} ${vehicle.customer.lastName}</div></div>` : ''}
-                <div class="vehicle-actions">
+                <div class="vehicle-actions-compact">
                     <button class="btn btn-small btn-secondary" onclick='openVehicleDetail(${vehicle.id})'>Details</button>
                     <button class="btn btn-small btn-secondary" onclick='openStatusPopup(${vehicle.id}, event)'>Status</button>
                 </div>
@@ -658,27 +722,84 @@ function renderDetailModal(vehicle) {
     const isFromTradeIn = tradeIns.some(t => t.id === vehicle.id);
     const vehicleJson = JSON.stringify(vehicle).replace(/"/g, '&quot;');
     const content = document.getElementById('detailContent');
-    content.innerHTML = `
-        <div class="vehicle-info">
-            <div class="info-item"><div class="info-label">Stock #</div><div class="info-value">${vehicle.stockNumber}</div></div>
-            <div class="info-item"><div class="info-label">VIN</div><div class="info-value">${vehicle.vin}</div></div>
-            <div class="info-item"><div class="info-label">Year</div><div class="info-value">${vehicle.year}</div></div>
-            <div class="info-item"><div class="info-label">Make</div><div class="info-value">${vehicle.make}</div></div>
-            <div class="info-item"><div class="info-label">Model</div><div class="info-value">${vehicle.model}</div></div>
-            <div class="info-item"><div class="info-label">Trim</div><div class="info-value">${vehicle.trim}</div></div>
-            <div class="info-item"><div class="info-label">Color</div><div class="info-value">${vehicle.color}</div></div>
-            <div class="info-item"><div class="info-label">Fleet Company</div><div class="info-value">${vehicle.fleetCompany || 'N/A'}</div></div>
-            <div class="info-item"><div class="info-label">Operation Company</div><div class="info-value">${vehicle.operationCompany || 'N/A'}</div></div>
-        </div>
-        <div style="margin-top: 2rem;">
-            <button class="btn btn-secondary" onclick='generateLabel(${vehicleJson})' style="width: 100%;">🏷️ Generate Label</button>
-        </div>
-        ${!isFromTradeIn ? `<div style="margin-top: 1rem;"><button class="btn btn-danger" onclick="deleteVehicle(${vehicle.id})" style="width: 100%;">Delete Vehicle</button></div>` : ''}
-    `;
-    document.getElementById('detailStatus').value = vehicle.status;
     
-    // Populate Operation Company field
-    document.getElementById('operationCompany').value = vehicle.operationCompany || '';
+    const isEditing = window.currentlyEditingVehicle === vehicle.id;
+    
+    if (!isEditing) {
+        // Display mode
+        content.innerHTML = `
+            <div class="vehicle-info">
+                <div class="info-item"><div class="info-label">Stock #</div><div class="info-value">${vehicle.stockNumber}</div></div>
+                <div class="info-item"><div class="info-label">VIN</div><div class="info-value">${vehicle.vin}</div></div>
+                <div class="info-item"><div class="info-label">Year</div><div class="info-value">${vehicle.year}</div></div>
+                <div class="info-item"><div class="info-label">Make</div><div class="info-value">${vehicle.make}</div></div>
+                <div class="info-item"><div class="info-label">Model</div><div class="info-value">${vehicle.model}</div></div>
+                <div class="info-item"><div class="info-label">Trim</div><div class="info-value">${vehicle.trim}</div></div>
+                <div class="info-item"><div class="info-label">Color</div><div class="info-value">${vehicle.color}</div></div>
+                <div class="info-item"><div class="info-label">Fleet Company</div><div class="info-value">${vehicle.fleetCompany || 'N/A'}</div></div>
+                <div class="info-item"><div class="info-label">Operation Company</div><div class="info-value">${vehicle.operationCompany || 'N/A'}</div></div>
+            </div>
+            <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                <button class="btn btn-secondary" onclick='generateLabel(${vehicleJson})' style="flex: 1;">🏷️ Generate Label</button>
+                ${!isFromTradeIn ? `<button class="btn" onclick="enableEditMode(${vehicle.id})" style="flex: 1;">✏️ Edit Vehicle</button>` : ''}
+            </div>
+            ${!isFromTradeIn ? `<div style="margin-top: 1rem;"><button class="btn btn-danger" onclick="deleteVehicle(${vehicle.id})" style="width: 100%;">Delete Vehicle</button></div>` : ''}
+        `;
+    } else {
+        // Edit mode
+        content.innerHTML = `
+            <form id="editVehicleForm" onsubmit="saveVehicleEdit(event)">
+                <div class="form-group">
+                    <label for="editStockNumber">Stock #</label>
+                    <input type="text" id="editStockNumber" value="${vehicle.stockNumber}" required>
+                </div>
+                <div class="form-group">
+                    <label for="editVin">VIN</label>
+                    <input type="text" id="editVin" value="${vehicle.vin}" maxlength="17" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editYear">Year</label>
+                        <input type="number" id="editYear" value="${vehicle.year}" min="1900" max="2099" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editMake">Make</label>
+                        <input type="text" id="editMake" value="${vehicle.make}" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editModel">Model</label>
+                        <input type="text" id="editModel" value="${vehicle.model}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editTrim">Trim</label>
+                        <input type="text" id="editTrim" value="${vehicle.trim}" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editColor">Color</label>
+                        <input type="text" id="editColor" value="${vehicle.color}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editFleetCompany">Fleet Company</label>
+                        <input type="text" id="editFleetCompany" value="${vehicle.fleetCompany || ''}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editOperationCompany">Operation Company</label>
+                    <input type="text" id="editOperationCompany" value="${vehicle.operationCompany || ''}">
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="submit" class="btn" style="flex: 1;">💾 Save Changes</button>
+                    <button type="button" class="btn btn-secondary" onclick="cancelEditMode()" style="flex: 1;">✖ Cancel</button>
+                </div>
+            </form>
+        `;
+    }
+    
+    document.getElementById('detailStatus').value = vehicle.status;
     
     if (vehicle.customer) {
         document.getElementById('customerFirstName').value = vehicle.customer.firstName || '';
