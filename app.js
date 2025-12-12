@@ -287,6 +287,8 @@ async function saveCustomerInfo(event) {
         phone: document.getElementById('customerPhone').value,
         paymentType: document.getElementById('paymentType').value,
         saleDate: document.getElementById('saleDate').value,
+        paymentMethod: document.getElementById('paymentMethod').value,
+        paymentReference: document.getElementById('paymentReference').value,
         notes: document.getElementById('notes').value,
         hasTradeIn: hasTradeIn
     };
@@ -614,6 +616,7 @@ function renderCurrentPage() {
         case 'pickup-scheduled': renderStatusPage('pickup-scheduled', 'pickupScheduledGrid', 'pickupScheduledSearchInput', 'pickupScheduledMakeFilter'); break;
         case 'sold': renderSoldPage(); break;
         case 'tradeins': renderTradeInsPage(); break;
+        case 'payments': renderPaymentsPage(); break;
         case 'analytics': renderAnalytics(); break;
     }
 }
@@ -841,6 +844,8 @@ function renderDetailModal(vehicle) {
         document.getElementById('customerPhone').value = vehicle.customer.phone || '';
         document.getElementById('paymentType').value = vehicle.customer.paymentType || '';
         document.getElementById('saleDate').value = vehicle.customer.saleDate || '';
+        document.getElementById('paymentMethod').value = vehicle.customer.paymentMethod || '';
+        document.getElementById('paymentReference').value = vehicle.customer.paymentReference || '';
         document.getElementById('notes').value = vehicle.customer.notes || '';
     } else {
         document.getElementById('customerForm').reset();
@@ -1133,3 +1138,65 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('active'); });
     });
 });
+
+// Payment Tracking Functions
+function renderPaymentsPage() {
+    const soldVehiclesWithPayments = soldVehicles.filter(v => 
+        v.customer && 
+        v.customer.saleDate && 
+        (v.customer.paymentMethod || v.customer.paymentReference)
+    );
+    
+    const tbody = document.getElementById('paymentsTableBody');
+    if (!tbody) return;
+    
+    if (soldVehiclesWithPayments.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="padding: 2rem; text-align: center; color: var(--text-secondary);">No payment records found</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = soldVehiclesWithPayments.map(vehicle => {
+        const customerName = `${vehicle.customer.firstName || ''} ${vehicle.customer.lastName || ''}`.trim() || 'N/A';
+        const saleDate = vehicle.customer.saleDate ? new Date(vehicle.customer.saleDate).toLocaleDateString() : 'N/A';
+        const paymentMethod = vehicle.customer.paymentMethod || 'N/A';
+        const paymentRef = vehicle.customer.paymentReference || 'N/A';
+        
+        return `
+            <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 1rem;">${vehicle.stockNumber}</td>
+                <td style="padding: 1rem;">${vehicle.year} ${vehicle.make} ${vehicle.model}</td>
+                <td style="padding: 1rem;">${customerName}</td>
+                <td style="padding: 1rem;">${saleDate}</td>
+                <td style="padding: 1rem;">
+                    <span class="status-badge ${
+                        paymentMethod === 'ACH' ? 'status-in-stock' :
+                        paymentMethod === 'Check' ? 'status-pending-pickup' :
+                        paymentMethod === 'Credit Card' ? 'status-pickup-scheduled' :
+                        'status-pdi'
+                    }">${paymentMethod}</span>
+                </td>
+                <td style="padding: 1rem; font-family: monospace;">${paymentRef}</td>
+                <td style="padding: 1rem;">
+                    <button class="btn btn-small btn-secondary" onclick="openVehicleDetail(${vehicle.id})">View</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function filterPayments() {
+    const searchTerm = document.getElementById('paymentSearchInput')?.value.toLowerCase() || '';
+    const methodFilter = document.getElementById('paymentMethodFilter')?.value || '';
+    
+    const rows = document.querySelectorAll('#paymentsTableBody tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const methodCell = row.cells[4]?.textContent.trim() || '';
+        
+        const matchesSearch = text.includes(searchTerm);
+        const matchesMethod = !methodFilter || methodCell.includes(methodFilter);
+        
+        row.style.display = (matchesSearch && matchesMethod) ? '' : 'none';
+    });
+}
