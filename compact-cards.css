@@ -1,87 +1,80 @@
-/* Compact Vehicle Card Styles */
-.vehicle-card-compact {
-    background: rgba(30, 30, 30, 0.95);
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
+# 🎨 Fixed Vehicle Card Layout
 
-.vehicle-card-compact:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-    border-color: rgba(10, 132, 255, 0.3);
-}
+## What Changed
 
-.vehicle-header-compact {
-    background: linear-gradient(135deg, #0a84ff, #0051a8);
-    color: white;
-    padding: 0.75rem 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+The vehicle cards now use the same clean, modern structure as before but with:
+- **2-column grid layout** for information fields
+- **Proper spacing** and padding (1rem body padding, 0.5rem between items)
+- **Full-width buttons** in a 2-column grid at the bottom
+- **All the extra information** displayed cleanly:
+  - VIN, Trim, Color, Status (always shown)
+  - Fleet Company (when present)
+  - Operation Company (when present)
+  - Customer Name (when present)
+  - Customer Phone (when present)
+  - Date Added (always shown)
 
-.vehicle-stock-compact {
-    font-size: 1.125rem;
-    font-weight: 700;
-}
+## Card Layout Structure
 
-.vehicle-body-compact {
-    padding: 0.875rem 1rem;
-}
+```
+┌─────────────────────────────────────┐
+│ STOCK123                            │
+│ 2024 Subaru Outback                 │
+├─────────────────────────────────────┤
+│ VIN              │ TRIM             │
+│ JF2SKDEC...      │ Premium          │
+│                  │                  │
+│ COLOR            │ STATUS           │
+│ Crystal White    │ [Available]      │
+│                  │                  │
+│ FLEET            │ OPERATION        │
+│ Enterprise       │ Main Ops         │
+│                  │                  │
+│ CUSTOMER         │ PHONE            │
+│ John Smith       │ 555-1234         │
+│                  │                  │
+│ ADDED            │                  │
+│ 12/11/2024       │                  │
+├─────────────────────────────────────┤
+│  [Details]      │  [Status]        │
+└─────────────────────────────────────┘
+```
 
-.vehicle-title-compact {
-    font-size: 1rem;
-    font-weight: 600;
-    margin-bottom: 0.625rem;
-    color: var(--text-primary);
-}
+## Installation
 
-.vehicle-info-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    margin-bottom: 0.75rem;
-}
+### Option 1: Add CSS as external file
+1. Copy `compact-cards.css` to your project
+2. Add to `<head>` in index.html:
+```html
+<link rel="stylesheet" href="compact-cards.css">
+```
 
-.info-row {
-    display: flex;
-    font-size: 0.8125rem;
-    line-height: 1.4;
-}
+### Option 2: Add CSS inline
+Copy the contents of `compact-cards.css` and paste at the end of your existing `<style>` section in index.html.
 
-.info-label-compact {
-    color: var(--text-secondary);
-    font-weight: 500;
-    min-width: 80px;
-    flex-shrink: 0;
-}
+### Replace JavaScript
+Replace your `app.js` with the updated version.
 
-.info-value-compact {
-    color: var(--text-primary);
-    font-weight: 400;
-    flex: 1;
-}
+### Rebuild
+```bash
+docker-compose down
+docker-compose up -d --build
+```
 
-.vehicle-actions-compact {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 0.75rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid var(--border);
-}
+## Key CSS Changes
 
-/* Adjust grid for compact cards */
-.vehicle-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 1rem;
-}
+1. **`.vehicle-info-compact`** - 2-column grid with 0.5rem gap
+2. **`.info-item-compact`** - Column layout with label above value
+3. **`.vehicle-actions`** - 2-column grid for buttons (full width each)
+4. **`.vehicle-body`** - Reduced padding to 1rem (from 1.5rem)
+5. **Responsive** - Single column on mobile devices
 
-@media (max-width: 1024px) {
-    .vehicle-grid {
-        grid-template-columns: 1fr;
-    }
-}
+## Benefits
+
+✅ Same clean, modern look as original
+✅ More information visible at a glance
+✅ Better use of horizontal space
+✅ Buttons properly sized and centered
+✅ Consistent spacing throughout
+✅ Automatically hides fields that don't have data
+
