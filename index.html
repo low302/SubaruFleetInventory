@@ -8,8 +8,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="compact-cards.css">
-    <link rel="stylesheet" href="compact-cards-fix.css">
     <style>
         * {
             margin: 0;
@@ -866,6 +864,74 @@
         .status-popup::-webkit-scrollbar-thumb:hover {
             background: rgba(10, 132, 255, 0.7);
         }
+
+        /* ============================================
+           VEHICLE CARD COMPACT LAYOUT 
+           ============================================ */
+
+        /* FORCE 2-COLUMN GRID LAYOUT */
+        .vehicle-info-compact {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 0.75rem !important;
+            margin-bottom: 1rem !important;
+        }
+
+        /* Remove any flex that might interfere */
+        .vehicle-card .vehicle-info-compact {
+            display: grid !important;
+            flex-direction: unset !important;
+        }
+
+        /* Each info item stacks label on top of value */
+        .info-item-compact {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 0.25rem !important;
+            min-height: 2.5rem !important;
+        }
+
+        /* Label styling */
+        .info-item-compact .info-label {
+            font-size: 0.7rem !important;
+            color: var(--text-secondary) !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+            font-weight: 600 !important;
+        }
+
+        /* Value styling */
+        .info-item-compact .info-value {
+            font-size: 0.875rem !important;
+            color: var(--text-primary) !important;
+            font-weight: 400 !important;
+        }
+
+        /* Buttons side by side */
+        .vehicle-actions {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 0.75rem !important;
+            margin-top: 1rem !important;
+            padding-top: 1rem !important;
+        }
+
+        .vehicle-actions .btn {
+            width: 100% !important;
+            margin: 0 !important;
+        }
+
+        /* Tighter card padding */
+        .vehicle-body {
+            padding: 1.25rem !important;
+        }
+
+        /* Mobile: switch to single column */
+        @media (max-width: 768px) {
+            .vehicle-info-compact {
+                grid-template-columns: 1fr !important;
+            }
+        }
         
     </style>
 </head>
@@ -1300,15 +1366,6 @@
                 <button class="btn btn-secondary" onclick="updateVehicleStatus()" style="width: 100%;">Update Status</button>
             </div>
 
-            <!-- Operation Company Section -->
-            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border);">
-                <h3 style="font-size: 1.25rem; margin-bottom: 1rem;">Operation Company</h3>
-                <div class="form-group">
-                    <label for="operationCompany">Operation Company</label>
-                    <input type="text" id="operationCompany">
-                </div>
-                <button class="btn btn-secondary" onclick="saveOperationCompany()" style="width: 100%;">Save Operation Company</button>
-            </div>
 
              <!-- Customer Information Section -->
             <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border);">

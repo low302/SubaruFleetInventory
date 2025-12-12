@@ -288,28 +288,6 @@ async function saveCustomerInfo(event) {
     }
 }
 
-async function saveOperationCompany() {
-    if (!currentVehicle) return;
-    
-    currentVehicle.operationCompany = document.getElementById('operationCompany').value;
-    
-    try {
-        const response = await fetch(`${API_BASE}/inventory/${currentVehicle.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify(currentVehicle)
-        });
-        if (!response.ok) throw new Error('Failed to save operation company');
-        await loadInventory();
-        alert('Operation Company saved successfully!');
-        renderDetailModal(currentVehicle);
-    } catch (error) {
-        console.error('Error saving operation company:', error);
-        alert('Failed to save operation company. Please try again.');
-    }
-}
-
 function enableEditMode(vehicleId) {
     window.currentlyEditingVehicle = vehicleId;
     const vehicle = vehicles.find(v => v.id === vehicleId) || soldVehicles.find(v => v.id === vehicleId);
