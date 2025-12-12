@@ -724,6 +724,11 @@
             .stats-grid {
                 grid-template-columns: 1fr;
             }
+
+            /* Dashboard sections stack on mobile */
+            #dashboard .page-container > div[style*="grid-template-columns: 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
         }
 
         /* Loading state */
@@ -920,10 +925,19 @@
                             </div>
                         </div>
 
-                        <!-- Recent Vehicles -->
-                        <div style="margin-bottom: 2rem;">
-                            <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem;">Recent Vehicles</h2>
-                            <div id="newestVehicles" class="vehicle-grid"></div>
+                        <!-- Dashboard Sections Grid -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                            <!-- Oldest Units -->
+                            <div style="background: #fff; border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.5rem; box-shadow: var(--joy-shadow-sm);">
+                                <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary);">⏰ Oldest Units</h2>
+                                <div id="oldestVehicles"></div>
+                            </div>
+
+                            <!-- Scheduled Pickups -->
+                            <div style="background: #fff; border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.5rem; box-shadow: var(--joy-shadow-sm);">
+                                <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary);">📅 Scheduled Pickups</h2>
+                                <div id="scheduledPickups"></div>
+                            </div>
                         </div>
                     </div>
                 </div>

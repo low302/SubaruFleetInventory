@@ -589,14 +589,82 @@ function updateDashboard() {
     const tradeInsCount = document.getElementById('tradeInsCount');
     if (tradeInsCount) tradeInsCount.textContent = tradeIns.length;
     
-    // Update recent vehicles on dashboard
-    const newestVehicles = [...vehicles].sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded)).slice(0, 6);
-    const newestContainer = document.getElementById('newestVehicles');
-    if (newestContainer) {
-        if (newestVehicles.length === 0) {
-            newestContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🚗</div><p>No vehicles in inventory</p></div>';
+    // Oldest Units Section
+    const oldestVehicles = [...vehicles]
+        .sort((a, b) => new Date(a.dateAdded) - new Date(b.dateAdded))
+        .slice(0, 5);
+    
+    const oldestContainer = document.getElementById('oldestVehicles');
+    if (oldestContainer) {
+        if (oldestVehicles.length === 0) {
+            oldestContainer.innerHTML = '<div class="empty-state" style="padding: 2rem;"><div class="empty-state-icon">🚗</div><p>No vehicles in inventory</p></div>';
         } else {
-            newestContainer.innerHTML = newestVehicles.map(v => createVehicleCard(v)).join('');
+            oldestContainer.innerHTML = oldestVehicles.map(v => {
+                const daysOld = Math.floor((new Date() - new Date(v.dateAdded)) / (1000 * 60 * 60 * 24));
+                return `
+                    <div style="padding: 0.75rem; border-bottom: 1px solid var(--joy-divider); cursor: pointer; transition: background 0.2s;" 
+                         onclick="openVehicleDetail(${v.id})"
+                         onmouseover="this.style.background='var(--joy-bg-level1)'" 
+                         onmouseout="this.style.background='transparent'">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div>
+                                <div style="font-weight: 600; color: var(--joy-text-primary);">${v.year} ${v.make} ${v.model}</div>
+                                <div style="font-size: 0.8125rem; color: var(--joy-text-tertiary); margin-top: 0.25rem;">
+                                    Stock: ${v.stockNumber} • ${v.trim}
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <span class="status-badge status-${v.status}">${v.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</span>
+                                <div style="font-size: 0.75rem; color: var(--joy-text-tertiary); margin-top: 0.25rem;">
+                                    ${daysOld} days old
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+    
+    // Scheduled Pickups Section
+    const scheduledPickups = vehicles.filter(v => v.status === 'pickup-scheduled');
+    const pickupsContainer = document.getElementById('scheduledPickups');
+    
+    if (pickupsContainer) {
+        if (scheduledPickups.length === 0) {
+            pickupsContainer.innerHTML = '<div class="empty-state" style="padding: 2rem;"><div class="empty-state-icon">📅</div><p>No pickups scheduled</p></div>';
+        } else {
+            pickupsContainer.innerHTML = scheduledPickups.map(v => {
+                const customerName = v.customer ? `${v.customer.firstName || ''} ${v.customer.lastName || ''}`.trim() : 'No customer';
+                return `
+                    <div style="padding: 0.75rem; border-bottom: 1px solid var(--joy-divider);">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                            <div>
+                                <div style="font-weight: 600; color: var(--joy-text-primary);">${v.year} ${v.make} ${v.model}</div>
+                                <div style="font-size: 0.8125rem; color: var(--joy-text-tertiary); margin-top: 0.25rem;">
+                                    ${customerName}
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 0.8125rem; font-weight: 600; color: var(--joy-primary-500);">
+                                    ${v.pickupDate ? new Date(v.pickupDate).toLocaleDateString() : 'No date'}
+                                </div>
+                                <div style="font-size: 0.75rem; color: var(--joy-text-tertiary);">
+                                    ${v.pickupTime || 'No time'}
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-sm btn-secondary" onclick="openVehicleDetail(${v.id}); event.stopPropagation();">
+                                View Details
+                            </button>
+                            <button class="btn btn-sm btn-primary" onclick="completePickup(${v.id}); event.stopPropagation();">
+                                ✓ Complete
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
     }
 }
