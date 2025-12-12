@@ -285,7 +285,7 @@ async function saveCustomerInfo(event) {
         firstName: document.getElementById('customerFirstName').value,
         lastName: document.getElementById('customerLastName').value,
         phone: document.getElementById('customerPhone').value,
-        paymentType: document.getElementById('paymentType').value,
+        saleAmount: parseFloat(document.getElementById('saleAmount').value) || 0,
         saleDate: document.getElementById('saleDate').value,
         paymentMethod: document.getElementById('paymentMethod').value,
         paymentReference: document.getElementById('paymentReference').value,
@@ -842,7 +842,7 @@ function renderDetailModal(vehicle) {
         document.getElementById('customerFirstName').value = vehicle.customer.firstName || '';
         document.getElementById('customerLastName').value = vehicle.customer.lastName || '';
         document.getElementById('customerPhone').value = vehicle.customer.phone || '';
-        document.getElementById('paymentType').value = vehicle.customer.paymentType || '';
+        document.getElementById('saleAmount').value = vehicle.customer.saleAmount || '';
         document.getElementById('saleDate').value = vehicle.customer.saleDate || '';
         document.getElementById('paymentMethod').value = vehicle.customer.paymentMethod || '';
         document.getElementById('paymentReference').value = vehicle.customer.paymentReference || '';
@@ -1144,22 +1144,29 @@ function renderPaymentsPage() {
     const soldVehiclesWithPayments = soldVehicles.filter(v => 
         v.customer && 
         v.customer.saleDate && 
-        (v.customer.paymentMethod || v.customer.paymentReference)
+        (v.customer.paymentMethod || v.customer.paymentReference || v.customer.saleAmount)
     );
     
     const tbody = document.getElementById('paymentsTableBody');
-    if (!tbody) return;
+    const tfoot = document.getElementById('paymentsTableFooter');
+    if (!tbody || !tfoot) return;
     
     if (soldVehiclesWithPayments.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="padding: 2rem; text-align: center; color: var(--text-secondary);">No payment records found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="padding: 2rem; text-align: center; color: var(--text-secondary);">No payment records found</td></tr>';
+        tfoot.innerHTML = '';
         return;
     }
+    
+    let totalAmount = 0;
     
     tbody.innerHTML = soldVehiclesWithPayments.map(vehicle => {
         const customerName = `${vehicle.customer.firstName || ''} ${vehicle.customer.lastName || ''}`.trim() || 'N/A';
         const saleDate = vehicle.customer.saleDate ? new Date(vehicle.customer.saleDate).toLocaleDateString() : 'N/A';
+        const saleAmount = parseFloat(vehicle.customer.saleAmount) || 0;
         const paymentMethod = vehicle.customer.paymentMethod || 'N/A';
         const paymentRef = vehicle.customer.paymentReference || 'N/A';
+        
+        totalAmount += saleAmount;
         
         return `
             <tr style="border-bottom: 1px solid var(--border);">
@@ -1167,6 +1174,7 @@ function renderPaymentsPage() {
                 <td style="padding: 1rem;">${vehicle.year} ${vehicle.make} ${vehicle.model}</td>
                 <td style="padding: 1rem;">${customerName}</td>
                 <td style="padding: 1rem;">${saleDate}</td>
+                <td style="padding: 1rem; text-align: right; font-weight: 600; font-family: monospace;">$${saleAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                 <td style="padding: 1rem;">
                     <span class="status-badge ${
                         paymentMethod === 'ACH' ? 'status-in-stock' :
@@ -1182,6 +1190,15 @@ function renderPaymentsPage() {
             </tr>
         `;
     }).join('');
+    
+    // Add total row
+    tfoot.innerHTML = `
+        <tr>
+            <td colspan="4" style="padding: 1rem; text-align: right; font-weight: 700; font-size: 1.1rem;">Total:</td>
+            <td style="padding: 1rem; text-align: right; font-weight: 700; font-size: 1.1rem; font-family: monospace; color: var(--accent);">$${totalAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+            <td colspan="3"></td>
+        </tr>
+    `;
 }
 
 function filterPayments() {
@@ -1192,7 +1209,7 @@ function filterPayments() {
     
     rows.forEach(row => {
         const text = row.textContent.toLowerCase();
-        const methodCell = row.cells[4]?.textContent.trim() || '';
+        const methodCell = row.cells[5]?.textContent.trim() || ''; // Updated index for payment method column
         
         const matchesSearch = text.includes(searchTerm);
         const matchesMethod = !methodFilter || methodCell.includes(methodFilter);
