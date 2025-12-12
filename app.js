@@ -1177,12 +1177,15 @@ async function handleSoldSubmit(event) {
     event.preventDefault();
     if (!currentVehicle) return;
     
-    const saleDate = document.getElementById('soldSaleDate').value;
-    const hasTrade = document.getElementById('soldHasTrade').checked;
-    
-    // Update vehicle with sale date
-    currentVehicle.customer = currentVehicle.customer || {};
-    currentVehicle.customer.saleDate = saleDate;
+    // Get customer information from form
+    currentVehicle.customer = {
+        firstName: document.getElementById('soldFirstName').value,
+        lastName: document.getElementById('soldLastName').value,
+        phone: document.getElementById('soldPhone').value,
+        saleAmount: parseFloat(document.getElementById('soldAmount').value) || 0,
+        saleDate: document.getElementById('soldDate').value,
+        notes: document.getElementById('soldNotes').value
+    };
     
     const soldVehicle = { ...currentVehicle, status: 'sold' };
     
@@ -1212,15 +1215,10 @@ async function handleSoldSubmit(event) {
         
         await loadAllData();
         closeSoldModal();
+        closeDetailModal();
         updateDashboard();
         renderCurrentPage();
-        
-        // If has trade, open trade-in modal
-        if (hasTrade) {
-            openTradeInModal();
-        } else {
-            alert('Vehicle marked as sold successfully!');
-        }
+        alert('Vehicle marked as sold successfully!');
         
     } catch (error) {
         console.error('Error marking vehicle as sold:', error);
