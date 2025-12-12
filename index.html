@@ -1274,7 +1274,7 @@
                 <h2>Add New Vehicle</h2>
                 <button class="close-btn" onclick="closeAddModal()">&times;</button>
             </div>
-            <form id="vehicleForm">
+            <form id="vehicleForm" onsubmit="addVehicle(event)">
                 <div class="form-group">
                     <label for="stockNumber">Stock #</label>
                     <input type="text" id="stockNumber" required>
