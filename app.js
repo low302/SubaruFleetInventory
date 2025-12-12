@@ -752,7 +752,6 @@ function renderDetailModal(vehicle) {
                 <button class="btn btn-secondary" onclick='generateLabel(${vehicleJson})' style="flex: 1;">🏷️ Generate Label</button>
                 ${!isFromTradeIn ? `<button class="btn" onclick="enableEditMode(${vehicle.id})" style="flex: 1;">✏️ Edit Vehicle</button>` : ''}
             </div>
-            ${!isFromTradeIn ? `<div style="margin-top: 1rem;"><button class="btn btn-danger" onclick="deleteVehicle(${vehicle.id})" style="width: 100%;">Delete Vehicle</button></div>` : ''}
         `;
     } else {
         // Edit mode
