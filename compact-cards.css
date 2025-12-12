@@ -1,38 +1,52 @@
-/* Compact Vehicle Card Styles - Modern & Clean */
-/* Force 2-column grid layout for info items */
+/* Compact Vehicle Card Styles - Force Grid Layout */
 
-.vehicle-card .vehicle-info-compact {
+/* Override any existing .vehicle-info styles for compact layout */
+.vehicle-card .vehicle-body .vehicle-info-compact {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
-    gap: 0.5rem !important;
+    gap: 0.75rem !important;
     margin-bottom: 1rem !important;
+    /* Remove any flexbox that might be set */
+    flex-direction: unset !important;
 }
 
-.vehicle-card .info-item-compact {
+.vehicle-card .vehicle-body .vehicle-info-compact .info-item-compact {
     display: flex !important;
     flex-direction: column !important;
-    gap: 0.25rem !important;
-    min-width: 0;
+    gap: 0.3rem !important;
+    min-width: 0 !important;
+    /* Ensure no weird display settings */
+    align-items: flex-start !important;
 }
 
-.vehicle-card .info-item-compact .info-label {
-    font-size: 0.75rem !important;
+.vehicle-card .vehicle-body .vehicle-info-compact .info-item-compact .info-label {
+    font-size: 0.7rem !important;
     color: var(--text-secondary) !important;
     text-transform: uppercase !important;
     letter-spacing: 0.5px !important;
     font-weight: 600 !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
-.vehicle-card .info-item-compact .info-value {
+.vehicle-card .vehicle-body .vehicle-info-compact .info-item-compact .info-value {
     font-size: 0.875rem !important;
     color: var(--text-primary) !important;
     font-weight: 400 !important;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
 }
 
-/* Force vehicle actions to be side by side */
-.vehicle-card .vehicle-actions {
+/* Status badge inside info-value */
+.vehicle-card .vehicle-body .vehicle-info-compact .info-item-compact .info-value .status-badge {
+    white-space: nowrap !important;
+}
+
+/* Force vehicle actions to be side by side grid */
+.vehicle-card .vehicle-body .vehicle-actions {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
     gap: 0.75rem !important;
@@ -41,20 +55,20 @@
     border-top: 1px solid var(--border) !important;
 }
 
-.vehicle-card .vehicle-actions .btn {
+.vehicle-card .vehicle-body .vehicle-actions .btn {
     width: 100% !important;
     margin: 0 !important;
 }
 
 /* Tighten up card body padding */
 .vehicle-card .vehicle-body {
-    padding: 1rem !important;
+    padding: 1.25rem !important;
 }
 
 /* Adjust grid for better card sizing */
 .vehicle-grid {
     display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)) !important;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)) !important;
     gap: 1.25rem !important;
 }
 
@@ -69,7 +83,7 @@
         grid-template-columns: 1fr !important;
     }
     
-    .vehicle-card .vehicle-info-compact {
+    .vehicle-card .vehicle-body .vehicle-info-compact {
         grid-template-columns: 1fr !important;
     }
 }
