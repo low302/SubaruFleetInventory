@@ -308,32 +308,39 @@ async function saveVehicleEdit(event) {
     event.preventDefault();
     if (!currentVehicle) return;
     
-    // Update vehicle with edited values
-    currentVehicle.stockNumber = document.getElementById('editStockNumber').value;
-    currentVehicle.vin = document.getElementById('editVin').value.toUpperCase();
-    currentVehicle.year = parseInt(document.getElementById('editYear').value);
-    currentVehicle.make = document.getElementById('editMake').value;
-    currentVehicle.model = document.getElementById('editModel').value;
-    currentVehicle.trim = document.getElementById('editTrim').value;
-    currentVehicle.color = document.getElementById('editColor').value;
-    currentVehicle.fleetCompany = document.getElementById('editFleetCompany').value;
-    currentVehicle.operationCompany = document.getElementById('editOperationCompany').value;
+    // Update only the edited fields, preserve everything else
+    const updatedVehicle = {
+        ...currentVehicle,
+        stockNumber: document.getElementById('editStockNumber').value,
+        vin: document.getElementById('editVin').value.toUpperCase(),
+        year: parseInt(document.getElementById('editYear').value),
+        make: document.getElementById('editMake').value,
+        model: document.getElementById('editModel').value,
+        trim: document.getElementById('editTrim').value,
+        color: document.getElementById('editColor').value,
+        fleetCompany: document.getElementById('editFleetCompany').value,
+        operationCompany: document.getElementById('editOperationCompany').value
+    };
     
     try {
         const isInSold = soldVehicles.some(v => v.id === currentVehicle.id);
         const endpoint = isInSold ? 'sold-vehicles' : 'inventory';
         
-        const response = await fetch(`${API_BASE}/${endpoint}/${currentVehicle.id}`, {
+        const response = await fetch(`${API_BASE}/${endpoint}/${updatedVehicle.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify(currentVehicle)
+            body: JSON.stringify(updatedVehicle)
         });
         
-        if (!response.ok) throw new Error('Failed to save vehicle changes');
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to save vehicle changes');
+        }
         
         await loadAllData();
         window.currentlyEditingVehicle = null;
+        currentVehicle = updatedVehicle;
         renderDetailModal(currentVehicle);
         updateDashboard();
         renderCurrentPage();
@@ -341,7 +348,7 @@ async function saveVehicleEdit(event) {
         
     } catch (error) {
         console.error('Error saving vehicle:', error);
-        alert('Failed to save vehicle changes. Please try again.');
+        alert('Failed to save vehicle changes: ' + error.message);
     }
 }
 
