@@ -12,10 +12,17 @@ async function checkAuth() {
         if (data.authenticated) {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
-            const userDisplay = document.getElementById('currentUserDisplay');
-            if (userDisplay && data.username) {
-                userDisplay.textContent = data.username;
+            
+            // Update user display
+            const userName = document.getElementById('userName');
+            const userAvatar = document.getElementById('userAvatar');
+            if (userName && data.username) {
+                userName.textContent = data.username;
             }
+            if (userAvatar && data.username) {
+                userAvatar.textContent = data.username.charAt(0).toUpperCase();
+            }
+            
             await loadAllData();
         } else {
             document.getElementById('loginScreen').style.display = 'flex';
@@ -32,7 +39,6 @@ async function login(event) {
     event.preventDefault();
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
-    const errorDiv = document.getElementById('loginError');
     try {
         const response = await fetch(`${API_BASE}/login`, {
             method: 'POST',
@@ -42,14 +48,13 @@ async function login(event) {
         });
         const data = await response.json();
         if (response.ok) {
-            errorDiv.textContent = '';
             await checkAuth();
         } else {
-            errorDiv.textContent = data.error || 'Login failed';
+            alert(data.error || 'Login failed');
         }
     } catch (error) {
         console.error('Login error:', error);
-        errorDiv.textContent = 'Connection error. Please try again.';
+        alert('Connection error. Please try again.');
     }
 }
 
@@ -1167,6 +1172,25 @@ function switchPage(pageId) {
     document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
     document.getElementById(pageId).classList.add('active');
     document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
+    
+    // Update breadcrumb
+    const breadcrumb = document.getElementById('breadcrumb');
+    if (breadcrumb) {
+        const pageNames = {
+            'dashboard': 'Dashboard',
+            'inventory': 'Inventory',
+            'in-transit': 'In-Transit',
+            'pdi': 'PDI',
+            'pending-pickup': 'Pending Pickup',
+            'pickup-scheduled': 'Pickup Scheduled',
+            'sold': 'Sold Vehicles',
+            'tradeins': 'Trade-Ins',
+            'payments': 'Payments',
+            'analytics': 'Analytics'
+        };
+        breadcrumb.textContent = pageNames[pageId] || 'Dashboard';
+    }
+    
     renderCurrentPage();
 }
 
@@ -1174,27 +1198,65 @@ function formatDate(dateString) { if (!dateString) return 'N/A'; return new Date
 
 document.addEventListener('DOMContentLoaded', function() {
     checkAuth();
-    document.getElementById('loginForm').addEventListener('submit', login);
-    document.getElementById('vehicleForm').addEventListener('submit', addVehicle);
-    document.getElementById('customerForm').addEventListener('submit', saveCustomerInfo);
-    document.getElementById('tradeInForm').addEventListener('submit', addTradeIn);
-    document.getElementById('tradePickupForm').addEventListener('submit', confirmTradeInPickup);
-    document.getElementById('pickupScheduleForm').addEventListener('submit', schedulePickup);
-    document.getElementById('soldForm').addEventListener('submit', handleSoldSubmit);
+    
+    // Add event listeners only if elements exist
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) loginForm.addEventListener('submit', login);
+    
+    const vehicleForm = document.getElementById('vehicleForm');
+    if (vehicleForm) vehicleForm.addEventListener('submit', addVehicle);
+    
+    const customerForm = document.getElementById('customerForm');
+    if (customerForm) customerForm.addEventListener('submit', saveCustomerInfo);
+    
+    const tradeInForm = document.getElementById('tradeInForm');
+    if (tradeInForm) tradeInForm.addEventListener('submit', addTradeIn);
+    
+    const tradePickupForm = document.getElementById('tradePickupForm');
+    if (tradePickupForm) tradePickupForm.addEventListener('submit', confirmTradeInPickup);
+    
+    const pickupScheduleForm = document.getElementById('pickupScheduleForm');
+    if (pickupScheduleForm) pickupScheduleForm.addEventListener('submit', schedulePickup);
+    
+    const soldForm = document.getElementById('soldForm');
+    if (soldForm) soldForm.addEventListener('submit', handleSoldSubmit);
+    
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) logoutBtn.addEventListener('click', logout);
+    
     document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', function(e) { e.preventDefault(); const pageId = this.getAttribute('data-page'); switchPage(pageId); });
+        link.addEventListener('click', function(e) { 
+            e.preventDefault(); 
+            const pageId = this.getAttribute('data-page'); 
+            switchPage(pageId); 
+        });
     });
+    
     if (document.getElementById('searchInput')) {
-        document.getElementById('searchInput').addEventListener('input', function(e) { currentFilter.search = e.target.value; renderCurrentPage(); });
+        document.getElementById('searchInput').addEventListener('input', function(e) { 
+            currentFilter.search = e.target.value; 
+            renderCurrentPage(); 
+        });
     }
+    
     if (document.getElementById('makeFilter')) {
-        document.getElementById('makeFilter').addEventListener('change', function(e) { currentFilter.make = e.target.value; renderCurrentPage(); });
+        document.getElementById('makeFilter').addEventListener('change', function(e) { 
+            currentFilter.make = e.target.value; 
+            renderCurrentPage(); 
+        });
     }
+    
     if (document.getElementById('statusFilter')) {
-        document.getElementById('statusFilter').addEventListener('change', function(e) { currentFilter.status = e.target.value; renderCurrentPage(); });
+        document.getElementById('statusFilter').addEventListener('change', function(e) { 
+            currentFilter.status = e.target.value; 
+            renderCurrentPage(); 
+        });
     }
+    
     document.querySelectorAll('.modal').forEach(modal => {
-        modal.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('active'); });
+        modal.addEventListener('click', function(e) { 
+            if (e.target === this) this.classList.remove('active'); 
+        });
     });
 });
 
