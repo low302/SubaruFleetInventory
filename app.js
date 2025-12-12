@@ -576,35 +576,28 @@ async function copyLabel() {
 }
 
 function updateDashboard() {
-    document.getElementById('totalVehicles').textContent = vehicles.length;
-    document.getElementById('inStockVehicles').textContent = vehicles.filter(v => v.status === 'in-stock').length;
-    document.getElementById('soldVehicles').textContent = soldVehicles.length;
-    document.getElementById('tradeInVehicles').textContent = tradeIns.length;
-    const scheduledPickups = vehicles.filter(v => v.status === 'pickup-scheduled');
-    const pickupsContainer = document.getElementById('scheduledPickups');
-    if (scheduledPickups.length === 0) {
-        pickupsContainer.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">No pickups scheduled</p>';
-    } else {
-        pickupsContainer.innerHTML = '<ul class="pickup-list">' + scheduledPickups.map(v => `
-                <li class="pickup-item">
-                    <div class="pickup-info">
-                        <div class="pickup-vehicle">${v.year} ${v.make} ${v.model}</div>
-                        <div class="pickup-customer">${v.customer ? `${v.customer.firstName} ${v.customer.lastName}` : 'No customer info'}</div>
-                        <div class="pickup-datetime">📅 ${formatDate(v.pickupDate)} at ${v.pickupTime}</div>
-                    </div>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn btn-small btn-secondary" onclick="openVehicleDetail(${v.id})">View</button>
-                        <button class="btn btn-small" onclick="completePickup(${v.id})" style="background: var(--success);">✓ Complete</button>
-                    </div>
-                </li>
-            `).join('') + '</ul>';
-    }
-    const oldestVehicles = [...vehicles].sort((a, b) => new Date(a.dateAdded) - new Date(b.dateAdded)).slice(0, 4);
-    const oldestContainer = document.getElementById('oldestVehicles');
-    if (oldestVehicles.length === 0) {
-        oldestContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🚗</div><p>No vehicles in inventory</p></div>';
-    } else {
-        oldestContainer.innerHTML = oldestVehicles.map(v => createVehicleCard(v)).join('');
+    // Update stat cards
+    const totalVehicles = document.getElementById('totalVehicles');
+    if (totalVehicles) totalVehicles.textContent = vehicles.length;
+    
+    const inStockVehicles = document.getElementById('inStockVehicles');
+    if (inStockVehicles) inStockVehicles.textContent = vehicles.filter(v => v.status === 'in-stock').length;
+    
+    const soldCount = document.getElementById('soldCount');
+    if (soldCount) soldCount.textContent = soldVehicles.length;
+    
+    const tradeInsCount = document.getElementById('tradeInsCount');
+    if (tradeInsCount) tradeInsCount.textContent = tradeIns.length;
+    
+    // Update recent vehicles on dashboard
+    const newestVehicles = [...vehicles].sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded)).slice(0, 6);
+    const newestContainer = document.getElementById('newestVehicles');
+    if (newestContainer) {
+        if (newestVehicles.length === 0) {
+            newestContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🚗</div><p>No vehicles in inventory</p></div>';
+        } else {
+            newestContainer.innerHTML = newestVehicles.map(v => createVehicleCard(v)).join('');
+        }
     }
 }
 
