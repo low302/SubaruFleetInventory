@@ -285,7 +285,6 @@ async function deleteVehicle(vehicleId) {
 async function saveCustomerInfo(event) {
     event.preventDefault();
     if (!currentVehicle) return;
-    const hasTradeIn = document.getElementById('hasTradeIn') ? document.getElementById('hasTradeIn').checked : false;
     currentVehicle.customer = {
         firstName: document.getElementById('customerFirstName').value,
         lastName: document.getElementById('customerLastName').value,
@@ -294,8 +293,7 @@ async function saveCustomerInfo(event) {
         saleDate: document.getElementById('saleDate').value,
         paymentMethod: document.getElementById('paymentMethod').value,
         paymentReference: document.getElementById('paymentReference').value,
-        notes: document.getElementById('notes').value,
-        hasTradeIn: hasTradeIn
+        notes: document.getElementById('notes').value
     };
     try {
         const response = await fetch(`${API_BASE}/inventory/${currentVehicle.id}`, {
@@ -446,28 +444,6 @@ async function toggleTradeInPickup(tradeInId) {
             console.error('Error updating trade-in:', error);
             alert('Failed to update fleet return. Please try again.');
         }
-    }
-}
-
-async function confirmTradeInPickup(event) {
-    event.preventDefault();
-    if (!currentVehicle) return;
-    const pickupDate = document.getElementById('tradePickupDate').value;
-    currentVehicle.pickedUp = true;
-    currentVehicle.pickedUpDate = pickupDate;
-    try {
-        await fetch(`${API_BASE}/trade-ins/${currentVehicle.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify(currentVehicle)
-        });
-        await loadTradeIns();
-        closeTradePickupModal();
-        renderCurrentPage();
-    } catch (error) {
-        console.error('Error confirming pickup:', error);
-        alert('Failed to confirm pickup. Please try again.');
     }
 }
 
@@ -980,35 +956,43 @@ function renderDetailModal(vehicle) {
 function renderAnalytics() {
     const makeData = {};
     vehicles.forEach(v => { makeData[v.make] = (makeData[v.make] || 0) + 1; });
-    new Chart(document.getElementById('makeChart'), {
-        type: 'bar',
-        data: {
-            labels: Object.keys(makeData),
-            datasets: [{ label: 'Vehicles by Make', data: Object.values(makeData), backgroundColor: 'rgba(10, 132, 255, 0.8)', borderColor: 'rgba(10, 132, 255, 1)', borderWidth: 1 }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: '#ffffff' } } },
-            scales: { y: { beginAtZero: true, ticks: { color: '#ffffff' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }, x: { ticks: { color: '#ffffff' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } } }
-        }
-    });
-    const timelineData = {};
-    vehicles.forEach(v => {
-        const date = new Date(v.dateAdded).toLocaleDateString();
-        timelineData[date] = (timelineData[date] || 0) + 1;
-    });
-    new Chart(document.getElementById('timelineChart'), {
-        type: 'line',
-        data: {
-            labels: Object.keys(timelineData),
-            datasets: [{ label: 'Vehicles Added', data: Object.values(timelineData), backgroundColor: 'rgba(10, 132, 255, 0.2)', borderColor: 'rgba(10, 132, 255, 1)', borderWidth: 2, fill: true }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: '#ffffff' } } },
-            scales: { y: { beginAtZero: true, ticks: { color: '#ffffff' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }, x: { ticks: { color: '#ffffff' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } } }
-        }
-    });
+    
+    const canvas = document.getElementById('makeChart');
+    if (canvas) {
+        new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(makeData),
+                datasets: [{ 
+                    label: 'Vehicles by Make', 
+                    data: Object.values(makeData), 
+                    backgroundColor: 'rgba(11, 107, 203, 0.8)', 
+                    borderColor: 'rgba(11, 107, 203, 1)', 
+                    borderWidth: 1 
+                }]
+            },
+            options: {
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { 
+                        labels: { color: '#171A1C' } 
+                    } 
+                },
+                scales: { 
+                    y: { 
+                        beginAtZero: true, 
+                        ticks: { color: '#555E68' }, 
+                        grid: { color: 'rgba(205, 215, 225, 0.3)' } 
+                    }, 
+                    x: { 
+                        ticks: { color: '#555E68' }, 
+                        grid: { color: 'rgba(205, 215, 225, 0.3)' } 
+                    } 
+                }
+            }
+        });
+    }
 }
 
 function filterVehicles(vehicleList) {
@@ -1044,8 +1028,6 @@ function openLabelModal() { document.getElementById('labelModal').classList.add(
 function closeLabelModal() { document.getElementById('labelModal').classList.remove('active'); }
 function openTradeInModal() { document.getElementById('tradeInModal').classList.add('active'); }
 function closeTradeInModal() { document.getElementById('tradeInModal').classList.remove('active'); document.getElementById('tradeInForm').reset(); }
-function openTradePickupModal() { document.getElementById('tradePickupModal').classList.add('active'); }
-function closeTradePickupModal() { document.getElementById('tradePickupModal').classList.remove('active'); document.getElementById('tradePickupForm').reset(); }
 function openPickupScheduleModal() { document.getElementById('pickupScheduleModal').classList.add('active'); }
 function closePickupScheduleModal() { document.getElementById('pickupScheduleModal').classList.remove('active'); document.getElementById('pickupScheduleForm').reset(); }
 function openSoldModal() { document.getElementById('soldModal').classList.add('active'); }
@@ -1270,9 +1252,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const tradeInForm = document.getElementById('tradeInForm');
     if (tradeInForm) tradeInForm.addEventListener('submit', addTradeIn);
-    
-    const tradePickupForm = document.getElementById('tradePickupForm');
-    if (tradePickupForm) tradePickupForm.addEventListener('submit', confirmTradeInPickup);
     
     const pickupScheduleForm = document.getElementById('pickupScheduleForm');
     if (pickupScheduleForm) pickupScheduleForm.addEventListener('submit', schedulePickup);
