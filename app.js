@@ -664,24 +664,55 @@ function createVehicleCard(vehicle) {
     const dateAdded = new Date(vehicle.dateAdded).toLocaleDateString();
     
     return `
-        <div class="vehicle-card vehicle-card-compact">
-            <div class="vehicle-header-compact">
-                <div class="vehicle-stock-compact">${vehicle.stockNumber}</div>
-                <span class="status-badge ${statusClass}">${statusText}</span>
+        <div class="vehicle-card">
+            <div class="vehicle-header">
+                <div class="vehicle-stock">${vehicle.stockNumber}</div>
+                <div class="vehicle-title">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
             </div>
-            <div class="vehicle-body-compact">
-                <div class="vehicle-title-compact">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
-                <div class="vehicle-info-grid">
-                    <div class="info-row"><span class="info-label-compact">VIN:</span> <span class="info-value-compact">${vehicle.vin}</span></div>
-                    <div class="info-row"><span class="info-label-compact">Trim:</span> <span class="info-value-compact">${vehicle.trim}</span></div>
-                    <div class="info-row"><span class="info-label-compact">Color:</span> <span class="info-value-compact">${vehicle.color}</span></div>
-                    ${vehicle.fleetCompany ? `<div class="info-row"><span class="info-label-compact">Fleet:</span> <span class="info-value-compact">${vehicle.fleetCompany}</span></div>` : ''}
-                    ${vehicle.operationCompany ? `<div class="info-row"><span class="info-label-compact">Operation:</span> <span class="info-value-compact">${vehicle.operationCompany}</span></div>` : ''}
-                    ${customerName ? `<div class="info-row"><span class="info-label-compact">Customer:</span> <span class="info-value-compact">${customerName}</span></div>` : ''}
-                    ${vehicle.customer?.phone ? `<div class="info-row"><span class="info-label-compact">Phone:</span> <span class="info-value-compact">${vehicle.customer.phone}</span></div>` : ''}
-                    <div class="info-row"><span class="info-label-compact">Added:</span> <span class="info-value-compact">${dateAdded}</span></div>
+            <div class="vehicle-body">
+                <div class="vehicle-info-compact">
+                    <div class="info-item-compact">
+                        <div class="info-label">VIN</div>
+                        <div class="info-value">${vehicle.vin}</div>
+                    </div>
+                    <div class="info-item-compact">
+                        <div class="info-label">Trim</div>
+                        <div class="info-value">${vehicle.trim}</div>
+                    </div>
+                    <div class="info-item-compact">
+                        <div class="info-label">Color</div>
+                        <div class="info-value">${vehicle.color}</div>
+                    </div>
+                    <div class="info-item-compact">
+                        <div class="info-label">Status</div>
+                        <div class="info-value"><span class="status-badge ${statusClass}">${statusText}</span></div>
+                    </div>
+                    ${vehicle.fleetCompany ? `
+                    <div class="info-item-compact">
+                        <div class="info-label">Fleet</div>
+                        <div class="info-value">${vehicle.fleetCompany}</div>
+                    </div>` : ''}
+                    ${vehicle.operationCompany ? `
+                    <div class="info-item-compact">
+                        <div class="info-label">Operation</div>
+                        <div class="info-value">${vehicle.operationCompany}</div>
+                    </div>` : ''}
+                    ${customerName ? `
+                    <div class="info-item-compact">
+                        <div class="info-label">Customer</div>
+                        <div class="info-value">${customerName}</div>
+                    </div>` : ''}
+                    ${vehicle.customer?.phone ? `
+                    <div class="info-item-compact">
+                        <div class="info-label">Phone</div>
+                        <div class="info-value">${vehicle.customer.phone}</div>
+                    </div>` : ''}
+                    <div class="info-item-compact">
+                        <div class="info-label">Added</div>
+                        <div class="info-value">${dateAdded}</div>
+                    </div>
                 </div>
-                <div class="vehicle-actions-compact">
+                <div class="vehicle-actions">
                     <button class="btn btn-small btn-secondary" onclick='openVehicleDetail(${vehicle.id})'>Details</button>
                     <button class="btn btn-small btn-secondary" onclick='openStatusPopup(${vehicle.id}, event)'>Status</button>
                 </div>

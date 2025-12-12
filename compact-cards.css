@@ -1,80 +1,72 @@
-# 🎨 Fixed Vehicle Card Layout
+/* Compact Vehicle Card Styles - Modern & Clean */
 
-## What Changed
+/* Tighten up the info items for compact display */
+.vehicle-info-compact {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
 
-The vehicle cards now use the same clean, modern structure as before but with:
-- **2-column grid layout** for information fields
-- **Proper spacing** and padding (1rem body padding, 0.5rem between items)
-- **Full-width buttons** in a 2-column grid at the bottom
-- **All the extra information** displayed cleanly:
-  - VIN, Trim, Color, Status (always shown)
-  - Fleet Company (when present)
-  - Operation Company (when present)
-  - Customer Name (when present)
-  - Customer Phone (when present)
-  - Date Added (always shown)
+.info-item-compact {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
 
-## Card Layout Structure
+.info-item-compact .info-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
 
-```
-┌─────────────────────────────────────┐
-│ STOCK123                            │
-│ 2024 Subaru Outback                 │
-├─────────────────────────────────────┤
-│ VIN              │ TRIM             │
-│ JF2SKDEC...      │ Premium          │
-│                  │                  │
-│ COLOR            │ STATUS           │
-│ Crystal White    │ [Available]      │
-│                  │                  │
-│ FLEET            │ OPERATION        │
-│ Enterprise       │ Main Ops         │
-│                  │                  │
-│ CUSTOMER         │ PHONE            │
-│ John Smith       │ 555-1234         │
-│                  │                  │
-│ ADDED            │                  │
-│ 12/11/2024       │                  │
-├─────────────────────────────────────┤
-│  [Details]      │  [Status]        │
-└─────────────────────────────────────┘
-```
+.info-item-compact .info-value {
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    font-weight: 400;
+}
 
-## Installation
+/* Make vehicle actions buttons full width and side by side */
+.vehicle-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
 
-### Option 1: Add CSS as external file
-1. Copy `compact-cards.css` to your project
-2. Add to `<head>` in index.html:
-```html
-<link rel="stylesheet" href="compact-cards.css">
-```
+.vehicle-actions .btn {
+    width: 100%;
+    margin: 0;
+}
 
-### Option 2: Add CSS inline
-Copy the contents of `compact-cards.css` and paste at the end of your existing `<style>` section in index.html.
+/* Tighten up card body padding */
+.vehicle-body {
+    padding: 1rem;
+}
 
-### Replace JavaScript
-Replace your `app.js` with the updated version.
+/* Adjust grid for better card sizing */
+.vehicle-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.25rem;
+}
 
-### Rebuild
-```bash
-docker-compose down
-docker-compose up -d --build
-```
+@media (max-width: 1200px) {
+    .vehicle-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+}
 
-## Key CSS Changes
-
-1. **`.vehicle-info-compact`** - 2-column grid with 0.5rem gap
-2. **`.info-item-compact`** - Column layout with label above value
-3. **`.vehicle-actions`** - 2-column grid for buttons (full width each)
-4. **`.vehicle-body`** - Reduced padding to 1rem (from 1.5rem)
-5. **Responsive** - Single column on mobile devices
-
-## Benefits
-
-✅ Same clean, modern look as original
-✅ More information visible at a glance
-✅ Better use of horizontal space
-✅ Buttons properly sized and centered
-✅ Consistent spacing throughout
-✅ Automatically hides fields that don't have data
-
+@media (max-width: 768px) {
+    .vehicle-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .vehicle-info-compact {
+        grid-template-columns: 1fr;
+    }
+}
