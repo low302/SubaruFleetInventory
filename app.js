@@ -104,6 +104,13 @@ async function loadTradeIns() {
 
 async function addVehicle(event) {
     event.preventDefault();
+    
+    // Disable submit button to prevent double submission
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    if (submitBtn.disabled) return; // Already submitting
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Adding...';
+    
     const vehicle = {
         id: Date.now(),
         stockNumber: document.getElementById('stockNumber').value,
@@ -120,6 +127,7 @@ async function addVehicle(event) {
         customer: null,
         documents: []
     };
+    
     try {
         const response = await fetch(`${API_BASE}/inventory`, {
             method: 'POST',
@@ -127,15 +135,26 @@ async function addVehicle(event) {
             credentials: 'include',
             body: JSON.stringify(vehicle)
         });
-        if (!response.ok) throw new Error('Failed to add vehicle');
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to add vehicle');
+        }
+        
         await loadInventory();
         closeAddModal();
         updateDashboard();
         renderCurrentPage();
         document.getElementById('vehicleForm').reset();
+        alert('Vehicle added successfully!');
+        
     } catch (error) {
         console.error('Error adding vehicle:', error);
-        alert('Failed to add vehicle. Please try again.');
+        alert('Failed to add vehicle: ' + error.message);
+    } finally {
+        // Re-enable button
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Add Vehicle';
     }
 }
 
@@ -882,7 +901,14 @@ function updateMakeFilter(selectId, vehicleList) {
 
 function openAddModal() { document.getElementById('addModal').classList.add('active'); }
 function closeAddModal() { document.getElementById('addModal').classList.remove('active'); document.getElementById('vehicleForm').reset(); }
-function openVehicleDetail(vehicleId) { const vehicle = vehicles.find(v => v.id === vehicleId) || soldVehicles.find(v => v.id === vehicleId); if (!vehicle) return; currentVehicle = vehicle; renderDetailModal(vehicle); document.getElementById('detailModal').classList.add('active'); }
+function openVehicleDetail(vehicleId) {
+    const vehicle = vehicles.find(v => v.id === vehicleId) || soldVehicles.find(v => v.id === vehicleId);
+    if (!vehicle) return;
+    currentVehicle = vehicle;
+    window.currentVehicleId = vehicleId; // Set for delete button
+    renderDetailModal(vehicle);
+    document.getElementById('detailModal').classList.add('active');
+}
 function closeDetailModal() { document.getElementById('detailModal').classList.remove('active'); currentVehicle = null; }
 function openLabelModal() { document.getElementById('labelModal').classList.add('active'); }
 function closeLabelModal() { document.getElementById('labelModal').classList.remove('active'); }
