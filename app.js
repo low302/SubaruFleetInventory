@@ -590,6 +590,207 @@ async function copyLabel() {
     }
 }
 
+async function saveVehicleDetailPDF() {
+    if (!currentVehicle) return;
+
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Set document properties
+        doc.setProperties({
+            title: `Vehicle Details - ${currentVehicle.stockNumber}`,
+            subject: 'Vehicle Information',
+            author: 'Fleet Inventory System',
+            keywords: 'vehicle, inventory, fleet',
+            creator: 'Fleet Inventory Management System'
+        });
+
+        // Header
+        doc.setFillColor(0, 122, 255);
+        doc.rect(0, 0, 210, 35, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(24);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Vehicle Details', 20, 20);
+
+        // Stock number
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Stock #${currentVehicle.stockNumber}`, 20, 28);
+
+        // Reset text color
+        doc.setTextColor(29, 29, 31);
+
+        let yPos = 50;
+
+        // Vehicle Information Section
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Vehicle Information', 20, yPos);
+        yPos += 10;
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+
+        const vehicleInfo = [
+            { label: 'Year:', value: currentVehicle.year.toString() },
+            { label: 'Make:', value: currentVehicle.make },
+            { label: 'Model:', value: currentVehicle.model },
+            { label: 'Trim:', value: currentVehicle.trim },
+            { label: 'Color:', value: currentVehicle.color },
+            { label: 'VIN:', value: currentVehicle.vin },
+            { label: 'Fleet Company:', value: currentVehicle.fleetCompany || 'N/A' },
+            { label: 'Operation Company:', value: currentVehicle.operationCompany || 'N/A' }
+        ];
+
+        vehicleInfo.forEach(info => {
+            doc.setFont('helvetica', 'bold');
+            doc.text(info.label, 20, yPos);
+            doc.setFont('helvetica', 'normal');
+            doc.text(info.value, 65, yPos);
+            yPos += 7;
+        });
+
+        yPos += 5;
+
+        // Status Section
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Status', 20, yPos);
+        yPos += 10;
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        const statusText = currentVehicle.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        doc.text(`Current Status: ${statusText}`, 20, yPos);
+        yPos += 7;
+
+        if (currentVehicle.dateAdded) {
+            const dateAdded = new Date(currentVehicle.dateAdded).toLocaleDateString();
+            doc.text(`Date Added: ${dateAdded}`, 20, yPos);
+            yPos += 7;
+        }
+
+        // Pickup information if scheduled
+        if (currentVehicle.status === 'pickup-scheduled' && currentVehicle.pickupDate) {
+            yPos += 3;
+            doc.setFont('helvetica', 'bold');
+            doc.text('Pickup Information:', 20, yPos);
+            yPos += 7;
+            doc.setFont('helvetica', 'normal');
+
+            const pickupDate = new Date(currentVehicle.pickupDate).toLocaleDateString();
+            doc.text(`Pickup Date: ${pickupDate}`, 20, yPos);
+            yPos += 7;
+
+            if (currentVehicle.pickupTime) {
+                doc.text(`Pickup Time: ${currentVehicle.pickupTime}`, 20, yPos);
+                yPos += 7;
+            }
+
+            if (currentVehicle.pickupNotes) {
+                doc.text('Pickup Notes:', 20, yPos);
+                yPos += 5;
+                const splitNotes = doc.splitTextToSize(currentVehicle.pickupNotes, 170);
+                doc.text(splitNotes, 20, yPos);
+                yPos += (splitNotes.length * 5) + 7;
+            }
+        }
+
+        yPos += 5;
+
+        // Customer Information Section
+        if (currentVehicle.customer) {
+            if (yPos > 240) {
+                doc.addPage();
+                yPos = 20;
+            }
+
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Customer Information', 20, yPos);
+            yPos += 10;
+
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+
+            const customerInfo = [];
+
+            if (currentVehicle.customer.firstName || currentVehicle.customer.lastName) {
+                const fullName = `${currentVehicle.customer.firstName || ''} ${currentVehicle.customer.lastName || ''}`.trim();
+                customerInfo.push({ label: 'Customer Name:', value: fullName });
+            }
+
+            if (currentVehicle.customer.phone) {
+                customerInfo.push({ label: 'Phone:', value: currentVehicle.customer.phone });
+            }
+
+            if (currentVehicle.customer.saleAmount) {
+                customerInfo.push({
+                    label: 'Sale Amount:',
+                    value: `$${parseFloat(currentVehicle.customer.saleAmount).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
+                });
+            }
+
+            if (currentVehicle.customer.saleDate) {
+                const saleDate = new Date(currentVehicle.customer.saleDate).toLocaleDateString();
+                customerInfo.push({ label: 'Sale Date:', value: saleDate });
+            }
+
+            if (currentVehicle.customer.paymentMethod) {
+                customerInfo.push({ label: 'Payment Method:', value: currentVehicle.customer.paymentMethod });
+            }
+
+            if (currentVehicle.customer.paymentReference) {
+                customerInfo.push({ label: 'Reference Number:', value: currentVehicle.customer.paymentReference });
+            }
+
+            customerInfo.forEach(info => {
+                doc.setFont('helvetica', 'bold');
+                doc.text(info.label, 20, yPos);
+                doc.setFont('helvetica', 'normal');
+                doc.text(info.value, 65, yPos);
+                yPos += 7;
+            });
+
+            if (currentVehicle.customer.notes) {
+                yPos += 3;
+                doc.setFont('helvetica', 'bold');
+                doc.text('Notes:', 20, yPos);
+                yPos += 7;
+                doc.setFont('helvetica', 'normal');
+                const splitNotes = doc.splitTextToSize(currentVehicle.customer.notes, 170);
+                doc.text(splitNotes, 20, yPos);
+                yPos += (splitNotes.length * 5);
+            }
+        }
+
+        // Footer
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(134, 134, 139);
+            doc.setFont('helvetica', 'normal');
+            doc.text(
+                `Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()} - Page ${i} of ${pageCount}`,
+                105,
+                285,
+                { align: 'center' }
+            );
+        }
+
+        // Save the PDF
+        const fileName = `Vehicle_${currentVehicle.stockNumber}_${currentVehicle.year}_${currentVehicle.make}_${currentVehicle.model}.pdf`.replace(/\s+/g, '_');
+        doc.save(fileName);
+
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        alert('Failed to generate PDF. Please try again.');
+    }
+}
+
 function updateDashboard() {
     // Update stat cards
     const totalVehicles = document.getElementById('totalVehicles');
