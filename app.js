@@ -1188,7 +1188,7 @@ async function quickStatusChange(vehicleId, newStatus) {
 async function handleSoldSubmit(event) {
     event.preventDefault();
     if (!currentVehicle) return;
-    
+
     // Get customer information from form
     currentVehicle.customer = {
         firstName: document.getElementById('soldFirstName').value,
@@ -1196,6 +1196,8 @@ async function handleSoldSubmit(event) {
         phone: document.getElementById('soldPhone').value,
         saleAmount: parseFloat(document.getElementById('soldAmount').value) || 0,
         saleDate: document.getElementById('soldDate').value,
+        paymentMethod: document.getElementById('soldPaymentMethod').value,
+        paymentReference: document.getElementById('soldReference').value,
         notes: document.getElementById('soldNotes').value
     };
     

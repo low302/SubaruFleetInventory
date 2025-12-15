@@ -1506,27 +1506,42 @@
                 <form id="soldForm" onsubmit="handleSoldSubmit(event)">
                     <div class="form-row">
                         <div class="form-group">
+                            <label for="soldAmount">Sale Amount ($) *</label>
+                            <input type="number" id="soldAmount" placeholder="0.00" step="0.01" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="soldDate">Sale Date *</label>
+                            <input type="date" id="soldDate" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="soldPaymentMethod">Payment Method *</label>
+                            <select id="soldPaymentMethod" required>
+                                <option value="">Select Payment Method</option>
+                                <option value="ACH">ACH</option>
+                                <option value="Check">Check</option>
+                                <option value="Credit Card">Credit Card</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="soldReference">Reference Number *</label>
+                            <input type="text" id="soldReference" placeholder="Transaction/Check #" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
                             <label for="soldFirstName">Customer First Name</label>
-                            <input type="text" id="soldFirstName" required>
+                            <input type="text" id="soldFirstName">
                         </div>
                         <div class="form-group">
                             <label for="soldLastName">Customer Last Name</label>
-                            <input type="text" id="soldLastName" required>
+                            <input type="text" id="soldLastName">
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="soldPhone">Phone Number</label>
-                        <input type="tel" id="soldPhone" pattern="[0-9]{3}-?[0-9]{3}-?[0-9]{4}" title="Phone format: 123-456-7890 or 1234567890" placeholder="123-456-7890" required>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="soldAmount">Sale Amount ($)</label>
-                            <input type="number" id="soldAmount" placeholder="0.00" step="0.01" min="0">
-                        </div>
-                        <div class="form-group">
-                            <label for="soldDate">Sale Date</label>
-                            <input type="date" id="soldDate" required>
-                        </div>
+                        <input type="tel" id="soldPhone" pattern="[0-9]{3}-?[0-9]{3}-?[0-9]{4}" title="Phone format: 123-456-7890 or 1234567890" placeholder="123-456-7890">
                     </div>
                     <div class="form-group">
                         <label for="soldNotes">Notes</label>
