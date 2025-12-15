@@ -582,13 +582,16 @@ function updateDashboard() {
     // Update stat cards
     const totalVehicles = document.getElementById('totalVehicles');
     if (totalVehicles) totalVehicles.textContent = vehicles.length;
-    
+
     const inStockVehicles = document.getElementById('inStockVehicles');
     if (inStockVehicles) inStockVehicles.textContent = vehicles.filter(v => v.status === 'in-stock').length;
-    
+
+    const inTransitCount = document.getElementById('inTransitCount');
+    if (inTransitCount) inTransitCount.textContent = vehicles.filter(v => v.status === 'in-transit').length;
+
     const soldCount = document.getElementById('soldCount');
     if (soldCount) soldCount.textContent = soldVehicles.length;
-    
+
     const tradeInsCount = document.getElementById('tradeInsCount');
     if (tradeInsCount) tradeInsCount.textContent = tradeIns.length;
     
