@@ -350,11 +350,7 @@
             background: #A31515;
         }
 
-        .btn-sm {
-            padding: 0.375rem 0.75rem;
-            font-size: 0.8125rem;
-        }
-
+        .btn-sm,
         .btn-small {
             padding: 0.375rem 0.75rem;
             font-size: 0.8125rem;
@@ -1157,12 +1153,12 @@
                     </div>
                     <div class="form-group">
                         <label for="vin">VIN</label>
-                        <input type="text" id="vin" maxlength="17" required>
+                        <input type="text" id="vin" maxlength="17" minlength="17" pattern="[A-HJ-NPR-Z0-9]{17}" title="VIN must be exactly 17 characters (letters and numbers, excluding I, O, Q)" required style="text-transform: uppercase;">
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="year">Year</label>
-                            <input type="number" id="year" min="1900" max="2099" required>
+                            <input type="number" id="year" min="2000" max="2030" required title="Vehicle year must be between 2000 and 2030">
                         </div>
                         <div class="form-group">
                             <label for="make">Make</label>
@@ -1257,7 +1253,7 @@
                         </div>
                         <div class="form-group">
                             <label for="customerPhone">Phone Number</label>
-                            <input type="tel" id="customerPhone">
+                            <input type="tel" id="customerPhone" pattern="[0-9]{3}-?[0-9]{3}-?[0-9]{4}" title="Phone format: 123-456-7890 or 1234567890" placeholder="123-456-7890">
                         </div>
                         <div class="form-row">
                             <div class="form-group">
@@ -1327,7 +1323,7 @@
                     </div>
                     <div class="form-group">
                         <label for="soldPhone">Phone Number</label>
-                        <input type="tel" id="soldPhone" required>
+                        <input type="tel" id="soldPhone" pattern="[0-9]{3}-?[0-9]{3}-?[0-9]{4}" title="Phone format: 123-456-7890 or 1234567890" placeholder="123-456-7890" required>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
@@ -1418,12 +1414,12 @@
                     </div>
                     <div class="form-group">
                         <label for="tradeVin">VIN</label>
-                        <input type="text" id="tradeVin" maxlength="17" required>
+                        <input type="text" id="tradeVin" maxlength="17" minlength="17" pattern="[A-HJ-NPR-Z0-9]{17}" title="VIN must be exactly 17 characters (letters and numbers, excluding I, O, Q)" required style="text-transform: uppercase;">
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="tradeYear">Year</label>
-                            <input type="number" id="tradeYear" min="1900" max="2099" required>
+                            <input type="number" id="tradeYear" min="1980" max="2030" required title="Vehicle year must be between 1980 and 2030">
                         </div>
                         <div class="form-group">
                             <label for="tradeMake">Make</label>
@@ -1469,5 +1465,6 @@
     <script src="app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </body>
 </html>

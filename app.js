@@ -109,17 +109,27 @@ async function loadTradeIns() {
 
 async function addVehicle(event) {
     event.preventDefault();
-    
+
     // Disable submit button to prevent double submission
     const submitBtn = event.target.querySelector('button[type="submit"]');
     if (submitBtn.disabled) return; // Already submitting
     submitBtn.disabled = true;
     submitBtn.textContent = 'Adding...';
-    
+
+    // Validate VIN format (17 alphanumeric characters, no I, O, or Q)
+    const vinInput = document.getElementById('vin').value.toUpperCase();
+    const vinPattern = /^[A-HJ-NPR-Z0-9]{17}$/;
+    if (!vinPattern.test(vinInput)) {
+        alert('Invalid VIN format. VIN must be exactly 17 characters (letters and numbers, excluding I, O, Q).');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Add Vehicle';
+        return;
+    }
+
     const vehicle = {
         id: Date.now(),
         stockNumber: document.getElementById('stockNumber').value,
-        vin: document.getElementById('vin').value.toUpperCase(),
+        vin: vinInput,
         year: parseInt(document.getElementById('year').value),
         make: document.getElementById('make').value,
         model: document.getElementById('model').value,
@@ -331,12 +341,20 @@ function cancelEditMode() {
 async function saveVehicleEdit(event) {
     event.preventDefault();
     if (!currentVehicle) return;
-    
+
+    // Validate VIN format (17 alphanumeric characters, no I, O, or Q)
+    const vinInput = document.getElementById('editVin').value.toUpperCase();
+    const vinPattern = /^[A-HJ-NPR-Z0-9]{17}$/;
+    if (!vinPattern.test(vinInput)) {
+        alert('Invalid VIN format. VIN must be exactly 17 characters (letters and numbers, excluding I, O, Q).');
+        return;
+    }
+
     // Update only the edited fields, preserve everything else
     const updatedVehicle = {
         ...currentVehicle,
         stockNumber: document.getElementById('editStockNumber').value,
-        vin: document.getElementById('editVin').value.toUpperCase(),
+        vin: vinInput,
         year: parseInt(document.getElementById('editYear').value),
         make: document.getElementById('editMake').value,
         model: document.getElementById('editModel').value,
@@ -378,10 +396,19 @@ async function saveVehicleEdit(event) {
 
 async function addTradeIn(event) {
     event.preventDefault();
+
+    // Validate VIN format (17 alphanumeric characters, no I, O, or Q)
+    const vinInput = document.getElementById('tradeVin').value.toUpperCase();
+    const vinPattern = /^[A-HJ-NPR-Z0-9]{17}$/;
+    if (!vinPattern.test(vinInput)) {
+        alert('Invalid VIN format. VIN must be exactly 17 characters (letters and numbers, excluding I, O, Q).');
+        return;
+    }
+
     const tradeIn = {
         id: Date.now(),
         stockNumber: document.getElementById('tradeStockNumber').value,
-        vin: document.getElementById('tradeVin').value.toUpperCase(),
+        vin: vinInput,
         year: parseInt(document.getElementById('tradeYear').value),
         make: document.getElementById('tradeMake').value,
         model: document.getElementById('tradeModel').value,
@@ -893,12 +920,12 @@ function renderDetailModal(vehicle) {
                 </div>
                 <div class="form-group">
                     <label for="editVin">VIN</label>
-                    <input type="text" id="editVin" value="${vehicle.vin}" maxlength="17" required>
+                    <input type="text" id="editVin" value="${vehicle.vin}" maxlength="17" minlength="17" pattern="[A-HJ-NPR-Z0-9]{17}" title="VIN must be exactly 17 characters (letters and numbers, excluding I, O, Q)" required style="text-transform: uppercase;">
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="editYear">Year</label>
-                        <input type="number" id="editYear" value="${vehicle.year}" min="1900" max="2099" required>
+                        <input type="number" id="editYear" value="${vehicle.year}" min="2000" max="2030" required title="Vehicle year must be between 2000 and 2030">
                     </div>
                     <div class="form-group">
                         <label for="editMake">Make</label>
