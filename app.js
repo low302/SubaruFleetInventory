@@ -513,33 +513,32 @@ function completePickup(vehicleId) {
 
 function generateLabel(vehicle) {
     currentVehicle = vehicle;
-    document.getElementById('labelStockNumber').textContent = vehicle.stockNumber;
+
+    // Set stock number
+    document.getElementById('labelStockNumber').textContent = `Stock #${vehicle.stockNumber}`;
+
+    // Set vehicle description
+    document.getElementById('labelVehicle').textContent = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
+
+    // Set additional info
     const labelInfo = document.getElementById('labelInfo');
     labelInfo.innerHTML = `
-        <div style="color: #000;"><strong>VIN:</strong> ${vehicle.vin}</div>
-        <div style="color: #000;"><strong>Year:</strong> ${vehicle.year}</div>
-        <div style="color: #000;"><strong>Make:</strong> ${vehicle.make}</div>
-        <div style="color: #000;"><strong>Model:</strong> ${vehicle.model}</div>
-        <div style="color: #000;"><strong>Trim:</strong> ${vehicle.trim}</div>
-        <div style="color: #000;"><strong>Color:</strong> ${vehicle.color}</div>
+        <div><strong>VIN:</strong> ${vehicle.vin}</div>
+        <div><strong>Trim:</strong> ${vehicle.trim} • <strong>Color:</strong> ${vehicle.color}</div>
     `;
+
+    // Generate QR code with VIN only
     const qrContainer = document.getElementById('labelQR');
     qrContainer.innerHTML = '';
-    const qrData = JSON.stringify({
-        stockNumber: vehicle.stockNumber,
-        vin: vehicle.vin,
-        year: vehicle.year,
-        make: vehicle.make,
-        model: vehicle.model
-    });
     new QRCode(qrContainer, {
-        text: qrData,
-        width: 80,
-        height: 80,
+        text: vehicle.vin,
+        width: 140,
+        height: 140,
         colorDark: "#000000",
         colorLight: "#ffffff",
         correctLevel: QRCode.CorrectLevel.H
     });
+
     openLabelModal();
 }
 

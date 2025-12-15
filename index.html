@@ -1571,24 +1571,79 @@
 
     <!-- Label Modal -->
     <div id="labelModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 800px;">
             <div class="modal-header">
-                <h2>Print Label</h2>
+                <h2>Print Label - Avery 94207</h2>
                 <button class="close-btn" onclick="closeLabelModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <div id="labelPreview" style="background: #fff; padding: 2rem; border: 2px solid var(--joy-divider); border-radius: var(--joy-radius-md); text-align: center;">
-                    <div style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem;" id="labelStockNumber"></div>
-                    <div style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem;" id="labelVehicle"></div>
-                    <div style="margin-bottom: 1rem;" id="labelQRCode"></div>
-                    <div style="font-size: 0.875rem; color: var(--joy-text-tertiary);" id="labelDetails"></div>
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <p style="font-size: 0.875rem; color: var(--joy-text-tertiary);">Preview - Avery 94207 (2" × 4" Label)</p>
                 </div>
-                <button onclick="printLabel()" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;">
-                    Print Label
-                </button>
+
+                <!-- Avery 94207 Label (2" x 4" = 192px x 384px at 96 DPI) -->
+                <div id="label" style="
+                    width: 384px;
+                    height: 192px;
+                    background: #ffffff;
+                    border: 1px solid #e0e0e0;
+                    margin: 0 auto;
+                    padding: 12px;
+                    display: flex;
+                    gap: 12px;
+                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    box-sizing: border-box;
+                    page-break-inside: avoid;
+                ">
+                    <!-- Left Side - QR Code -->
+                    <div style="flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                        <div id="labelQR"></div>
+                    </div>
+
+                    <!-- Right Side - Vehicle Info -->
+                    <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0;">
+                        <div style="font-size: 18px; font-weight: 700; color: #1d1d1f; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="labelStockNumber"></div>
+                        <div style="font-size: 14px; font-weight: 600; color: #424245; margin-bottom: 8px; line-height: 1.2;" id="labelVehicle"></div>
+                        <div style="font-size: 11px; color: #86868b; line-height: 1.4; word-wrap: break-word;" id="labelInfo"></div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button onclick="printLabel()" class="btn btn-primary" style="flex: 1;">
+                        🖨️ Print Label
+                    </button>
+                    <button onclick="saveLabel()" class="btn btn-secondary" style="flex: 1;">
+                        💾 Save as Image
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+
+    <style>
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #label, #label * {
+                visibility: visible;
+            }
+            #label {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 4in;
+                height: 2in;
+                border: none !important;
+                margin: 0;
+                padding: 0.125in;
+            }
+            @page {
+                size: 4in 2in;
+                margin: 0;
+            }
+        }
+    </style>
 
     <!-- Trade-In Modal -->
     <div id="tradeInModal" class="modal">
