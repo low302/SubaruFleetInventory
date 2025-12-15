@@ -531,19 +531,25 @@ function generateLabel(vehicle) {
     const qrContainer = document.getElementById('labelQR');
     qrContainer.innerHTML = '';
 
-    // Wait for QRCode library to load
-    if (typeof QRCode !== 'undefined') {
-        new QRCode(qrContainer, {
-            text: vehicle.vin,
-            width: 140,
-            height: 140,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: 2  // 2 = High error correction (L=1, M=0, Q=3, H=2)
-        });
-    } else {
-        console.error('QRCode library not loaded');
-        qrContainer.innerHTML = '<div style="width: 140px; height: 140px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 10px; text-align: center;">QR Code<br>Loading...</div>';
+    // Create QR code - qrcode.js library auto-generates it
+    try {
+        // Using the qrcode.js library (different from qrcodejs)
+        if (typeof QRCode !== 'undefined' && QRCode) {
+            new QRCode(qrContainer, {
+                text: vehicle.vin,
+                width: 140,
+                height: 140,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel ? QRCode.CorrectLevel.H : 2
+            });
+        } else {
+            throw new Error('QRCode library not available');
+        }
+    } catch (error) {
+        console.error('QRCode error:', error);
+        // Fallback: display VIN as text
+        qrContainer.innerHTML = `<div style="width: 140px; height: 140px; background: #f0f0f0; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 9px; text-align: center; padding: 8px; word-break: break-all; font-family: monospace; font-weight: 600;">${vehicle.vin}</div>`;
     }
 
     openLabelModal();
