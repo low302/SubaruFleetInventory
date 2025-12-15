@@ -1240,7 +1240,7 @@ function switchPage(pageId) {
     document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
     document.getElementById(pageId).classList.add('active');
     document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
-    
+
     // Update breadcrumb
     const breadcrumb = document.getElementById('breadcrumb');
     if (breadcrumb) {
@@ -1258,8 +1258,13 @@ function switchPage(pageId) {
         };
         breadcrumb.textContent = pageNames[pageId] || 'Dashboard';
     }
-    
+
     renderCurrentPage();
+}
+
+// Helper function for navigating from dashboard cards
+function navigateTo(pageId) {
+    switchPage(pageId);
 }
 
 function formatDate(dateString) { if (!dateString) return 'N/A'; return new Date(dateString).toLocaleDateString(); }
