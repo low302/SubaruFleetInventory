@@ -530,14 +530,21 @@ function generateLabel(vehicle) {
     // Generate QR code with VIN only
     const qrContainer = document.getElementById('labelQR');
     qrContainer.innerHTML = '';
-    new QRCode(qrContainer, {
-        text: vehicle.vin,
-        width: 140,
-        height: 140,
-        colorDark: "#000000",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
-    });
+
+    // Wait for QRCode library to load
+    if (typeof QRCode !== 'undefined') {
+        new QRCode(qrContainer, {
+            text: vehicle.vin,
+            width: 140,
+            height: 140,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: 2  // 2 = High error correction (L=1, M=0, Q=3, H=2)
+        });
+    } else {
+        console.error('QRCode library not loaded');
+        qrContainer.innerHTML = '<div style="width: 140px; height: 140px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 10px; text-align: center;">QR Code<br>Loading...</div>';
+    }
 
     openLabelModal();
 }
