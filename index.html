@@ -1077,24 +1077,6 @@
                                     <div class="stat-icon">🚚</div>
                                 </div>
                             </div>
-                            <div class="stat-card" onclick="navigateTo('pending-pickup')">
-                                <div class="stat-card-header">
-                                    <div>
-                                        <div class="stat-label">Pending Pickup</div>
-                                        <div class="stat-value" id="pendingPickupCount">0</div>
-                                    </div>
-                                    <div class="stat-icon">⏳</div>
-                                </div>
-                            </div>
-                            <div class="stat-card" onclick="navigateTo('pickup-scheduled')">
-                                <div class="stat-card-header">
-                                    <div>
-                                        <div class="stat-label">Pickup Scheduled</div>
-                                        <div class="stat-value" id="pickupScheduledCount">0</div>
-                                    </div>
-                                    <div class="stat-icon">📅</div>
-                                </div>
-                            </div>
                             <div class="stat-card" onclick="navigateTo('sold')">
                                 <div class="stat-card-header">
                                     <div>
@@ -1117,28 +1099,28 @@
 
                         <!-- Dashboard Sections Grid -->
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
-                            <!-- Oldest Units -->
-                            <div style="background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
-                                <h2 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--joy-text-primary);">⏰ Oldest Units</h2>
-                                <div id="oldestVehicles"></div>
-                            </div>
-
-                            <!-- Newest Units -->
-                            <div style="background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
-                                <h2 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--joy-text-primary);">🆕 Newest Units</h2>
-                                <div id="newestVehicles"></div>
-                            </div>
-
-                            <!-- Pending Pickups -->
+                            <!-- Pending Pickups (Top Left) -->
                             <div style="background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
                                 <h2 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--joy-text-primary);">⏳ Pending Pickup</h2>
                                 <div id="pendingPickups"></div>
                             </div>
 
-                            <!-- Scheduled Pickups -->
+                            <!-- Scheduled Pickups (Top Right) -->
                             <div style="background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
                                 <h2 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--joy-text-primary);">📅 Scheduled Pickups</h2>
                                 <div id="scheduledPickups"></div>
+                            </div>
+
+                            <!-- Newest Units (Bottom Left) -->
+                            <div style="background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
+                                <h2 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--joy-text-primary);">🆕 Newest Units</h2>
+                                <div id="newestVehicles"></div>
+                            </div>
+
+                            <!-- Oldest Units (Bottom Right) -->
+                            <div style="background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
+                                <h2 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--joy-text-primary);">⏰ Oldest Units</h2>
+                                <div id="oldestVehicles"></div>
                             </div>
                         </div>
                     </div>
@@ -1400,16 +1382,22 @@
                         <label for="addOperationCompany">Operation Company</label>
                         <input type="text" id="addOperationCompany">
                     </div>
-                    <div class="form-group">
-                        <label for="status">Status</label>
-                        <select id="status" required>
-                            <option value="in-stock">In Stock</option>
-                            <option value="in-transit">In-Transit</option>
-                            <option value="pdi">PDI</option>
-                            <option value="pending-pickup">Pending Pickup</option>
-                            <option value="pickup-scheduled">Pickup Scheduled</option>
-                            <option value="sold">Sold</option>
-                        </select>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="status">Status</label>
+                            <select id="status" required>
+                                <option value="in-stock">In Stock</option>
+                                <option value="in-transit">In-Transit</option>
+                                <option value="pdi">PDI</option>
+                                <option value="pending-pickup">Pending Pickup</option>
+                                <option value="pickup-scheduled">Pickup Scheduled</option>
+                                <option value="sold">Sold</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="inStockDate">In Stock Date</label>
+                            <input type="date" id="inStockDate">
+                        </div>
                     </div>
                     <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
                         Add Vehicle

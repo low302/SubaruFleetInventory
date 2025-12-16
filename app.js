@@ -126,6 +126,10 @@ async function addVehicle(event) {
         return;
     }
 
+    // Get in stock date or default to today
+    const inStockDateInput = document.getElementById('inStockDate').value;
+    const inStockDate = inStockDateInput ? new Date(inStockDateInput).toISOString() : new Date().toISOString();
+
     const vehicle = {
         id: Date.now(),
         stockNumber: document.getElementById('stockNumber').value,
@@ -139,6 +143,7 @@ async function addVehicle(event) {
         operationCompany: document.getElementById('addOperationCompany').value,
         status: document.getElementById('status').value,
         dateAdded: new Date().toISOString(),
+        inStockDate: inStockDate,
         customer: null,
         documents: []
     };
@@ -1065,7 +1070,11 @@ function updateDashboard() {
     
     // Oldest Units Section
     const oldestVehicles = [...vehicles]
-        .sort((a, b) => new Date(a.dateAdded) - new Date(b.dateAdded))
+        .sort((a, b) => {
+            const dateA = new Date(a.inStockDate || a.dateAdded);
+            const dateB = new Date(b.inStockDate || b.dateAdded);
+            return dateA - dateB;
+        })
         .slice(0, 5);
 
     const oldestContainer = document.getElementById('oldestVehicles');
@@ -1074,7 +1083,8 @@ function updateDashboard() {
             oldestContainer.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--joy-text-tertiary); font-size: 0.875rem;">No vehicles in inventory</div>';
         } else {
             oldestContainer.innerHTML = oldestVehicles.map(v => {
-                const daysOld = Math.floor((new Date() - new Date(v.dateAdded)) / (1000 * 60 * 60 * 24));
+                const stockDate = new Date(v.inStockDate || v.dateAdded);
+                const daysOld = Math.floor((new Date() - stockDate) / (1000 * 60 * 60 * 24));
                 return `
                     <div style="padding: 0.5rem; border-bottom: 1px solid var(--joy-divider); cursor: pointer; transition: background 0.2s;"
                          onclick="openVehicleDetail(${v.id})"
@@ -1101,7 +1111,11 @@ function updateDashboard() {
 
     // Newest Units Section
     const newestVehicles = [...vehicles]
-        .sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded))
+        .sort((a, b) => {
+            const dateA = new Date(a.inStockDate || a.dateAdded);
+            const dateB = new Date(b.inStockDate || b.dateAdded);
+            return dateB - dateA;
+        })
         .slice(0, 5);
 
     const newestContainer = document.getElementById('newestVehicles');
@@ -1110,7 +1124,8 @@ function updateDashboard() {
             newestContainer.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--joy-text-tertiary); font-size: 0.875rem;">No vehicles in inventory</div>';
         } else {
             newestContainer.innerHTML = newestVehicles.map(v => {
-                const daysOld = Math.floor((new Date() - new Date(v.dateAdded)) / (1000 * 60 * 60 * 24));
+                const stockDate = new Date(v.inStockDate || v.dateAdded);
+                const daysOld = Math.floor((new Date() - stockDate) / (1000 * 60 * 60 * 24));
                 return `
                     <div style="padding: 0.5rem; border-bottom: 1px solid var(--joy-divider); cursor: pointer; transition: background 0.2s;"
                          onclick="openVehicleDetail(${v.id})"
