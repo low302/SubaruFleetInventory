@@ -1537,24 +1537,59 @@
                             <input type="text" id="soldReference" placeholder="Transaction/Check #" required>
                         </div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="soldFirstName">Customer First Name</label>
-                            <input type="text" id="soldFirstName">
-                        </div>
-                        <div class="form-group">
-                            <label for="soldLastName">Customer Last Name</label>
-                            <input type="text" id="soldLastName">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="soldPhone">Phone Number</label>
-                        <input type="tel" id="soldPhone" pattern="[0-9]{3}-?[0-9]{3}-?[0-9]{4}" title="Phone format: 123-456-7890 or 1234567890" placeholder="123-456-7890">
-                    </div>
                     <div class="form-group">
                         <label for="soldNotes">Notes</label>
                         <textarea id="soldNotes" rows="3"></textarea>
                     </div>
+
+                    <!-- Trade-In Section -->
+                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--joy-divider);">
+                        <div class="form-group">
+                            <label for="hasTradeIn">Trade-In Vehicle?</label>
+                            <select id="hasTradeIn" onchange="toggleTradeInSection()">
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
+                            </select>
+                        </div>
+
+                        <!-- Trade-In Details (hidden by default) -->
+                        <div id="tradeInSection" style="display: none; margin-top: 1rem; padding: 1rem; background: rgba(0, 122, 255, 0.05); border-radius: var(--joy-radius-sm); border: 1px solid rgba(0, 122, 255, 0.2);">
+                            <h4 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary);">Trade-In Vehicle Details</h4>
+
+                            <div class="form-group">
+                                <label for="tradeInVin">VIN *</label>
+                                <input type="text" id="tradeInVin" maxlength="17" minlength="17" pattern="[A-HJ-NPR-Z0-9]{17}" title="VIN must be exactly 17 characters (letters and numbers, excluding I, O, Q)" style="text-transform: uppercase;">
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="tradeInYear">Year *</label>
+                                    <input type="number" id="tradeInYear" min="1980" max="2030" title="Vehicle year must be between 1980 and 2030">
+                                </div>
+                                <div class="form-group">
+                                    <label for="tradeInMake">Make *</label>
+                                    <input type="text" id="tradeInMake">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="tradeInModel">Model *</label>
+                                    <input type="text" id="tradeInModel">
+                                </div>
+                                <div class="form-group">
+                                    <label for="tradeInColor">Color *</label>
+                                    <input type="text" id="tradeInColor">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Auto-Generated Stock Number</label>
+                                <input type="text" id="tradeInStockNumber" readonly style="background: rgba(200, 200, 200, 0.3); cursor: not-allowed;" placeholder="Will be auto-generated">
+                            </div>
+                        </div>
+                    </div>
+
                     <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
                         Complete Sale
                     </button>
@@ -1579,7 +1614,36 @@
                         </div>
                         <div class="form-group">
                             <label for="pickupTime">Pickup Time</label>
-                            <input type="time" id="pickupTime" required>
+                            <select id="pickupTime" required>
+                                <option value="">Select Time</option>
+                                <option value="08:00">8:00 AM</option>
+                                <option value="08:30">8:30 AM</option>
+                                <option value="09:00">9:00 AM</option>
+                                <option value="09:30">9:30 AM</option>
+                                <option value="10:00">10:00 AM</option>
+                                <option value="10:30">10:30 AM</option>
+                                <option value="11:00">11:00 AM</option>
+                                <option value="11:30">11:30 AM</option>
+                                <option value="12:00">12:00 PM</option>
+                                <option value="12:30">12:30 PM</option>
+                                <option value="13:00">1:00 PM</option>
+                                <option value="13:30">1:30 PM</option>
+                                <option value="14:00">2:00 PM</option>
+                                <option value="14:30">2:30 PM</option>
+                                <option value="15:00">3:00 PM</option>
+                                <option value="15:30">3:30 PM</option>
+                                <option value="16:00">4:00 PM</option>
+                                <option value="16:30">4:30 PM</option>
+                                <option value="17:00">5:00 PM</option>
+                                <option value="17:30">5:30 PM</option>
+                                <option value="18:00">6:00 PM</option>
+                                <option value="18:30">6:30 PM</option>
+                                <option value="19:00">7:00 PM</option>
+                                <option value="19:30">7:30 PM</option>
+                                <option value="20:00">8:00 PM</option>
+                                <option value="20:30">8:30 PM</option>
+                                <option value="21:00">9:00 PM</option>
+                            </select>
                         </div>
                     </div>
                     <div class="form-group">

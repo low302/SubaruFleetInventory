@@ -1517,8 +1517,19 @@ function openTradeInModal() { document.getElementById('tradeInModal').classList.
 function closeTradeInModal() { document.getElementById('tradeInModal').classList.remove('active'); document.getElementById('tradeInForm').reset(); }
 function openPickupScheduleModal() { document.getElementById('pickupScheduleModal').classList.add('active'); }
 function closePickupScheduleModal() { document.getElementById('pickupScheduleModal').classList.remove('active'); document.getElementById('pickupScheduleForm').reset(); }
-function openSoldModal() { document.getElementById('soldModal').classList.add('active'); }
-function closeSoldModal() { document.getElementById('soldModal').classList.remove('active'); document.getElementById('soldForm').reset(); }
+function openSoldModal() {
+    document.getElementById('soldModal').classList.add('active');
+    // Reset trade-in section
+    document.getElementById('hasTradeIn').value = 'no';
+    toggleTradeInSection();
+}
+function closeSoldModal() {
+    document.getElementById('soldModal').classList.remove('active');
+    document.getElementById('soldForm').reset();
+    // Reset trade-in section
+    document.getElementById('hasTradeIn').value = 'no';
+    toggleTradeInSection();
+}
 
 // Open status popup
 function openStatusPopup(vehicleId, event) {
@@ -1642,24 +1653,58 @@ async function quickStatusChange(vehicleId, newStatus) {
     }
 }
 
+function toggleTradeInSection() {
+    const hasTradeIn = document.getElementById('hasTradeIn').value;
+    const tradeInSection = document.getElementById('tradeInSection');
+    const tradeInFields = ['tradeInVin', 'tradeInYear', 'tradeInMake', 'tradeInModel', 'tradeInColor'];
+
+    if (hasTradeIn === 'yes') {
+        tradeInSection.style.display = 'block';
+        // Set required attributes
+        tradeInFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) field.required = true;
+        });
+
+        // Generate stock number based on current vehicle
+        if (currentVehicle && currentVehicle.stockNumber) {
+            document.getElementById('tradeInStockNumber').value = currentVehicle.stockNumber + '-A';
+        }
+    } else {
+        tradeInSection.style.display = 'none';
+        // Remove required attributes and clear values
+        tradeInFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.required = false;
+                field.value = '';
+            }
+        });
+        document.getElementById('tradeInStockNumber').value = '';
+    }
+}
+
 async function handleSoldSubmit(event) {
     event.preventDefault();
     if (!currentVehicle) return;
 
-    // Get customer information from form
-    currentVehicle.customer = {
-        firstName: document.getElementById('soldFirstName').value,
-        lastName: document.getElementById('soldLastName').value,
-        phone: document.getElementById('soldPhone').value,
+    // Get payment information
+    const saleInfo = {
         saleAmount: parseFloat(document.getElementById('soldAmount').value) || 0,
         saleDate: document.getElementById('soldDate').value,
         paymentMethod: document.getElementById('soldPaymentMethod').value,
         paymentReference: document.getElementById('soldReference').value,
         notes: document.getElementById('soldNotes').value
     };
-    
+
+    // Preserve existing customer info if it exists
+    currentVehicle.customer = {
+        ...(currentVehicle.customer || {}),
+        ...saleInfo
+    };
+
     const soldVehicle = { ...currentVehicle, status: 'sold' };
-    
+
     try {
         // Add to sold vehicles
         const soldResponse = await fetch(`${API_BASE}/sold-vehicles`, {
@@ -1668,29 +1713,75 @@ async function handleSoldSubmit(event) {
             credentials: 'include',
             body: JSON.stringify(soldVehicle)
         });
-        
+
         if (!soldResponse.ok) {
             const errorData = await soldResponse.json();
             throw new Error(errorData.error || 'Failed to add sold vehicle');
         }
-        
+
         // Delete from inventory
         const deleteResponse = await fetch(`${API_BASE}/inventory/${currentVehicle.id}`, {
             method: 'DELETE',
             credentials: 'include'
         });
-        
+
         if (!deleteResponse.ok) {
             throw new Error('Failed to remove from inventory');
         }
-        
+
+        // Check if there's a trade-in
+        const hasTradeIn = document.getElementById('hasTradeIn').value;
+        if (hasTradeIn === 'yes') {
+            // Validate VIN format
+            const tradeInVin = document.getElementById('tradeInVin').value.toUpperCase();
+            const vinPattern = /^[A-HJ-NPR-Z0-9]{17}$/;
+            if (!vinPattern.test(tradeInVin)) {
+                throw new Error('Invalid trade-in VIN format. VIN must be exactly 17 characters (letters and numbers, excluding I, O, Q).');
+            }
+
+            // Create trade-in vehicle
+            const tradeIn = {
+                id: Date.now(),
+                stockNumber: document.getElementById('tradeInStockNumber').value,
+                vin: tradeInVin,
+                year: parseInt(document.getElementById('tradeInYear').value),
+                make: document.getElementById('tradeInMake').value,
+                model: document.getElementById('tradeInModel').value,
+                trim: '',
+                color: document.getElementById('tradeInColor').value,
+                mileage: 0,
+                notes: `Trade-in for ${currentVehicle.stockNumber} (${currentVehicle.year} ${currentVehicle.make} ${currentVehicle.model})`,
+                pickedUp: false,
+                pickedUpDate: null,
+                dateAdded: new Date().toISOString()
+            };
+
+            // Add trade-in to database
+            const tradeInResponse = await fetch(`${API_BASE}/trade-ins`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(tradeIn)
+            });
+
+            if (!tradeInResponse.ok) {
+                throw new Error('Failed to add trade-in vehicle');
+            }
+        }
+
         await loadAllData();
         closeSoldModal();
         closeDetailModal();
         updateDashboard();
         renderCurrentPage();
-        alert('Vehicle marked as sold successfully!');
-        
+
+        // Clear the form and reset trade-in section
+        document.getElementById('soldForm').reset();
+        document.getElementById('hasTradeIn').value = 'no';
+        toggleTradeInSection();
+
+        alert('Vehicle marked as sold successfully!' + (hasTradeIn === 'yes' ? ' Trade-in vehicle added.' : ''));
+
     } catch (error) {
         console.error('Error marking vehicle as sold:', error);
         alert('Failed to mark vehicle as sold: ' + error.message);
