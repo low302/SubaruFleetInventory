@@ -768,6 +768,17 @@
             transform: translateY(-3px) scale(1.01);
         }
 
+        /* Picked-up trade-in styling */
+        .vehicle-card.picked-up-card {
+            opacity: 0.6;
+            background: rgba(200, 200, 200, 0.5);
+            filter: grayscale(40%);
+        }
+
+        .vehicle-card.picked-up-card:hover {
+            opacity: 0.75;
+        }
+
         .vehicle-header {
             padding: 1rem;
             border-bottom: 1px solid var(--joy-divider);
@@ -1765,7 +1776,7 @@
                 <button class="close-btn" onclick="closeTradeInModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="tradeInForm" onsubmit="addTradeIn(event)">
+                <form id="tradeInForm">
                     <div class="form-group">
                         <label for="tradeStockNumber">Stock # <span id="tradeStockNumberHint" style="display: none; font-size: 0.75rem; color: var(--joy-text-tertiary); font-weight: normal;">(Optional - leave blank for auto-generated)</span></label>
                         <input type="text" id="tradeStockNumber">

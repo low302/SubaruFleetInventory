@@ -128,7 +128,7 @@ async function addVehicle(event) {
 
     // Get in stock date or default to today
     const inStockDateInput = document.getElementById('inStockDate').value;
-    const inStockDate = inStockDateInput ? new Date(inStockDateInput).toISOString() : new Date().toISOString();
+    const inStockDate = inStockDateInput ? inStockDateInput + 'T00:00:00.000Z' : new Date().toISOString();
 
     const vehicle = {
         id: Date.now(),
@@ -357,7 +357,7 @@ async function saveVehicleEdit(event) {
 
     // Get in stock date or keep existing
     const inStockDateInput = document.getElementById('editInStockDate').value;
-    const inStockDate = inStockDateInput ? new Date(inStockDateInput).toISOString() : (currentVehicle.inStockDate || currentVehicle.dateAdded);
+    const inStockDate = inStockDateInput ? inStockDateInput + 'T00:00:00.000Z' : (currentVehicle.inStockDate || currentVehicle.dateAdded);
 
     // Update only the edited fields, preserve everything else
     const updatedVehicle = {
@@ -482,9 +482,24 @@ async function toggleTradeInPickup(tradeInId) {
     const tradeIn = tradeIns.find(t => t.id === tradeInId);
     if (!tradeIn) return;
     if (!tradeIn.pickedUp) {
-        currentVehicle = tradeIn;
-        openTradePickupModal();
+        // Mark as picked up immediately
+        tradeIn.pickedUp = true;
+        tradeIn.pickedUpDate = new Date().toISOString();
+        try {
+            await fetch(`${API_BASE}/trade-ins/${tradeInId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(tradeIn)
+            });
+            await loadTradeIns();
+            renderCurrentPage();
+        } catch (error) {
+            console.error('Error updating trade-in:', error);
+            alert('Failed to update trade-in. Please try again.');
+        }
     } else {
+        // Unmark as picked up
         tradeIn.pickedUp = false;
         tradeIn.pickedUpDate = null;
         try {
@@ -498,7 +513,7 @@ async function toggleTradeInPickup(tradeInId) {
             renderCurrentPage();
         } catch (error) {
             console.error('Error updating trade-in:', error);
-            alert('Failed to update fleet return. Please try again.');
+            alert('Failed to update trade-in. Please try again.');
         }
     }
 }
@@ -1438,7 +1453,7 @@ function createVehicleCard(vehicle) {
 
 function createTradeInCard(tradeIn) {
     return `
-        <div class="vehicle-card">
+        <div class="vehicle-card ${tradeIn.pickedUp ? 'picked-up-card' : ''}">
             <div class="vehicle-header">
                 <div class="vehicle-stock">${tradeIn.stockNumber || 'Fleet Return'}</div>
                 <div class="vehicle-title">${tradeIn.year} ${tradeIn.make} ${tradeIn.model}</div>
@@ -1484,6 +1499,8 @@ function renderDetailModal(vehicle) {
                 <div class="info-item"><div class="info-label">Color</div><div class="info-value">${vehicle.color}</div></div>
                 <div class="info-item"><div class="info-label">Fleet Company</div><div class="info-value">${vehicle.fleetCompany || 'N/A'}</div></div>
                 <div class="info-item"><div class="info-label">Operation Company</div><div class="info-value">${vehicle.operationCompany || 'N/A'}</div></div>
+                <div class="info-item"><div class="info-label">In Stock Date</div><div class="info-value">${vehicle.inStockDate ? new Date(vehicle.inStockDate).toLocaleDateString() : 'N/A'}</div></div>
+                <div class="info-item"><div class="info-label">Days in Stock</div><div class="info-value">${Math.floor((new Date() - new Date(vehicle.inStockDate || vehicle.dateAdded)) / (1000 * 60 * 60 * 24))} days</div></div>
             </div>
             <div style="margin-top: 2rem; display: flex; gap: 1rem;">
                 <button class="btn btn-secondary" onclick='generateLabel(${vehicleJson})' style="flex: 1;">🏷️ Generate Label</button>
