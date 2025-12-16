@@ -662,6 +662,17 @@
             }
         }
 
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
         .modal.active {
             display: flex;
         }
@@ -1829,6 +1840,33 @@
 
     <!-- Status Popup -->
     <div id="statusPopup" class="status-popup"></div>
+
+    <!-- Custom Notification Modal -->
+    <div id="notificationModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 400px; animation: slideDown 0.3s ease-out;">
+            <div class="modal-body" style="text-align: center; padding: 2rem;">
+                <div id="notificationIcon" style="font-size: 3rem; margin-bottom: 1rem;"></div>
+                <div id="notificationMessage" style="font-size: 1rem; color: var(--joy-text-primary); margin-bottom: 1.5rem;"></div>
+                <button id="notificationOkBtn" class="btn btn-primary" style="width: 100%;">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Modal -->
+    <div id="confirmModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 450px; animation: slideDown 0.3s ease-out;">
+            <div class="modal-body" style="padding: 2rem;">
+                <div style="display: flex; align-items: start; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="font-size: 2rem; color: var(--joy-warning-500);">⚠️</div>
+                    <div id="confirmMessage" style="font-size: 1rem; color: var(--joy-text-primary); flex: 1;"></div>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <button id="confirmCancelBtn" class="btn btn-secondary" style="flex: 1;">Cancel</button>
+                    <button id="confirmOkBtn" class="btn btn-danger" style="flex: 1;">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Include app.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

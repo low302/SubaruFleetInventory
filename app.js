@@ -5,6 +5,80 @@ let tradeIns = [];
 let currentVehicle = null;
 let currentFilter = { search: '', make: '', status: '' };
 
+// Custom notification system to replace browser alerts
+function showNotification(message, type = 'info') {
+    const modal = document.getElementById('notificationModal');
+    const icon = document.getElementById('notificationIcon');
+    const messageEl = document.getElementById('notificationMessage');
+    const okBtn = document.getElementById('notificationOkBtn');
+
+    // Set icon based on type
+    const icons = {
+        success: '✓',
+        error: '✗',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
+    icon.textContent = icons[type] || icons.info;
+
+    // Set icon color
+    const colors = {
+        success: 'var(--joy-success-500)',
+        error: 'var(--joy-danger-500)',
+        warning: 'var(--joy-warning-500)',
+        info: 'var(--joy-primary-500)'
+    };
+    icon.style.color = colors[type] || colors.info;
+
+    messageEl.textContent = message;
+    modal.style.display = 'flex';
+
+    // Close on OK button
+    okBtn.onclick = () => {
+        modal.style.display = 'none';
+    };
+
+    // Close on outside click
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    };
+}
+
+// Custom confirmation dialog to replace browser confirms
+function showConfirmation(message) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('confirmModal');
+        const messageEl = document.getElementById('confirmMessage');
+        const okBtn = document.getElementById('confirmOkBtn');
+        const cancelBtn = document.getElementById('confirmCancelBtn');
+
+        messageEl.textContent = message;
+        modal.style.display = 'flex';
+
+        // Handle OK button
+        okBtn.onclick = () => {
+            modal.style.display = 'none';
+            resolve(true);
+        };
+
+        // Handle Cancel button
+        cancelBtn.onclick = () => {
+            modal.style.display = 'none';
+            resolve(false);
+        };
+
+        // Close on outside click (treat as cancel)
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                resolve(false);
+            }
+        };
+    });
+}
+
 async function checkAuth() {
     try {
         const response = await fetch(`${API_BASE}/auth/status`, { credentials: 'include' });
@@ -50,11 +124,11 @@ async function login(event) {
         if (response.ok) {
             await checkAuth();
         } else {
-            alert(data.error || 'Login failed');
+            showNotification(data.error || 'Login failed', 'error');
         }
     } catch (error) {
         console.error('Login error:', error);
-        alert('Connection error. Please try again.');
+        showNotification('Connection error. Please try again.', 'error');
     }
 }
 
@@ -120,7 +194,7 @@ async function addVehicle(event) {
     const vinInput = document.getElementById('vin').value.toUpperCase();
     const vinPattern = /^[A-HJ-NPR-Z0-9]{17}$/;
     if (!vinPattern.test(vinInput)) {
-        alert('Invalid VIN format. VIN must be exactly 17 characters (letters and numbers, excluding I, O, Q).');
+        showNotification('Invalid VIN format. VIN must be exactly 17 characters (letters and numbers, excluding I, O, Q).', 'error');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Add Vehicle';
         return;
@@ -166,11 +240,11 @@ async function addVehicle(event) {
         updateDashboard();
         renderCurrentPage();
         document.getElementById('vehicleForm').reset();
-        alert('Vehicle added successfully!');
+        showNotification('Vehicle added successfully!', 'success');
         
     } catch (error) {
         console.error('Error adding vehicle:', error);
-        alert('Failed to add vehicle: ' + error.message);
+        showNotification('Failed to add vehicle: ' + error.message, 'error');
     } finally {
         // Re-enable button
         submitBtn.disabled = false;
@@ -220,11 +294,11 @@ async function updateVehicleStatus() {
             closeDetailModal();
             updateDashboard();
             renderCurrentPage();
-            alert('Vehicle moved back to inventory successfully!');
+            showNotification('Vehicle moved back to inventory successfully!', 'success');
             
         } catch (error) {
             console.error('Error moving vehicle from sold:', error);
-            alert('Failed to update vehicle status: ' + error.message);
+            showNotification('Failed to update vehicle status: ' + error.message, 'error');
         }
     }
     // Pickup scheduled (requires additional info)
@@ -248,14 +322,15 @@ async function updateVehicleStatus() {
             renderCurrentPage();
         } catch (error) {
             console.error('Error updating vehicle:', error);
-            alert('Failed to update vehicle status. Please try again.');
+            showNotification('Failed to update vehicle status. Please try again.', 'error');
         }
     }
 }
 
 async function deleteVehicle(vehicleId) {
-    if (!confirm('Are you sure you want to delete this vehicle? This action cannot be undone.')) return;
-    
+    const confirmed = await showConfirmation('Are you sure you want to delete this vehicle? This action cannot be undone.');
+    if (!confirmed) return;
+
     try {
         // Check if vehicle is in sold vehicles
         const isInSold = soldVehicles.some(v => v.id === vehicleId);
@@ -289,11 +364,11 @@ async function deleteVehicle(vehicleId) {
         closeDetailModal();
         updateDashboard();
         renderCurrentPage();
-        alert('Vehicle deleted successfully!');
+        showNotification('Vehicle deleted successfully!', 'success');
         
     } catch (error) {
         console.error('Error deleting vehicle:', error);
-        alert('Failed to delete vehicle: ' + error.message);
+        showNotification('Failed to delete vehicle: ' + error.message, 'error');
     }
 }
 
@@ -319,11 +394,11 @@ async function saveCustomerInfo(event) {
         });
         if (!response.ok) throw new Error('Failed to save customer info');
         await loadInventory();
-        alert('Customer information saved successfully!');
+        showNotification('Customer information saved successfully!', 'success');
         renderDetailModal(currentVehicle);
     } catch (error) {
         console.error('Error saving customer info:', error);
-        alert('Failed to save customer information. Please try again.');
+        showNotification('Failed to save customer information. Please try again.', 'error');
     }
 }
 
@@ -351,7 +426,7 @@ async function saveVehicleEdit(event) {
     const vinInput = document.getElementById('editVin').value.toUpperCase();
     const vinPattern = /^[A-HJ-NPR-Z0-9]{17}$/;
     if (!vinPattern.test(vinInput)) {
-        alert('Invalid VIN format. VIN must be exactly 17 characters (letters and numbers, excluding I, O, Q).');
+        showNotification('Invalid VIN format. VIN must be exactly 17 characters (letters and numbers, excluding I, O, Q).', 'error');
         return;
     }
 
@@ -407,11 +482,11 @@ async function saveVehicleEdit(event) {
         renderDetailModal(currentVehicle);
         updateDashboard();
         renderCurrentPage();
-        alert('Vehicle updated successfully!');
+        showNotification('Vehicle updated successfully!', 'success');
         
     } catch (error) {
         console.error('Error saving vehicle:', error);
-        alert('Failed to save vehicle changes: ' + error.message);
+        showNotification('Failed to save vehicle changes: ' + error.message, 'error');
     }
 }
 
@@ -422,7 +497,7 @@ async function addTradeIn(event) {
     const vinInput = document.getElementById('tradeVin').value.toUpperCase();
     const vinPattern = /^[A-HJ-NPR-Z0-9]{17}$/;
     if (!vinPattern.test(vinInput)) {
-        alert('Invalid VIN format. VIN must be exactly 17 characters (letters and numbers, excluding I, O, Q).');
+        showNotification('Invalid VIN format. VIN must be exactly 17 characters (letters and numbers, excluding I, O, Q).', 'error');
         return;
     }
 
@@ -471,10 +546,10 @@ async function addTradeIn(event) {
         updateDashboard();
         renderCurrentPage();
         document.getElementById('tradeInForm').reset();
-        alert('Trade-in vehicle added successfully!');
+        showNotification('Trade-in vehicle added successfully!', 'success');
     } catch (error) {
         console.error('Error adding trade-in:', error);
-        alert('Failed to add trade-in vehicle. Please try again.');
+        showNotification('Failed to add trade-in vehicle. Please try again.', 'error');
     }
 }
 
@@ -496,7 +571,7 @@ async function toggleTradeInPickup(tradeInId) {
             renderCurrentPage();
         } catch (error) {
             console.error('Error updating trade-in:', error);
-            alert('Failed to update trade-in. Please try again.');
+            showNotification('Failed to update trade-in. Please try again.', 'error');
         }
     } else {
         // Unmark as picked up
@@ -513,7 +588,7 @@ async function toggleTradeInPickup(tradeInId) {
             renderCurrentPage();
         } catch (error) {
             console.error('Error updating trade-in:', error);
-            alert('Failed to update trade-in. Please try again.');
+            showNotification('Failed to update trade-in. Please try again.', 'error');
         }
     }
 }
@@ -540,7 +615,7 @@ async function schedulePickup(event) {
         document.getElementById('pickupScheduleForm').reset();
     } catch (error) {
         console.error('Error scheduling pickup:', error);
-        alert('Failed to schedule pickup. Please try again.');
+        showNotification('Failed to schedule pickup. Please try again.', 'error');
     }
 }
 
@@ -611,7 +686,7 @@ async function saveLabel() {
         link.click();
     } catch (error) {
         console.error('Error saving label:', error);
-        alert('Failed to save label. Please try again.');
+        showNotification('Failed to save label. Please try again.', 'error');
     }
 }
 
@@ -622,15 +697,15 @@ async function copyLabel() {
         canvas.toBlob(async (blob) => {
             try {
                 await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-                alert('Label copied to clipboard!');
+                showNotification('Label copied to clipboard!', 'success');
             } catch (error) {
                 console.error('Error copying to clipboard:', error);
-                alert('Failed to copy label. Try saving instead.');
+                showNotification('Failed to copy label. Try saving instead.', 'error');
             }
         });
     } catch (error) {
         console.error('Error copying label:', error);
-        alert('Failed to copy label. Please try again.');
+        showNotification('Failed to copy label. Please try again.', 'error');
     }
 }
 
@@ -639,17 +714,17 @@ async function handlePDFUpload(event) {
     if (!file) return;
 
     if (file.type !== 'application/pdf') {
-        alert('Please select a PDF file.');
+        showNotification('Please select a PDF file.', 'error');
         return;
     }
 
     if (file.size > 10 * 1024 * 1024) { // 10MB limit
-        alert('File size must be less than 10MB.');
+        showNotification('File size must be less than 10MB.', 'error');
         return;
     }
 
     if (!currentVehicle) {
-        alert('No vehicle selected.');
+        showNotification('No vehicle selected.', 'error');
         return;
     }
 
@@ -691,14 +766,14 @@ async function handlePDFUpload(event) {
 
         await loadAllData();
         renderDocumentList();
-        alert('Document uploaded successfully!');
+        showNotification('Document uploaded successfully!', 'success');
 
         // Reset file input
         event.target.value = '';
 
     } catch (error) {
         console.error('Error uploading document:', error);
-        alert('Failed to upload document: ' + error.message);
+        showNotification('Failed to upload document: ' + error.message, 'error');
     }
 }
 
@@ -759,7 +834,7 @@ function formatFileSize(bytes) {
 
 async function viewPDFDocument(index) {
     if (!currentVehicle || !currentVehicle.documents || !currentVehicle.documents[index]) {
-        alert('Document not found.');
+        showNotification('Document not found.', 'error');
         return;
     }
 
@@ -785,13 +860,13 @@ async function viewPDFDocument(index) {
 
     } catch (error) {
         console.error('Error viewing document:', error);
-        alert('Failed to view document. Please try again.');
+        showNotification('Failed to view document. Please try again.', 'error');
     }
 }
 
 async function downloadPDFDocument(index) {
     if (!currentVehicle || !currentVehicle.documents || !currentVehicle.documents[index]) {
-        alert('Document not found.');
+        showNotification('Document not found.', 'error');
         return;
     }
 
@@ -818,19 +893,20 @@ async function downloadPDFDocument(index) {
 
     } catch (error) {
         console.error('Error downloading document:', error);
-        alert('Failed to download document. Please try again.');
+        showNotification('Failed to download document. Please try again.', 'error');
     }
 }
 
 async function deletePDFDocument(index) {
     if (!currentVehicle || !currentVehicle.documents || !currentVehicle.documents[index]) {
-        alert('Document not found.');
+        showNotification('Document not found.', 'error');
         return;
     }
 
     const doc = currentVehicle.documents[index];
 
-    if (!confirm(`Are you sure you want to delete "${doc.fileName}"?`)) {
+    const confirmed = await showConfirmation(`Are you sure you want to delete "${doc.fileName}"?`);
+    if (!confirmed) {
         return;
     }
 
@@ -861,11 +937,11 @@ async function deletePDFDocument(index) {
 
         await loadAllData();
         renderDocumentList();
-        alert('Document deleted successfully!');
+        showNotification('Document deleted successfully!', 'success');
 
     } catch (error) {
         console.error('Error deleting document:', error);
-        alert('Failed to delete document: ' + error.message);
+        showNotification('Failed to delete document: ' + error.message, 'error');
     }
 }
 
@@ -1072,7 +1148,7 @@ async function saveVehicleDetailPDF() {
         
     } catch (error) {
         console.error('Error generating PDF:', error);
-        alert('Failed to generate PDF. Please try again.');
+        showNotification('Failed to generate PDF. Please try again.', 'error');
     }
 }
 
@@ -1098,7 +1174,14 @@ function updateDashboard() {
 
     const tradeInsCount = document.getElementById('tradeInsCount');
     if (tradeInsCount) tradeInsCount.textContent = tradeIns.length;
-    
+
+    // Helper function to get color based on vehicle age
+    function getAgeColor(days) {
+        if (days <= 45) return 'var(--joy-success-500)'; // Green
+        if (days <= 60) return 'rgb(255, 152, 0)'; // Orange
+        return 'var(--joy-danger-500)'; // Red
+    }
+
     // Oldest Units Section
     const oldestVehicles = [...vehicles]
         .sort((a, b) => {
@@ -1116,6 +1199,7 @@ function updateDashboard() {
             oldestContainer.innerHTML = oldestVehicles.map(v => {
                 const stockDate = new Date(v.inStockDate || v.dateAdded);
                 const daysOld = Math.floor((new Date() - stockDate) / (1000 * 60 * 60 * 24));
+                const ageColor = getAgeColor(daysOld);
                 const statusClass = `status-${v.status}`;
                 const statusText = v.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
@@ -1129,7 +1213,7 @@ function updateDashboard() {
                                 </div>
                             </div>
                             <div style="text-align: right; margin-left: 0.5rem;">
-                                <div style="font-size: 0.75rem; font-weight: 600; color: var(--joy-danger-500);">
+                                <div style="font-size: 0.75rem; font-weight: 600; color: ${ageColor};">
                                     ${daysOld} days
                                 </div>
                             </div>
@@ -1163,6 +1247,7 @@ function updateDashboard() {
             newestContainer.innerHTML = newestVehicles.map(v => {
                 const stockDate = new Date(v.inStockDate || v.dateAdded);
                 const daysOld = Math.floor((new Date() - stockDate) / (1000 * 60 * 60 * 24));
+                const ageColor = getAgeColor(daysOld);
                 const statusClass = `status-${v.status}`;
                 const statusText = v.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
@@ -1176,7 +1261,7 @@ function updateDashboard() {
                                 </div>
                             </div>
                             <div style="text-align: right; margin-left: 0.5rem;">
-                                <div style="font-size: 0.75rem; font-weight: 600; color: var(--joy-success-500);">
+                                <div style="font-size: 0.75rem; font-weight: 600; color: ${ageColor};">
                                     ${daysOld === 0 ? 'Today' : daysOld + ' days'}
                                 </div>
                             </div>
@@ -1969,11 +2054,11 @@ async function handleSoldSubmit(event) {
         document.getElementById('hasTradeIn').value = 'no';
         toggleTradeInSection();
 
-        alert('Vehicle marked as sold successfully!' + (hasTradeIn === 'yes' ? ' Trade-in vehicle added.' : ''));
+        showNotification('Vehicle marked as sold successfully!' + (hasTradeIn === 'yes' ? ' Trade-in vehicle added.' : ''), 'success');
 
     } catch (error) {
         console.error('Error marking vehicle as sold:', error);
-        alert('Failed to mark vehicle as sold: ' + error.message);
+        showNotification('Failed to mark vehicle as sold: ' + error.message, 'error');
     }
 }
 
