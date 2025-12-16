@@ -405,14 +405,21 @@ async function addTradeIn(event) {
         return;
     }
 
+    // Get stock number - use provided value or generate from timestamp
+    let stockNumber = document.getElementById('tradeStockNumber').value.trim();
+    if (!stockNumber) {
+        // Auto-generate stock number if not provided
+        stockNumber = 'TI-' + Date.now();
+    }
+
     const tradeIn = {
         id: Date.now(),
-        stockNumber: document.getElementById('tradeStockNumber').value,
+        stockNumber: stockNumber,
         vin: vinInput,
         year: parseInt(document.getElementById('tradeYear').value),
         make: document.getElementById('tradeMake').value,
         model: document.getElementById('tradeModel').value,
-        trim: document.getElementById('tradeTrim').value,
+        trim: document.getElementById('tradeTrim').value || '',
         color: document.getElementById('tradeColor').value,
         mileage: parseInt(document.getElementById('tradeMileage').value) || 0,
         notes: document.getElementById('tradeNotes').value,
@@ -443,9 +450,10 @@ async function addTradeIn(event) {
         updateDashboard();
         renderCurrentPage();
         document.getElementById('tradeInForm').reset();
+        alert('Trade-in vehicle added successfully!');
     } catch (error) {
         console.error('Error adding trade-in:', error);
-        alert('Failed to add fleet return. Please try again.');
+        alert('Failed to add trade-in vehicle. Please try again.');
     }
 }
 
@@ -1043,6 +1051,12 @@ function updateDashboard() {
     const inTransitCount = document.getElementById('inTransitCount');
     if (inTransitCount) inTransitCount.textContent = vehicles.filter(v => v.status === 'in-transit').length;
 
+    const pendingPickupCount = document.getElementById('pendingPickupCount');
+    if (pendingPickupCount) pendingPickupCount.textContent = vehicles.filter(v => v.status === 'pending-pickup').length;
+
+    const pickupScheduledCount = document.getElementById('pickupScheduledCount');
+    if (pickupScheduledCount) pickupScheduledCount.textContent = vehicles.filter(v => v.status === 'pickup-scheduled').length;
+
     const soldCount = document.getElementById('soldCount');
     if (soldCount) soldCount.textContent = soldVehicles.length;
 
@@ -1053,32 +1067,99 @@ function updateDashboard() {
     const oldestVehicles = [...vehicles]
         .sort((a, b) => new Date(a.dateAdded) - new Date(b.dateAdded))
         .slice(0, 5);
-    
+
     const oldestContainer = document.getElementById('oldestVehicles');
     if (oldestContainer) {
         if (oldestVehicles.length === 0) {
-            oldestContainer.innerHTML = '<div class="empty-state" style="padding: 2rem;"><div class="empty-state-icon">🚗</div><p>No vehicles in inventory</p></div>';
+            oldestContainer.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--joy-text-tertiary); font-size: 0.875rem;">No vehicles in inventory</div>';
         } else {
             oldestContainer.innerHTML = oldestVehicles.map(v => {
                 const daysOld = Math.floor((new Date() - new Date(v.dateAdded)) / (1000 * 60 * 60 * 24));
                 return `
-                    <div style="padding: 0.75rem; border-bottom: 1px solid var(--joy-divider); cursor: pointer; transition: background 0.2s;" 
+                    <div style="padding: 0.5rem; border-bottom: 1px solid var(--joy-divider); cursor: pointer; transition: background 0.2s;"
                          onclick="openVehicleDetail(${v.id})"
-                         onmouseover="this.style.background='var(--joy-bg-level1)'" 
+                         onmouseover="this.style.background='var(--joy-bg-level1)'"
                          onmouseout="this.style.background='transparent'">
                         <div style="display: flex; justify-content: space-between; align-items: start;">
-                            <div>
-                                <div style="font-weight: 600; color: var(--joy-text-primary);">${v.year} ${v.make} ${v.model}</div>
-                                <div style="font-size: 0.8125rem; color: var(--joy-text-tertiary); margin-top: 0.25rem;">
-                                    Stock: ${v.stockNumber} • ${v.trim}
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-weight: 600; font-size: 0.875rem; color: var(--joy-text-primary);">${v.year} ${v.make} ${v.model}</div>
+                                <div style="font-size: 0.75rem; color: var(--joy-text-tertiary); margin-top: 0.125rem;">
+                                    Stock: ${v.stockNumber}
                                 </div>
                             </div>
-                            <div style="text-align: right;">
-                                <span class="status-badge status-${v.status}">${v.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</span>
-                                <div style="font-size: 0.75rem; color: var(--joy-text-tertiary); margin-top: 0.25rem;">
-                                    ${daysOld} days old
+                            <div style="text-align: right; margin-left: 0.5rem;">
+                                <div style="font-size: 0.75rem; font-weight: 600; color: var(--joy-danger-500);">
+                                    ${daysOld} days
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+
+    // Newest Units Section
+    const newestVehicles = [...vehicles]
+        .sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded))
+        .slice(0, 5);
+
+    const newestContainer = document.getElementById('newestVehicles');
+    if (newestContainer) {
+        if (newestVehicles.length === 0) {
+            newestContainer.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--joy-text-tertiary); font-size: 0.875rem;">No vehicles in inventory</div>';
+        } else {
+            newestContainer.innerHTML = newestVehicles.map(v => {
+                const daysOld = Math.floor((new Date() - new Date(v.dateAdded)) / (1000 * 60 * 60 * 24));
+                return `
+                    <div style="padding: 0.5rem; border-bottom: 1px solid var(--joy-divider); cursor: pointer; transition: background 0.2s;"
+                         onclick="openVehicleDetail(${v.id})"
+                         onmouseover="this.style.background='var(--joy-bg-level1)'"
+                         onmouseout="this.style.background='transparent'">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-weight: 600; font-size: 0.875rem; color: var(--joy-text-primary);">${v.year} ${v.make} ${v.model}</div>
+                                <div style="font-size: 0.75rem; color: var(--joy-text-tertiary); margin-top: 0.125rem;">
+                                    Stock: ${v.stockNumber}
+                                </div>
+                            </div>
+                            <div style="text-align: right; margin-left: 0.5rem;">
+                                <div style="font-size: 0.75rem; font-weight: 600; color: var(--joy-success-500);">
+                                    ${daysOld === 0 ? 'Today' : daysOld + ' days'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+
+    // Pending Pickups Section
+    const pendingPickups = vehicles.filter(v => v.status === 'pending-pickup');
+    const pendingContainer = document.getElementById('pendingPickups');
+
+    if (pendingContainer) {
+        if (pendingPickups.length === 0) {
+            pendingContainer.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--joy-text-tertiary); font-size: 0.875rem;">No pending pickups</div>';
+        } else {
+            pendingContainer.innerHTML = pendingPickups.map(v => {
+                const customerName = v.customer ? `${v.customer.firstName || ''} ${v.customer.lastName || ''}`.trim() : 'No customer';
+                return `
+                    <div style="padding: 0.5rem; border-bottom: 1px solid var(--joy-divider); cursor: pointer; transition: background 0.2s;"
+                         onclick="openVehicleDetail(${v.id})"
+                         onmouseover="this.style.background='var(--joy-bg-level1)'"
+                         onmouseout="this.style.background='transparent'">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-weight: 600; font-size: 0.875rem; color: var(--joy-text-primary);">${v.year} ${v.make} ${v.model}</div>
+                                <div style="font-size: 0.75rem; color: var(--joy-text-tertiary); margin-top: 0.125rem;">
+                                    ${customerName}
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-secondary" onclick="openPickupScheduleModal(); currentVehicle = vehicles.find(v => v.id === ${v.id}); event.stopPropagation();" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                                Schedule
+                            </button>
                         </div>
                     </div>
                 `;
@@ -1089,37 +1170,37 @@ function updateDashboard() {
     // Scheduled Pickups Section
     const scheduledPickups = vehicles.filter(v => v.status === 'pickup-scheduled');
     const pickupsContainer = document.getElementById('scheduledPickups');
-    
+
     if (pickupsContainer) {
         if (scheduledPickups.length === 0) {
-            pickupsContainer.innerHTML = '<div class="empty-state" style="padding: 2rem;"><div class="empty-state-icon">📅</div><p>No pickups scheduled</p></div>';
+            pickupsContainer.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--joy-text-tertiary); font-size: 0.875rem;">No pickups scheduled</div>';
         } else {
             pickupsContainer.innerHTML = scheduledPickups.map(v => {
                 const customerName = v.customer ? `${v.customer.firstName || ''} ${v.customer.lastName || ''}`.trim() : 'No customer';
                 return `
-                    <div style="padding: 0.75rem; border-bottom: 1px solid var(--joy-divider);">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-                            <div>
-                                <div style="font-weight: 600; color: var(--joy-text-primary);">${v.year} ${v.make} ${v.model}</div>
-                                <div style="font-size: 0.8125rem; color: var(--joy-text-tertiary); margin-top: 0.25rem;">
+                    <div style="padding: 0.5rem; border-bottom: 1px solid var(--joy-divider); cursor: pointer; transition: background 0.2s;"
+                         onclick="openVehicleDetail(${v.id})"
+                         onmouseover="this.style.background='var(--joy-bg-level1)'"
+                         onmouseout="this.style.background='transparent'">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.375rem;">
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-weight: 600; font-size: 0.875rem; color: var(--joy-text-primary);">${v.year} ${v.make} ${v.model}</div>
+                                <div style="font-size: 0.75rem; color: var(--joy-text-tertiary); margin-top: 0.125rem;">
                                     ${customerName}
                                 </div>
                             </div>
-                            <div style="text-align: right;">
-                                <div style="font-size: 0.8125rem; font-weight: 600; color: var(--joy-primary-500);">
-                                    ${v.pickupDate ? new Date(v.pickupDate).toLocaleDateString() : 'No date'}
+                            <div style="text-align: right; margin-left: 0.5rem;">
+                                <div style="font-size: 0.75rem; font-weight: 600; color: var(--joy-primary-500);">
+                                    ${v.pickupDate ? new Date(v.pickupDate).toLocaleDateString('en-US', {month: 'short', day: 'numeric'}) : 'No date'}
                                 </div>
-                                <div style="font-size: 0.75rem; color: var(--joy-text-tertiary);">
+                                <div style="font-size: 0.6875rem; color: var(--joy-text-tertiary);">
                                     ${v.pickupTime || 'No time'}
                                 </div>
                             </div>
                         </div>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button class="btn btn-sm btn-secondary" onclick="openVehicleDetail(${v.id}); event.stopPropagation();">
-                                View Details
-                            </button>
-                            <button class="btn btn-sm btn-primary" onclick="completePickup(${v.id}); event.stopPropagation();">
-                                ✓ Complete
+                        <div style="display: flex; gap: 0.375rem;">
+                            <button class="btn btn-sm btn-primary" onclick="completePickup(${v.id}); event.stopPropagation();" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                                Complete
                             </button>
                         </div>
                     </div>
@@ -1251,38 +1332,38 @@ function createVehicleRow(vehicle) {
     const statusText = vehicle.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     const customerName = vehicle.customer ? `${vehicle.customer.firstName || ''} ${vehicle.customer.lastName || ''}`.trim() : '';
     const dateAdded = new Date(vehicle.dateAdded).toLocaleDateString();
-    
+
     return `
         <tr class="vehicle-row" onclick="openVehicleDetail(${vehicle.id})" style="cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.2s;">
-            <td style="padding: 0.875rem 1rem;">
-                <div style="font-weight: 600; color: var(--accent);">${vehicle.stockNumber}</div>
+            <td style="padding: 0.5rem 0.75rem;">
+                <div style="font-weight: 600; font-size: 0.875rem; color: var(--accent);">${vehicle.stockNumber}</div>
             </td>
-            <td style="padding: 0.875rem 1rem;">
-                <div style="font-weight: 600;">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
-                <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.25rem;">${vehicle.trim}</div>
+            <td style="padding: 0.5rem 0.75rem;">
+                <div style="font-weight: 600; font-size: 0.875rem;">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.125rem;">${vehicle.trim}</div>
             </td>
-            <td style="padding: 0.875rem 1rem;">
-                <div style="font-size: 0.875rem;">${vehicle.vin}</div>
+            <td style="padding: 0.5rem 0.75rem;">
+                <div style="font-size: 0.8125rem;">${vehicle.vin}</div>
             </td>
-            <td style="padding: 0.875rem 1rem;">
-                <div style="font-size: 0.875rem;">${vehicle.color}</div>
+            <td style="padding: 0.5rem 0.75rem;">
+                <div style="font-size: 0.8125rem;">${vehicle.color}</div>
             </td>
-            <td style="padding: 0.875rem 1rem;">
-                ${vehicle.fleetCompany ? `<div style="font-size: 0.875rem;">${vehicle.fleetCompany}</div>` : '<div style="font-size: 0.875rem; color: var(--text-secondary);">-</div>'}
+            <td style="padding: 0.5rem 0.75rem;">
+                ${vehicle.fleetCompany ? `<div style="font-size: 0.8125rem;">${vehicle.fleetCompany}</div>` : '<div style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>'}
             </td>
-            <td style="padding: 0.875rem 1rem;">
-                ${vehicle.operationCompany ? `<div style="font-size: 0.875rem;">${vehicle.operationCompany}</div>` : '<div style="font-size: 0.875rem; color: var(--text-secondary);">-</div>'}
+            <td style="padding: 0.5rem 0.75rem;">
+                ${vehicle.operationCompany ? `<div style="font-size: 0.8125rem;">${vehicle.operationCompany}</div>` : '<div style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>'}
             </td>
-            <td style="padding: 0.875rem 1rem;">
-                ${customerName ? `<div style="font-size: 0.875rem;">${customerName}</div>` : '<div style="font-size: 0.875rem; color: var(--text-secondary);">-</div>'}
+            <td style="padding: 0.5rem 0.75rem;">
+                ${customerName ? `<div style="font-size: 0.8125rem;">${customerName}</div>` : '<div style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>'}
             </td>
-            <td style="padding: 0.875rem 1rem;">
+            <td style="padding: 0.5rem 0.75rem;">
                 <span class="status-badge ${statusClass}">${statusText}</span>
             </td>
-            <td style="padding: 0.875rem 1rem;" onclick="event.stopPropagation();">
-                <div style="display: flex; gap: 0.5rem;">
-                    <button class="btn btn-small btn-secondary" onclick="openVehicleDetail(${vehicle.id})">Details</button>
-                    <button class="btn btn-small btn-secondary" onclick="openStatusPopup(${vehicle.id}, event)">Status</button>
+            <td style="padding: 0.5rem 0.75rem;" onclick="event.stopPropagation();">
+                <div style="display: flex; gap: 0.375rem;">
+                    <button class="btn btn-small btn-secondary" onclick="openVehicleDetail(${vehicle.id})" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Details</button>
+                    <button class="btn btn-small btn-secondary" onclick="openStatusPopup(${vehicle.id}, event)" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Status</button>
                 </div>
             </td>
         </tr>
@@ -1513,8 +1594,32 @@ function openVehicleDetail(vehicleId) {
 function closeDetailModal() { document.getElementById('detailModal').classList.remove('active'); currentVehicle = null; }
 function openLabelModal() { document.getElementById('labelModal').classList.add('active'); }
 function closeLabelModal() { document.getElementById('labelModal').classList.remove('active'); }
-function openTradeInModal() { document.getElementById('tradeInModal').classList.add('active'); }
-function closeTradeInModal() { document.getElementById('tradeInModal').classList.remove('active'); document.getElementById('tradeInForm').reset(); }
+function openTradeInModal() {
+    document.getElementById('tradeInModal').classList.add('active');
+}
+function openManualTradeInModal() {
+    // This is for manually adding trade-ins from the trade-ins page
+    document.getElementById('tradeInModalTitle').textContent = 'Add Trade-In Vehicle';
+    const stockNumberInput = document.getElementById('tradeStockNumber');
+    const stockNumberHint = document.getElementById('tradeStockNumberHint');
+
+    // Make stock number editable and show hint
+    stockNumberInput.removeAttribute('readonly');
+    stockNumberInput.style.background = '';
+    stockNumberInput.style.cursor = '';
+    stockNumberInput.placeholder = 'Enter stock number';
+    if (stockNumberHint) stockNumberHint.style.display = 'inline';
+
+    openTradeInModal();
+}
+function closeTradeInModal() {
+    document.getElementById('tradeInModal').classList.remove('active');
+    document.getElementById('tradeInForm').reset();
+
+    // Reset stock number hint visibility
+    const stockNumberHint = document.getElementById('tradeStockNumberHint');
+    if (stockNumberHint) stockNumberHint.style.display = 'none';
+}
 function openPickupScheduleModal() { document.getElementById('pickupScheduleModal').classList.add('active'); }
 function closePickupScheduleModal() { document.getElementById('pickupScheduleModal').classList.remove('active'); document.getElementById('pickupScheduleForm').reset(); }
 function openSoldModal() {
@@ -1706,27 +1811,48 @@ async function handleSoldSubmit(event) {
     const soldVehicle = { ...currentVehicle, status: 'sold' };
 
     try {
-        // Add to sold vehicles
-        const soldResponse = await fetch(`${API_BASE}/sold-vehicles`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify(soldVehicle)
-        });
+        // Check if vehicle already exists in sold_vehicles table
+        const existsInSold = soldVehicles.some(v => v.id === currentVehicle.id);
 
-        if (!soldResponse.ok) {
-            const errorData = await soldResponse.json();
-            throw new Error(errorData.error || 'Failed to add sold vehicle');
+        if (existsInSold) {
+            // Update existing sold vehicle
+            const updateResponse = await fetch(`${API_BASE}/sold-vehicles/${currentVehicle.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(soldVehicle)
+            });
+
+            if (!updateResponse.ok) {
+                const errorData = await updateResponse.json();
+                throw new Error(errorData.error || 'Failed to update sold vehicle');
+            }
+        } else {
+            // Add to sold vehicles
+            const soldResponse = await fetch(`${API_BASE}/sold-vehicles`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(soldVehicle)
+            });
+
+            if (!soldResponse.ok) {
+                const errorData = await soldResponse.json();
+                throw new Error(errorData.error || 'Failed to add sold vehicle');
+            }
         }
 
-        // Delete from inventory
-        const deleteResponse = await fetch(`${API_BASE}/inventory/${currentVehicle.id}`, {
-            method: 'DELETE',
-            credentials: 'include'
-        });
+        // Delete from inventory (if it exists there)
+        const existsInInventory = vehicles.some(v => v.id === currentVehicle.id);
+        if (existsInInventory) {
+            const deleteResponse = await fetch(`${API_BASE}/inventory/${currentVehicle.id}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
 
-        if (!deleteResponse.ok) {
-            throw new Error('Failed to remove from inventory');
+            if (!deleteResponse.ok) {
+                throw new Error('Failed to remove from inventory');
+            }
         }
 
         // Check if there's a trade-in

@@ -509,8 +509,8 @@
         }
 
         .modern-table td {
-            padding: 1rem;
-            font-size: 0.875rem;
+            padding: 0.625rem 0.875rem;
+            font-size: 0.8125rem;
             color: var(--joy-text-primary);
         }
 
@@ -1077,6 +1077,24 @@
                                     <div class="stat-icon">🚚</div>
                                 </div>
                             </div>
+                            <div class="stat-card" onclick="navigateTo('pending-pickup')">
+                                <div class="stat-card-header">
+                                    <div>
+                                        <div class="stat-label">Pending Pickup</div>
+                                        <div class="stat-value" id="pendingPickupCount">0</div>
+                                    </div>
+                                    <div class="stat-icon">⏳</div>
+                                </div>
+                            </div>
+                            <div class="stat-card" onclick="navigateTo('pickup-scheduled')">
+                                <div class="stat-card-header">
+                                    <div>
+                                        <div class="stat-label">Pickup Scheduled</div>
+                                        <div class="stat-value" id="pickupScheduledCount">0</div>
+                                    </div>
+                                    <div class="stat-icon">📅</div>
+                                </div>
+                            </div>
                             <div class="stat-card" onclick="navigateTo('sold')">
                                 <div class="stat-card-header">
                                     <div>
@@ -1098,16 +1116,28 @@
                         </div>
 
                         <!-- Dashboard Sections Grid -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
                             <!-- Oldest Units -->
-                            <div style="background: #fff; border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.5rem; box-shadow: var(--joy-shadow-sm);">
-                                <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary);">⏰ Oldest Units</h2>
+                            <div style="background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
+                                <h2 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--joy-text-primary);">⏰ Oldest Units</h2>
                                 <div id="oldestVehicles"></div>
                             </div>
 
+                            <!-- Newest Units -->
+                            <div style="background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
+                                <h2 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--joy-text-primary);">🆕 Newest Units</h2>
+                                <div id="newestVehicles"></div>
+                            </div>
+
+                            <!-- Pending Pickups -->
+                            <div style="background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
+                                <h2 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--joy-text-primary);">⏳ Pending Pickup</h2>
+                                <div id="pendingPickups"></div>
+                            </div>
+
                             <!-- Scheduled Pickups -->
-                            <div style="background: #fff; border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.5rem; box-shadow: var(--joy-shadow-sm);">
-                                <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary);">📅 Scheduled Pickups</h2>
+                            <div style="background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
+                                <h2 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--joy-text-primary);">📅 Scheduled Pickups</h2>
                                 <div id="scheduledPickups"></div>
                             </div>
                         </div>
@@ -1251,9 +1281,14 @@
                             <div class="search-box">
                                 <input type="text" id="tradeInSearchInput" placeholder="Search trade-ins..." oninput="renderCurrentPage()">
                             </div>
-                            <select id="tradeInMakeFilter" class="filter-select">
-                                <option value="">All Makes</option>
-                            </select>
+                            <div class="filter-group">
+                                <select id="tradeInMakeFilter" class="filter-select">
+                                    <option value="">All Makes</option>
+                                </select>
+                                <button class="btn btn-primary" onclick="openManualTradeInModal()">
+                                    + Add Trade-In
+                                </button>
+                            </div>
                         </div>
                         <div id="tradeInGrid" class="vehicle-grid"></div>
                     </div>
@@ -1738,14 +1773,14 @@
     <div id="tradeInModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Add Trade-In</h2>
+                <h2 id="tradeInModalTitle">Add Trade-In</h2>
                 <button class="close-btn" onclick="closeTradeInModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="tradeInForm" onsubmit="addTradeIn(event)">
                     <div class="form-group">
-                        <label for="tradeStockNumber">Stock #</label>
-                        <input type="text" id="tradeStockNumber" required>
+                        <label for="tradeStockNumber">Stock # <span id="tradeStockNumberHint" style="display: none; font-size: 0.75rem; color: var(--joy-text-tertiary); font-weight: normal;">(Optional - leave blank for auto-generated)</span></label>
+                        <input type="text" id="tradeStockNumber">
                     </div>
                     <div class="form-group">
                         <label for="tradeVin">VIN</label>
@@ -1768,7 +1803,7 @@
                         </div>
                         <div class="form-group">
                             <label for="tradeTrim">Trim</label>
-                            <input type="text" id="tradeTrim" required>
+                            <input type="text" id="tradeTrim">
                         </div>
                     </div>
                     <div class="form-row">
@@ -1778,7 +1813,7 @@
                         </div>
                         <div class="form-group">
                             <label for="tradeMileage">Mileage</label>
-                            <input type="number" id="tradeMileage" required>
+                            <input type="number" id="tradeMileage" min="0">
                         </div>
                     </div>
                     <div class="form-group">
