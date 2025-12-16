@@ -313,13 +313,13 @@ app.get('/api/inventory', isAuthenticated, (req, res) => {
     });
 });
 
-// Add vehicle to inventory - UPDATED WITH operationCompany
+// Add vehicle to inventory - UPDATED WITH operationCompany and inStockDate
 app.post('/api/inventory', isAuthenticated, (req, res) => {
     const vehicle = req.body;
-    const sql = `INSERT INTO inventory 
-        (id, stockNumber, vin, year, make, model, trim, color, fleetCompany, operationCompany, status, dateAdded, customer, documents)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-    
+    const sql = `INSERT INTO inventory
+        (id, stockNumber, vin, year, make, model, trim, color, fleetCompany, operationCompany, status, dateAdded, inStockDate, customer, documents)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
     const params = [
         vehicle.id,
         vehicle.stockNumber,
@@ -333,6 +333,7 @@ app.post('/api/inventory', isAuthenticated, (req, res) => {
         vehicle.operationCompany || '',
         vehicle.status,
         vehicle.dateAdded,
+        vehicle.inStockDate || vehicle.dateAdded,
         vehicle.customer ? JSON.stringify(vehicle.customer) : null,
         vehicle.documents ? JSON.stringify(vehicle.documents) : '[]'
     ];
@@ -347,16 +348,16 @@ app.post('/api/inventory', isAuthenticated, (req, res) => {
     });
 });
 
-// Update vehicle - UPDATED WITH operationCompany
+// Update vehicle - UPDATED WITH operationCompany and inStockDate
 app.put('/api/inventory/:id', isAuthenticated, (req, res) => {
     const vehicle = req.body;
-    const sql = `UPDATE inventory SET 
-        stockNumber = ?, vin = ?, year = ?, make = ?, model = ?, trim = ?, 
+    const sql = `UPDATE inventory SET
+        stockNumber = ?, vin = ?, year = ?, make = ?, model = ?, trim = ?,
         color = ?, fleetCompany = ?, operationCompany = ?, status = ?, customer = ?, documents = ?,
-        pickupDate = ?, pickupTime = ?, pickupNotes = ?, tradeInId = ?,
+        pickupDate = ?, pickupTime = ?, pickupNotes = ?, tradeInId = ?, inStockDate = ?,
         updated_at = CURRENT_TIMESTAMP
         WHERE id = ?`;
-    
+
     const params = [
         vehicle.stockNumber,
         vehicle.vin,
@@ -374,6 +375,7 @@ app.put('/api/inventory/:id', isAuthenticated, (req, res) => {
         vehicle.pickupTime || null,
         vehicle.pickupNotes || null,
         vehicle.tradeInId || null,
+        vehicle.inStockDate || vehicle.dateAdded,
         vehicle.id
     ];
 

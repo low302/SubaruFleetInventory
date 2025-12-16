@@ -862,7 +862,7 @@
 
         /* Info Items */
         .info-item {
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.4rem;
         }
 
         .info-label {
@@ -1428,13 +1428,6 @@
             <div class="modal-body">
                 <div id="detailContent"></div>
 
-                <!-- Export Options -->
-                <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--joy-divider);">
-                    <button class="btn btn-primary" onclick="saveVehicleDetailPDF()" style="width: 100%;">
-                        📄 Save as PDF
-                    </button>
-                </div>
-
                 <!-- Document Management Section -->
                 <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--joy-divider);">
                     <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Documents</h3>
@@ -1531,6 +1524,13 @@
                     <p style="font-size: 0.875rem; color: var(--joy-text-tertiary); margin-bottom: 1rem;">Once you delete a vehicle, there is no going back. Please be certain.</p>
                     <button class="btn btn-danger" onclick="deleteVehicle(window.currentVehicleId)" style="width: 100%;">
                         Delete Vehicle
+                    </button>
+                </div>
+
+                <!-- Export Options -->
+                <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--joy-divider);">
+                    <button class="btn btn-primary" onclick="saveVehicleDetailPDF()" style="width: 100%;">
+                        📄 Save as PDF
                     </button>
                 </div>
             </div>
