@@ -593,6 +593,184 @@ async function toggleTradeInPickup(tradeInId) {
     }
 }
 
+function openTradeInDetail(tradeInId) {
+    const tradeIn = tradeIns.find(t => t.id === tradeInId);
+    if (!tradeIn) return;
+
+    window.currentTradeInId = tradeInId;
+    window.currentTradeIn = tradeIn;
+    window.currentlyEditingTradeIn = null;
+
+    renderTradeInDetailModal(tradeIn);
+    document.getElementById('tradeInDetailModal').style.display = 'flex';
+}
+
+function closeTradeInDetailModal() {
+    document.getElementById('tradeInDetailModal').style.display = 'none';
+    window.currentTradeInId = null;
+    window.currentTradeIn = null;
+    window.currentlyEditingTradeIn = null;
+}
+
+function enableTradeInEditMode(tradeInId) {
+    window.currentlyEditingTradeIn = tradeInId;
+    const tradeIn = tradeIns.find(t => t.id === tradeInId);
+    if (tradeIn) {
+        renderTradeInDetailModal(tradeIn);
+    }
+}
+
+function cancelTradeInEditMode() {
+    window.currentlyEditingTradeIn = null;
+    const tradeIn = tradeIns.find(t => t.id === window.currentTradeInId);
+    if (tradeIn) {
+        renderTradeInDetailModal(tradeIn);
+    }
+}
+
+async function saveTradeInEdit(event) {
+    event.preventDefault();
+
+    const tradeIn = tradeIns.find(t => t.id === window.currentTradeInId);
+    if (!tradeIn) return;
+
+    tradeIn.stockNumber = document.getElementById('editTradeStockNumber').value;
+    tradeIn.vin = document.getElementById('editTradeVin').value.toUpperCase();
+    tradeIn.year = parseInt(document.getElementById('editTradeYear').value);
+    tradeIn.make = document.getElementById('editTradeMake').value;
+    tradeIn.model = document.getElementById('editTradeModel').value;
+    tradeIn.trim = document.getElementById('editTradeTrim').value;
+    tradeIn.color = document.getElementById('editTradeColor').value;
+    tradeIn.mileage = parseInt(document.getElementById('editTradeMileage').value) || 0;
+    tradeIn.notes = document.getElementById('editTradeNotes').value;
+
+    try {
+        await fetch(`${API_BASE}/trade-ins/${tradeIn.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(tradeIn)
+        });
+
+        await loadTradeIns();
+        showNotification('Trade-in updated successfully!', 'success');
+        window.currentlyEditingTradeIn = null;
+        renderTradeInDetailModal(tradeIn);
+        renderCurrentPage();
+    } catch (error) {
+        console.error('Error saving trade-in:', error);
+        showNotification('Failed to save trade-in changes: ' + error.message, 'error');
+    }
+}
+
+function renderTradeInDetailModal(tradeIn) {
+    const content = document.getElementById('tradeInDetailContent');
+    const isEditing = window.currentlyEditingTradeIn === tradeIn.id;
+
+    if (!isEditing) {
+        // Display mode
+        content.innerHTML = `
+            <div class="vehicle-info">
+                <div class="info-item"><div class="info-label">Stock #</div><div class="info-value">${tradeIn.stockNumber || 'N/A'}</div></div>
+                <div class="info-item"><div class="info-label">VIN</div><div class="info-value">${tradeIn.vin}</div></div>
+                <div class="info-item"><div class="info-label">Year</div><div class="info-value">${tradeIn.year}</div></div>
+                <div class="info-item"><div class="info-label">Make</div><div class="info-value">${tradeIn.make}</div></div>
+                <div class="info-item"><div class="info-label">Model</div><div class="info-value">${tradeIn.model}</div></div>
+                <div class="info-item"><div class="info-label">Trim</div><div class="info-value">${tradeIn.trim || 'N/A'}</div></div>
+                <div class="info-item"><div class="info-label">Color</div><div class="info-value">${tradeIn.color}</div></div>
+                <div class="info-item"><div class="info-label">Mileage</div><div class="info-value">${tradeIn.mileage ? tradeIn.mileage.toLocaleString() : 'N/A'}</div></div>
+                ${tradeIn.notes ? `<div class="info-item"><div class="info-label">Notes</div><div class="info-value">${tradeIn.notes}</div></div>` : ''}
+                <div class="info-item"><div class="info-label">Status</div><div class="info-value">${tradeIn.pickedUp ? '<span class="picked-up-badge">✓ Picked Up</span>' : '<span class="status-badge status-pending-pickup">Awaiting Pickup</span>'}</div></div>
+                ${tradeIn.pickedUp && tradeIn.pickedUpDate ? `<div class="info-item"><div class="info-label">Picked Up Date</div><div class="info-value">${new Date(tradeIn.pickedUpDate).toLocaleDateString()}</div></div>` : ''}
+            </div>
+            <div style="margin-top: 2rem;">
+                <label class="custom-checkbox">
+                    <input type="checkbox" ${tradeIn.pickedUp ? 'checked' : ''} onchange="toggleTradeInPickup(${tradeIn.id})">
+                    <span class="checkbox-label">
+                        <span class="checkbox-box"></span>
+                        <span class="checkbox-text">Mark as Picked Up</span>
+                    </span>
+                </label>
+            </div>
+            <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                <button class="btn" onclick="enableTradeInEditMode(${tradeIn.id})" style="flex: 1;">✏️ Edit Trade-In</button>
+            </div>
+        `;
+    } else {
+        // Edit mode
+        content.innerHTML = `
+            <form id="editTradeInForm" onsubmit="saveTradeInEdit(event)">
+                <div class="form-group">
+                    <label for="editTradeStockNumber">Stock #</label>
+                    <input type="text" id="editTradeStockNumber" value="${tradeIn.stockNumber || ''}">
+                </div>
+                <div class="form-group">
+                    <label for="editTradeVin">VIN</label>
+                    <input type="text" id="editTradeVin" value="${tradeIn.vin}" maxlength="17" minlength="17" pattern="[A-HJ-NPR-Z0-9]{17}" title="VIN must be exactly 17 characters (letters and numbers, excluding I, O, Q)" required style="text-transform: uppercase;">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editTradeYear">Year</label>
+                        <input type="number" id="editTradeYear" value="${tradeIn.year}" min="1980" max="2030" required title="Vehicle year must be between 1980 and 2030">
+                    </div>
+                    <div class="form-group">
+                        <label for="editTradeMake">Make</label>
+                        <input type="text" id="editTradeMake" value="${tradeIn.make}" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editTradeModel">Model</label>
+                        <input type="text" id="editTradeModel" value="${tradeIn.model}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editTradeTrim">Trim</label>
+                        <input type="text" id="editTradeTrim" value="${tradeIn.trim || ''}">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editTradeColor">Color</label>
+                        <input type="text" id="editTradeColor" value="${tradeIn.color}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editTradeMileage">Mileage</label>
+                        <input type="number" id="editTradeMileage" value="${tradeIn.mileage || ''}" min="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editTradeNotes">Notes</label>
+                    <textarea id="editTradeNotes" rows="3">${tradeIn.notes || ''}</textarea>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="submit" class="btn" style="flex: 1;">💾 Save Changes</button>
+                    <button type="button" class="btn btn-secondary" onclick="cancelTradeInEditMode()" style="flex: 1;">✖ Cancel</button>
+                </div>
+            </form>
+        `;
+    }
+}
+
+async function deleteTradeIn(tradeInId) {
+    const confirmed = await showConfirmation('Are you sure you want to delete this trade-in? This action cannot be undone.');
+    if (!confirmed) return;
+
+    try {
+        await fetch(`${API_BASE}/trade-ins/${tradeInId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+
+        await loadTradeIns();
+        closeTradeInDetailModal();
+        showNotification('Trade-in deleted successfully!', 'success');
+        renderCurrentPage();
+    } catch (error) {
+        console.error('Error deleting trade-in:', error);
+        showNotification('Failed to delete trade-in: ' + error.message, 'error');
+    }
+}
+
 async function schedulePickup(event) {
     event.preventDefault();
     if (!currentVehicle) return;
@@ -1538,7 +1716,7 @@ function createVehicleCard(vehicle) {
 
 function createTradeInCard(tradeIn) {
     return `
-        <div class="vehicle-card ${tradeIn.pickedUp ? 'picked-up-card' : ''}">
+        <div class="vehicle-card ${tradeIn.pickedUp ? 'picked-up-card' : ''}" onclick="openTradeInDetail(${tradeIn.id})" style="cursor: pointer;">
             <div class="vehicle-header">
                 <div class="vehicle-stock">${tradeIn.stockNumber || 'Fleet Return'}</div>
                 <div class="vehicle-title">${tradeIn.year} ${tradeIn.make} ${tradeIn.model}</div>
@@ -1552,11 +1730,14 @@ function createTradeInCard(tradeIn) {
                 </div>
                 ${tradeIn.notes ? `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);"><div class="info-label">Notes</div><div class="info-value">${tradeIn.notes}</div></div>` : ''}
                 ${tradeIn.pickedUp && tradeIn.pickedUpDate ? `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);"><div class="info-label">Picked Up</div><div class="info-value">${formatDate(tradeIn.pickedUpDate)}</div></div>` : ''}
-                <div class="vehicle-actions">
-                    <div class="checkbox-group" style="flex: 1;">
+                <div class="vehicle-actions" onclick="event.stopPropagation();">
+                    <label class="custom-checkbox">
                         <input type="checkbox" id="pickup-${tradeIn.id}" ${tradeIn.pickedUp ? 'checked' : ''} onchange="toggleTradeInPickup(${tradeIn.id})">
-                        <label for="pickup-${tradeIn.id}">Mark as Picked Up</label>
-                    </div>
+                        <span class="checkbox-label">
+                            <span class="checkbox-box"></span>
+                            <span class="checkbox-text">Mark as Picked Up</span>
+                        </span>
+                    </label>
                 </div>
             </div>
         </div>
