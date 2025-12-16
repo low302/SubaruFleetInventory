@@ -1351,7 +1351,8 @@ function updateDashboard() {
     if (soldCount) soldCount.textContent = soldVehicles.length;
 
     const tradeInsCount = document.getElementById('tradeInsCount');
-    if (tradeInsCount) tradeInsCount.textContent = tradeIns.length;
+    // Only count trade-ins that haven't been picked up yet
+    if (tradeInsCount) tradeInsCount.textContent = tradeIns.filter(t => !t.pickedUp).length;
 
     // Helper function to get color based on vehicle age
     function getAgeColor(days) {
@@ -1549,7 +1550,9 @@ function renderCurrentPage() {
 }
 
 function renderInventoryPage() {
-    const filtered = filterVehicles(vehicles);
+    // Filter out in-transit vehicles from inventory view
+    const nonTransitVehicles = vehicles.filter(v => v.status !== 'in-transit');
+    const filtered = filterVehicles(nonTransitVehicles);
     const container = document.getElementById('inventoryGrid');
     if (filtered.length === 0) {
         container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🚗</div><p>No vehicles found</p></div>';
@@ -1575,7 +1578,7 @@ function renderInventoryPage() {
             </table>
         `;
     }
-    updateMakeFilter('makeFilter', vehicles);
+    updateMakeFilter('makeFilter', nonTransitVehicles);
 }
 
 function renderStatusPage(status, gridId, searchId, makeFilterId) {
@@ -1639,10 +1642,37 @@ function renderSoldPage() {
 
 function renderTradeInsPage() {
     const container = document.getElementById('tradeInGrid');
+
+    // Separate trade-ins into picked up and awaiting pickup
+    const awaitingPickup = tradeIns.filter(t => !t.pickedUp);
+    const pickedUp = tradeIns.filter(t => t.pickedUp);
+
     if (tradeIns.length === 0) {
         container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔄</div><p>No fleet returns</p></div>';
     } else {
-        container.innerHTML = tradeIns.map(t => createTradeInCard(t)).join('');
+        container.innerHTML = `
+            ${awaitingPickup.length > 0 ? `
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary); display: flex; align-items: center; gap: 0.5rem;">
+                        <span>⏳</span> Awaiting Pickup <span style="background: var(--joy-warning-500); color: white; padding: 0.125rem 0.5rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">${awaitingPickup.length}</span>
+                    </h3>
+                    <div class="vehicle-grid">
+                        ${awaitingPickup.map(t => createTradeInCard(t)).join('')}
+                    </div>
+                </div>
+            ` : ''}
+
+            ${pickedUp.length > 0 ? `
+                <div>
+                    <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary); display: flex; align-items: center; gap: 0.5rem;">
+                        <span>✓</span> Picked Up <span style="background: var(--joy-success-500); color: white; padding: 0.125rem 0.5rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">${pickedUp.length}</span>
+                    </h3>
+                    <div class="vehicle-grid">
+                        ${pickedUp.map(t => createTradeInCard(t)).join('')}
+                    </div>
+                </div>
+            ` : ''}
+        `;
     }
     updateMakeFilter('tradeInMakeFilter', tradeIns);
 }
