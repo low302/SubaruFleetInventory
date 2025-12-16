@@ -2,7 +2,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
 // Path to your database file
-const DB_PATH = path.join(__dirname, 'fleet-inventory.db');
+const DB_PATH = path.join(__dirname, 'data', 'fleet-inventory.db');
 
 console.log('Starting database migration to add inStockDate column...');
 console.log('Database path:', DB_PATH);
