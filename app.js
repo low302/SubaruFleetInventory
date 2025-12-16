@@ -832,194 +832,200 @@ async function saveVehicleDetailPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
 
-        // Set document properties
-        doc.setProperties({
-            title: `Vehicle Details - ${currentVehicle.stockNumber}`,
-            subject: 'Vehicle Information',
-            author: 'Fleet Inventory System',
-            keywords: 'vehicle, inventory, fleet',
-            creator: 'Fleet Inventory Management System'
-        });
-
-        // Header
-        doc.setFillColor(0, 122, 255);
-        doc.rect(0, 0, 210, 35, 'F');
-        doc.setTextColor(255, 255, 255);
+        const pageWidth = doc.internal.pageSize.width;
+        const pageHeight = doc.internal.pageSize.height;
+        const margin = 20;
+        
+        // Add Brandon Tomes Subaru Logo (if you have it as base64 or URL)
+        // For now, we'll create a text-based header
+        
+        // Header - Logo Area
+        doc.setFillColor(41, 98, 255);
+        doc.rect(0, 0, pageWidth, 40, 'F');
+        
+        // Company Name (in place of logo)
         doc.setFontSize(24);
         doc.setFont('helvetica', 'bold');
-        doc.text('Vehicle Details', 20, 20);
-
-        // Stock number
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Stock #${currentVehicle.stockNumber}`, 20, 28);
-
-        // Reset text color
-        doc.setTextColor(29, 29, 31);
-
-        let yPos = 50;
-
-        // Vehicle Information Section
+        doc.setTextColor(255, 255, 255);
+        doc.text('BRANDON TOMES', pageWidth / 2, 18, { align: 'center' });
+        
+        doc.setFontSize(20);
+        doc.text('SUBARU', pageWidth / 2, 30, { align: 'center' });
+        
+        // Fleet Department title
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
-        doc.text('Vehicle Information', 20, yPos);
-        yPos += 10;
-
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-
-        const vehicleInfo = [
-            { label: 'Year:', value: currentVehicle.year.toString() },
-            { label: 'Make:', value: currentVehicle.make },
-            { label: 'Model:', value: currentVehicle.model },
-            { label: 'Trim:', value: currentVehicle.trim },
-            { label: 'Color:', value: currentVehicle.color },
-            { label: 'VIN:', value: currentVehicle.vin },
-            { label: 'Fleet Company:', value: currentVehicle.fleetCompany || 'N/A' },
-            { label: 'Operation Company:', value: currentVehicle.operationCompany || 'N/A' }
+        doc.setTextColor(0, 0, 0);
+        doc.text('Fleet Department', pageWidth / 2, 55, { align: 'center' });
+        
+        let yPos = 70;
+        
+        // Helper function to create section with table
+        const createSection = (title, fields, startY) => {
+            let y = startY;
+            
+            // Section title
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text(title, margin, y);
+            y += 5;
+            
+            // Table settings
+            const rowHeight = 10;
+            const labelColWidth = 60;
+            const valueColWidth = pageWidth - margin * 2 - labelColWidth;
+            
+            fields.forEach((field, index) => {
+                const rowY = y;
+                
+                // Draw cell borders
+                doc.setDrawColor(180, 180, 180);
+                doc.setLineWidth(0.3);
+                
+                // Label cell
+                doc.setFillColor(245, 245, 245);
+                doc.rect(margin, rowY, labelColWidth, rowHeight, 'FD');
+                
+                // Value cell
+                doc.setFillColor(255, 255, 255);
+                doc.rect(margin + labelColWidth, rowY, valueColWidth, rowHeight, 'FD');
+                
+                // Label text
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(0, 0, 0);
+                doc.text(field.label, margin + 3, rowY + 6.5);
+                
+                // Value text
+                doc.setFont('helvetica', 'normal');
+                const valueText = field.value || '';
+                const splitValue = doc.splitTextToSize(valueText, valueColWidth - 6);
+                doc.text(splitValue, margin + labelColWidth + 3, rowY + 6.5);
+                
+                y += rowHeight;
+            });
+            
+            return y + 8;
+        };
+        
+        // Vehicle Details Section
+        const vehicleFields = [
+            { label: 'Stock #', value: currentVehicle.stockNumber },
+            { label: 'Year', value: currentVehicle.year.toString() },
+            { label: 'Make', value: currentVehicle.make },
+            { label: 'Model', value: currentVehicle.model },
+            { label: 'Trim', value: currentVehicle.trim },
+            { label: 'Color', value: currentVehicle.color },
+            { label: 'VIN', value: currentVehicle.vin }
         ];
-
-        vehicleInfo.forEach(info => {
-            doc.setFont('helvetica', 'bold');
-            doc.text(info.label, 20, yPos);
-            doc.setFont('helvetica', 'normal');
-            doc.text(info.value, 65, yPos);
-            yPos += 7;
+        yPos = createSection('Vehicle Details', vehicleFields, yPos);
+        
+        // Pickup Information Section
+        const pickupFields = [
+            { 
+                label: 'Current Status', 
+                value: currentVehicle.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') 
+            }
+        ];
+        
+        if (currentVehicle.pickupDate) {
+            pickupFields.push({ 
+                label: 'Pickup Date', 
+                value: new Date(currentVehicle.pickupDate).toLocaleDateString() 
+            });
+        }
+        
+        if (currentVehicle.pickupTime) {
+            pickupFields.push({ 
+                label: 'Pickup Time', 
+                value: currentVehicle.pickupTime 
+            });
+        }
+        
+        yPos = createSection('Pickup Information', pickupFields, yPos);
+        
+        // Customer / Fleet Information Section
+        const customerFields = [];
+        
+        // Customer Name
+        if (currentVehicle.customer && (currentVehicle.customer.firstName || currentVehicle.customer.lastName)) {
+            const fullName = `${currentVehicle.customer.firstName || ''} ${currentVehicle.customer.lastName || ''}`.trim();
+            customerFields.push({ label: 'Customer Name', value: fullName });
+        } else {
+            customerFields.push({ label: 'Customer Name', value: '' });
+        }
+        
+        // Phone
+        customerFields.push({ 
+            label: 'Phone', 
+            value: currentVehicle.customer?.phone || '' 
         });
-
-        yPos += 5;
-
-        // Status Section
-        doc.setFontSize(16);
+        
+        // Fleet Company
+        customerFields.push({ 
+            label: 'Fleet Company', 
+            value: currentVehicle.fleetCompany || '' 
+        });
+        
+        // Operating Company
+        customerFields.push({ 
+            label: 'Operating Company', 
+            value: currentVehicle.operationCompany || '' 
+        });
+        
+        yPos = createSection('Customer / Fleet Information', customerFields, yPos);
+        
+        // Notes Section
+        let notesText = '';
+        
+        // Combine all notes
+        if (currentVehicle.customer?.notes) {
+            notesText += currentVehicle.customer.notes;
+        }
+        
+        if (currentVehicle.pickupNotes) {
+            if (notesText) notesText += '\n\n';
+            notesText += 'Pickup Notes: ' + currentVehicle.pickupNotes;
+        }
+        
+        const notesFields = [
+            { label: 'Additional Notes', value: notesText }
+        ];
+        
+        // Create notes section with larger height if needed
+        doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
-        doc.text('Status', 20, yPos);
-        yPos += 10;
-
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        const statusText = currentVehicle.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-        doc.text(`Current Status: ${statusText}`, 20, yPos);
-        yPos += 7;
-
-        if (currentVehicle.dateAdded) {
-            const dateAdded = new Date(currentVehicle.dateAdded).toLocaleDateString();
-            doc.text(`Date Added: ${dateAdded}`, 20, yPos);
-            yPos += 7;
-        }
-
-        // Pickup information if scheduled
-        if (currentVehicle.status === 'pickup-scheduled' && currentVehicle.pickupDate) {
-            yPos += 3;
-            doc.setFont('helvetica', 'bold');
-            doc.text('Pickup Information:', 20, yPos);
-            yPos += 7;
-            doc.setFont('helvetica', 'normal');
-
-            const pickupDate = new Date(currentVehicle.pickupDate).toLocaleDateString();
-            doc.text(`Pickup Date: ${pickupDate}`, 20, yPos);
-            yPos += 7;
-
-            if (currentVehicle.pickupTime) {
-                doc.text(`Pickup Time: ${currentVehicle.pickupTime}`, 20, yPos);
-                yPos += 7;
-            }
-
-            if (currentVehicle.pickupNotes) {
-                doc.text('Pickup Notes:', 20, yPos);
-                yPos += 5;
-                const splitNotes = doc.splitTextToSize(currentVehicle.pickupNotes, 170);
-                doc.text(splitNotes, 20, yPos);
-                yPos += (splitNotes.length * 5) + 7;
-            }
-        }
-
+        doc.setTextColor(0, 0, 0);
+        doc.text('Notes', margin, yPos);
         yPos += 5;
-
-        // Customer Information Section
-        if (currentVehicle.customer) {
-            if (yPos > 240) {
-                doc.addPage();
-                yPos = 20;
-            }
-
-            doc.setFontSize(16);
-            doc.setFont('helvetica', 'bold');
-            doc.text('Customer Information', 20, yPos);
-            yPos += 10;
-
+        
+        // Draw notes box
+        const notesHeight = Math.max(20, Math.min(60, notesText.length / 4));
+        doc.setDrawColor(180, 180, 180);
+        doc.setLineWidth(0.3);
+        doc.setFillColor(255, 255, 255);
+        doc.rect(margin, yPos, pageWidth - margin * 2, notesHeight, 'FD');
+        
+        // Add notes text
+        if (notesText) {
             doc.setFontSize(10);
             doc.setFont('helvetica', 'normal');
-
-            const customerInfo = [];
-
-            if (currentVehicle.customer.firstName || currentVehicle.customer.lastName) {
-                const fullName = `${currentVehicle.customer.firstName || ''} ${currentVehicle.customer.lastName || ''}`.trim();
-                customerInfo.push({ label: 'Customer Name:', value: fullName });
-            }
-
-            if (currentVehicle.customer.phone) {
-                customerInfo.push({ label: 'Phone:', value: currentVehicle.customer.phone });
-            }
-
-            if (currentVehicle.customer.saleAmount) {
-                customerInfo.push({
-                    label: 'Sale Amount:',
-                    value: `$${parseFloat(currentVehicle.customer.saleAmount).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
-                });
-            }
-
-            if (currentVehicle.customer.saleDate) {
-                const saleDate = new Date(currentVehicle.customer.saleDate).toLocaleDateString();
-                customerInfo.push({ label: 'Sale Date:', value: saleDate });
-            }
-
-            if (currentVehicle.customer.paymentMethod) {
-                customerInfo.push({ label: 'Payment Method:', value: currentVehicle.customer.paymentMethod });
-            }
-
-            if (currentVehicle.customer.paymentReference) {
-                customerInfo.push({ label: 'Reference Number:', value: currentVehicle.customer.paymentReference });
-            }
-
-            customerInfo.forEach(info => {
-                doc.setFont('helvetica', 'bold');
-                doc.text(info.label, 20, yPos);
-                doc.setFont('helvetica', 'normal');
-                doc.text(info.value, 65, yPos);
-                yPos += 7;
-            });
-
-            if (currentVehicle.customer.notes) {
-                yPos += 3;
-                doc.setFont('helvetica', 'bold');
-                doc.text('Notes:', 20, yPos);
-                yPos += 7;
-                doc.setFont('helvetica', 'normal');
-                const splitNotes = doc.splitTextToSize(currentVehicle.customer.notes, 170);
-                doc.text(splitNotes, 20, yPos);
-                yPos += (splitNotes.length * 5);
-            }
+            const splitNotes = doc.splitTextToSize(notesText, pageWidth - margin * 2 - 6);
+            doc.text(splitNotes, margin + 3, yPos + 6);
         }
-
+        
         // Footer
-        const pageCount = doc.internal.getNumberOfPages();
-        for (let i = 1; i <= pageCount; i++) {
-            doc.setPage(i);
-            doc.setFontSize(8);
-            doc.setTextColor(134, 134, 139);
-            doc.setFont('helvetica', 'normal');
-            doc.text(
-                `Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()} - Page ${i} of ${pageCount}`,
-                105,
-                285,
-                { align: 'center' }
-            );
-        }
-
+        doc.setFontSize(8);
+        doc.setTextColor(120, 120, 120);
+        doc.setFont('helvetica', 'normal');
+        const footerText = `Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`;
+        doc.text(footerText, pageWidth / 2, pageHeight - 15, { align: 'center' });
+        
         // Save the PDF
-        const fileName = `Vehicle_${currentVehicle.stockNumber}_${currentVehicle.year}_${currentVehicle.make}_${currentVehicle.model}.pdf`.replace(/\s+/g, '_');
+        const fileName = `Fleet_Vehicle_${currentVehicle.stockNumber}_${currentVehicle.year}_${currentVehicle.make}_${currentVehicle.model}.pdf`.replace(/\s+/g, '_');
         doc.save(fileName);
-
+        
     } catch (error) {
         console.error('Error generating PDF:', error);
         alert('Failed to generate PDF. Please try again.');
