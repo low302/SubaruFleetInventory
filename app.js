@@ -355,6 +355,10 @@ async function saveVehicleEdit(event) {
         return;
     }
 
+    // Get in stock date or keep existing
+    const inStockDateInput = document.getElementById('editInStockDate').value;
+    const inStockDate = inStockDateInput ? new Date(inStockDateInput).toISOString() : (currentVehicle.inStockDate || currentVehicle.dateAdded);
+
     // Update only the edited fields, preserve everything else
     const updatedVehicle = {
         ...currentVehicle,
@@ -366,7 +370,8 @@ async function saveVehicleEdit(event) {
         trim: document.getElementById('editTrim').value,
         color: document.getElementById('editColor').value,
         fleetCompany: document.getElementById('editFleetCompany').value,
-        operationCompany: document.getElementById('editOperationCompany').value
+        operationCompany: document.getElementById('editOperationCompany').value,
+        inStockDate: inStockDate
     };
     
     try {
@@ -1085,12 +1090,12 @@ function updateDashboard() {
             oldestContainer.innerHTML = oldestVehicles.map(v => {
                 const stockDate = new Date(v.inStockDate || v.dateAdded);
                 const daysOld = Math.floor((new Date() - stockDate) / (1000 * 60 * 60 * 24));
+                const statusClass = `status-${v.status}`;
+                const statusText = v.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
                 return `
-                    <div style="padding: 0.5rem; border-bottom: 1px solid var(--joy-divider); cursor: pointer; transition: background 0.2s;"
-                         onclick="openVehicleDetail(${v.id})"
-                         onmouseover="this.style.background='var(--joy-bg-level1)'"
-                         onmouseout="this.style.background='transparent'">
-                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div style="padding: 0.5rem; border-bottom: 1px solid var(--joy-divider);">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.375rem; cursor: pointer;" onclick="openVehicleDetail(${v.id})">
                             <div style="flex: 1; min-width: 0;">
                                 <div style="font-weight: 600; font-size: 0.875rem; color: var(--joy-text-primary);">${v.year} ${v.make} ${v.model}</div>
                                 <div style="font-size: 0.75rem; color: var(--joy-text-tertiary); margin-top: 0.125rem;">
@@ -1103,14 +1108,20 @@ function updateDashboard() {
                                 </div>
                             </div>
                         </div>
+                        <div style="display: flex; gap: 0.375rem; align-items: center;">
+                            <span class="status-badge ${statusClass}" style="font-size: 0.6875rem; padding: 0.125rem 0.375rem;">${statusText}</span>
+                            ${v.status === 'pending-pickup' ? `<button class="btn btn-sm btn-secondary" onclick="openPickupScheduleModal(); currentVehicle = vehicles.find(veh => veh.id === ${v.id}); event.stopPropagation();" style="padding: 0.25rem 0.5rem; font-size: 0.6875rem;">Schedule</button>` : ''}
+                            ${v.status === 'pickup-scheduled' ? `<button class="btn btn-sm btn-primary" onclick="completePickup(${v.id}); event.stopPropagation();" style="padding: 0.25rem 0.5rem; font-size: 0.6875rem;">Complete</button>` : ''}
+                        </div>
                     </div>
                 `;
             }).join('');
         }
     }
 
-    // Newest Units Section
+    // Newest Units Section (exclude in-transit)
     const newestVehicles = [...vehicles]
+        .filter(v => v.status !== 'in-transit')
         .sort((a, b) => {
             const dateA = new Date(a.inStockDate || a.dateAdded);
             const dateB = new Date(b.inStockDate || b.dateAdded);
@@ -1126,12 +1137,12 @@ function updateDashboard() {
             newestContainer.innerHTML = newestVehicles.map(v => {
                 const stockDate = new Date(v.inStockDate || v.dateAdded);
                 const daysOld = Math.floor((new Date() - stockDate) / (1000 * 60 * 60 * 24));
+                const statusClass = `status-${v.status}`;
+                const statusText = v.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
                 return `
-                    <div style="padding: 0.5rem; border-bottom: 1px solid var(--joy-divider); cursor: pointer; transition: background 0.2s;"
-                         onclick="openVehicleDetail(${v.id})"
-                         onmouseover="this.style.background='var(--joy-bg-level1)'"
-                         onmouseout="this.style.background='transparent'">
-                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div style="padding: 0.5rem; border-bottom: 1px solid var(--joy-divider);">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.375rem; cursor: pointer;" onclick="openVehicleDetail(${v.id})">
                             <div style="flex: 1; min-width: 0;">
                                 <div style="font-weight: 600; font-size: 0.875rem; color: var(--joy-text-primary);">${v.year} ${v.make} ${v.model}</div>
                                 <div style="font-size: 0.75rem; color: var(--joy-text-tertiary); margin-top: 0.125rem;">
@@ -1143,6 +1154,11 @@ function updateDashboard() {
                                     ${daysOld === 0 ? 'Today' : daysOld + ' days'}
                                 </div>
                             </div>
+                        </div>
+                        <div style="display: flex; gap: 0.375rem; align-items: center;">
+                            <span class="status-badge ${statusClass}" style="font-size: 0.6875rem; padding: 0.125rem 0.375rem;">${statusText}</span>
+                            ${v.status === 'pending-pickup' ? `<button class="btn btn-sm btn-secondary" onclick="openPickupScheduleModal(); currentVehicle = vehicles.find(veh => veh.id === ${v.id}); event.stopPropagation();" style="padding: 0.25rem 0.5rem; font-size: 0.6875rem;">Schedule</button>` : ''}
+                            ${v.status === 'pickup-scheduled' ? `<button class="btn btn-sm btn-primary" onclick="completePickup(${v.id}); event.stopPropagation();" style="padding: 0.25rem 0.5rem; font-size: 0.6875rem;">Complete</button>` : ''}
                         </div>
                     </div>
                 `;
@@ -1508,6 +1524,10 @@ function renderDetailModal(vehicle) {
                 <div class="form-group">
                     <label for="editOperationCompany">Operation Company</label>
                     <input type="text" id="editOperationCompany" value="${vehicle.operationCompany || ''}">
+                </div>
+                <div class="form-group">
+                    <label for="editInStockDate">In Stock Date</label>
+                    <input type="date" id="editInStockDate" value="${vehicle.inStockDate ? new Date(vehicle.inStockDate).toISOString().split('T')[0] : ''}">
                 </div>
                 <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
                     <button type="submit" class="btn" style="flex: 1;">💾 Save Changes</button>
