@@ -373,17 +373,22 @@ async function saveVehicleEdit(event) {
         operationCompany: document.getElementById('editOperationCompany').value,
         inStockDate: inStockDate
     };
-    
+
+    console.log('Saving vehicle with inStockDate:', inStockDate);
+    console.log('Updated vehicle object:', updatedVehicle);
+
     try {
         const isInSold = soldVehicles.some(v => v.id === currentVehicle.id);
         const endpoint = isInSold ? 'sold-vehicles' : 'inventory';
-        
+
         const response = await fetch(`${API_BASE}/${endpoint}/${updatedVehicle.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify(updatedVehicle)
         });
+
+        console.log('Server response status:', response.status);
         
         if (!response.ok) {
             const errorData = await response.json();
@@ -391,8 +396,14 @@ async function saveVehicleEdit(event) {
         }
         
         await loadAllData();
+
+        // Check what was loaded from database
+        const reloadedVehicle = vehicles.find(v => v.id === updatedVehicle.id) || soldVehicles.find(v => v.id === updatedVehicle.id);
+        console.log('Vehicle reloaded from database:', reloadedVehicle);
+        console.log('Reloaded inStockDate:', reloadedVehicle?.inStockDate);
+
         window.currentlyEditingVehicle = null;
-        currentVehicle = updatedVehicle;
+        currentVehicle = reloadedVehicle || updatedVehicle;
         renderDetailModal(currentVehicle);
         updateDashboard();
         renderCurrentPage();
