@@ -590,6 +590,241 @@ async function copyLabel() {
     }
 }
 
+async function handlePDFUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+        alert('Please select a PDF file.');
+        return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        alert('File size must be less than 10MB.');
+        return;
+    }
+
+    if (!currentVehicle) {
+        alert('No vehicle selected.');
+        return;
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('vehicleId', currentVehicle.id);
+        formData.append('fileName', file.name);
+
+        const response = await fetch(`${API_BASE}/documents/upload`, {
+            method: 'POST',
+            credentials: 'include',
+            body: formData
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to upload document');
+        }
+
+        const result = await response.json();
+
+        // Add document to current vehicle
+        if (!currentVehicle.documents) {
+            currentVehicle.documents = [];
+        }
+        currentVehicle.documents.push(result.document);
+
+        // Update vehicle in database
+        const isInSold = soldVehicles.some(v => v.id === currentVehicle.id);
+        const endpoint = isInSold ? 'sold-vehicles' : 'inventory';
+
+        await fetch(`${API_BASE}/${endpoint}/${currentVehicle.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(currentVehicle)
+        });
+
+        await loadAllData();
+        renderDocumentList();
+        alert('Document uploaded successfully!');
+
+        // Reset file input
+        event.target.value = '';
+
+    } catch (error) {
+        console.error('Error uploading document:', error);
+        alert('Failed to upload document: ' + error.message);
+    }
+}
+
+function renderDocumentList() {
+    const container = document.getElementById('documentList');
+    if (!container || !currentVehicle) return;
+
+    const documents = currentVehicle.documents || [];
+
+    if (documents.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 1rem; color: var(--joy-text-tertiary); font-size: 0.875rem;">No documents uploaded</div>';
+        return;
+    }
+
+    container.innerHTML = documents.map((doc, index) => `
+        <div style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            background: var(--joy-bg-level1);
+            border: 1px solid var(--joy-divider);
+            border-radius: var(--joy-radius-sm);
+            margin-bottom: 0.5rem;
+            transition: all 0.2s;
+        " onmouseover="this.style.background='var(--joy-bg-level2)'" onmouseout="this.style.background='var(--joy-bg-level1)'">
+            <div style="flex: 1; min-width: 0;">
+                <div style="font-weight: 600; font-size: 0.875rem; color: var(--joy-text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    📄 ${doc.fileName}
+                </div>
+                <div style="font-size: 0.75rem; color: var(--joy-text-tertiary); margin-top: 0.25rem;">
+                    ${doc.uploadDate ? `Uploaded: ${new Date(doc.uploadDate).toLocaleDateString()}` : ''}
+                    ${doc.fileSize ? ` • ${formatFileSize(doc.fileSize)}` : ''}
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-left: 1rem;">
+                <button class="btn btn-sm btn-secondary" onclick="viewPDFDocument(${index})" title="View Document">
+                    👁️
+                </button>
+                <button class="btn btn-sm btn-secondary" onclick="downloadPDFDocument(${index})" title="Download">
+                    💾
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="deletePDFDocument(${index})" title="Delete">
+                    🗑️
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+async function viewPDFDocument(index) {
+    if (!currentVehicle || !currentVehicle.documents || !currentVehicle.documents[index]) {
+        alert('Document not found.');
+        return;
+    }
+
+    const doc = currentVehicle.documents[index];
+
+    try {
+        const response = await fetch(`${API_BASE}/documents/view/${doc.id}`, {
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to load document');
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+
+        // Open in new tab
+        window.open(url, '_blank');
+
+        // Clean up the URL after a delay
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+
+    } catch (error) {
+        console.error('Error viewing document:', error);
+        alert('Failed to view document. Please try again.');
+    }
+}
+
+async function downloadPDFDocument(index) {
+    if (!currentVehicle || !currentVehicle.documents || !currentVehicle.documents[index]) {
+        alert('Document not found.');
+        return;
+    }
+
+    const doc = currentVehicle.documents[index];
+
+    try {
+        const response = await fetch(`${API_BASE}/documents/download/${doc.id}`, {
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to download document');
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = doc.fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+    } catch (error) {
+        console.error('Error downloading document:', error);
+        alert('Failed to download document. Please try again.');
+    }
+}
+
+async function deletePDFDocument(index) {
+    if (!currentVehicle || !currentVehicle.documents || !currentVehicle.documents[index]) {
+        alert('Document not found.');
+        return;
+    }
+
+    const doc = currentVehicle.documents[index];
+
+    if (!confirm(`Are you sure you want to delete "${doc.fileName}"?`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/documents/delete/${doc.id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to delete document');
+        }
+
+        // Remove document from current vehicle
+        currentVehicle.documents.splice(index, 1);
+
+        // Update vehicle in database
+        const isInSold = soldVehicles.some(v => v.id === currentVehicle.id);
+        const endpoint = isInSold ? 'sold-vehicles' : 'inventory';
+
+        await fetch(`${API_BASE}/${endpoint}/${currentVehicle.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(currentVehicle)
+        });
+
+        await loadAllData();
+        renderDocumentList();
+        alert('Document deleted successfully!');
+
+    } catch (error) {
+        console.error('Error deleting document:', error);
+        alert('Failed to delete document: ' + error.message);
+    }
+}
+
 async function saveVehicleDetailPDF() {
     if (!currentVehicle) return;
 
@@ -1194,6 +1429,9 @@ function renderDetailModal(vehicle) {
     } else {
         document.getElementById('customerForm').reset();
     }
+
+    // Render document list
+    renderDocumentList();
 }
 
 function renderAnalytics() {

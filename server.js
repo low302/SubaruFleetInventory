@@ -6,6 +6,8 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
 const fs = require('fs');
+const multer = require('multer');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = 3000;
@@ -67,6 +69,39 @@ if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
     console.log('Created data directory:', dataDir);
 }
+
+// Ensure documents directory exists
+const documentsDir = '/app/data/documents';
+if (!fs.existsSync(documentsDir)) {
+    fs.mkdirSync(documentsDir, { recursive: true });
+    console.log('Created documents directory:', documentsDir);
+}
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, documentsDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueId = crypto.randomBytes(16).toString('hex');
+        const ext = path.extname(file.originalname);
+        cb(null, `${uniqueId}${ext}`);
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 10 * 1024 * 1024 // 10MB limit
+    },
+    fileFilter: function (req, file, cb) {
+        if (file.mimetype === 'application/pdf') {
+            cb(null, true);
+        } else {
+            cb(new Error('Only PDF files are allowed'));
+        }
+    }
+});
 
 // Initialize SQLite database
 const db = new sqlite3.Database('/app/data/fleet-inventory.db', (err) => {
@@ -150,6 +185,17 @@ function initializeDatabase() {
             dateAdded DATETIME NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`);
+
+        // Documents table
+        db.run(`CREATE TABLE IF NOT EXISTS documents (
+            id TEXT PRIMARY KEY,
+            vehicleId INTEGER NOT NULL,
+            fileName TEXT NOT NULL,
+            filePath TEXT NOT NULL,
+            fileSize INTEGER NOT NULL,
+            uploadDate DATETIME NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )`);
 
         // Create default admin user (username: Zaid, password: 1234)
@@ -543,6 +589,166 @@ app.delete('/api/trade-ins/:id', isAuthenticated, (req, res) => {
         }
         console.log('Trade-in deleted successfully, changes:', this.changes);
         res.json({ success: true, changes: this.changes });
+    });
+});
+
+// ==================== DOCUMENT MANAGEMENT ROUTES ====================
+
+// Upload document
+app.post('/api/documents/upload', isAuthenticated, upload.single('file'), (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+
+        const { vehicleId, fileName } = req.body;
+
+        if (!vehicleId) {
+            // Delete uploaded file if vehicleId is missing
+            fs.unlinkSync(req.file.path);
+            return res.status(400).json({ error: 'Vehicle ID is required' });
+        }
+
+        const documentId = crypto.randomBytes(16).toString('hex');
+        const uploadDate = new Date().toISOString();
+
+        const document = {
+            id: documentId,
+            vehicleId: parseInt(vehicleId),
+            fileName: fileName || req.file.originalname,
+            filePath: req.file.path,
+            fileSize: req.file.size,
+            uploadDate: uploadDate
+        };
+
+        const sql = `INSERT INTO documents (id, vehicleId, fileName, filePath, fileSize, uploadDate)
+                     VALUES (?, ?, ?, ?, ?, ?)`;
+
+        const params = [
+            document.id,
+            document.vehicleId,
+            document.fileName,
+            document.filePath,
+            document.fileSize,
+            document.uploadDate
+        ];
+
+        db.run(sql, params, function(err) {
+            if (err) {
+                console.error('Error saving document metadata:', err);
+                // Delete uploaded file if database insert fails
+                fs.unlinkSync(req.file.path);
+                return res.status(500).json({ error: 'Failed to save document' });
+            }
+
+            console.log('Document uploaded successfully:', document.fileName);
+            res.json({
+                success: true,
+                document: {
+                    id: document.id,
+                    fileName: document.fileName,
+                    fileSize: document.fileSize,
+                    uploadDate: document.uploadDate
+                }
+            });
+        });
+
+    } catch (error) {
+        console.error('Error uploading document:', error);
+        if (req.file && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
+        res.status(500).json({ error: 'Failed to upload document' });
+    }
+});
+
+// View document
+app.get('/api/documents/view/:id', isAuthenticated, (req, res) => {
+    const documentId = req.params.id;
+
+    db.get('SELECT * FROM documents WHERE id = ?', [documentId], (err, doc) => {
+        if (err) {
+            console.error('Error fetching document:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+
+        if (!doc) {
+            return res.status(404).json({ error: 'Document not found' });
+        }
+
+        if (!fs.existsSync(doc.filePath)) {
+            return res.status(404).json({ error: 'Document file not found' });
+        }
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `inline; filename="${doc.fileName}"`);
+
+        const fileStream = fs.createReadStream(doc.filePath);
+        fileStream.pipe(res);
+    });
+});
+
+// Download document
+app.get('/api/documents/download/:id', isAuthenticated, (req, res) => {
+    const documentId = req.params.id;
+
+    db.get('SELECT * FROM documents WHERE id = ?', [documentId], (err, doc) => {
+        if (err) {
+            console.error('Error fetching document:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+
+        if (!doc) {
+            return res.status(404).json({ error: 'Document not found' });
+        }
+
+        if (!fs.existsSync(doc.filePath)) {
+            return res.status(404).json({ error: 'Document file not found' });
+        }
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${doc.fileName}"`);
+
+        const fileStream = fs.createReadStream(doc.filePath);
+        fileStream.pipe(res);
+    });
+});
+
+// Delete document
+app.delete('/api/documents/delete/:id', isAuthenticated, (req, res) => {
+    const documentId = req.params.id;
+
+    // First get the document info to delete the file
+    db.get('SELECT * FROM documents WHERE id = ?', [documentId], (err, doc) => {
+        if (err) {
+            console.error('Error fetching document:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+
+        if (!doc) {
+            return res.status(404).json({ error: 'Document not found' });
+        }
+
+        // Delete the file from disk
+        if (fs.existsSync(doc.filePath)) {
+            try {
+                fs.unlinkSync(doc.filePath);
+                console.log('Document file deleted:', doc.filePath);
+            } catch (err) {
+                console.error('Error deleting document file:', err);
+            }
+        }
+
+        // Delete the database record
+        db.run('DELETE FROM documents WHERE id = ?', [documentId], function(err) {
+            if (err) {
+                console.error('Error deleting document record:', err);
+                return res.status(500).json({ error: 'Failed to delete document' });
+            }
+
+            console.log('Document deleted successfully:', doc.fileName);
+            res.json({ success: true });
+        });
     });
 });
 
