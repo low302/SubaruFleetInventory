@@ -489,9 +489,10 @@
         }
 
         .modern-table tbody tr {
-            border-bottom: 1px solid var(--joy-divider);
+            border-bottom: 2px solid rgba(0, 122, 255, 0.08);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
+            position: relative;
         }
 
         .modern-table tbody tr:hover {
@@ -508,10 +509,26 @@
             border-bottom: none;
         }
 
+        .modern-table tbody tr::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 122, 255, 0.15) 50%, transparent);
+            opacity: 0.5;
+        }
+
         .modern-table td {
-            padding: 0.625rem 0.875rem;
+            padding: 0.875rem 1rem;
             font-size: 0.8125rem;
             color: var(--joy-text-primary);
+            border-right: 1px solid rgba(0, 122, 255, 0.04);
+        }
+
+        .modern-table td:last-child {
+            border-right: none;
         }
 
         /* Status Badges */
