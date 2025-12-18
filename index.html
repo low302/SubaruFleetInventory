@@ -10,30 +10,30 @@
     <style>
         /* visionOS Inspired Design */
         :root {
-            --joy-bg-surface: #f5f5f7;
-            --joy-bg-gradient: radial-gradient(ellipse at top, rgba(0, 122, 255, 0.08) 0%, transparent 60%),
-                               radial-gradient(ellipse at bottom right, rgba(175, 82, 222, 0.06) 0%, transparent 50%),
-                               radial-gradient(ellipse at bottom left, rgba(52, 199, 89, 0.05) 0%, transparent 50%),
-                               linear-gradient(to bottom, #f5f5f7 0%, #e5e5ea 100%);
-            --joy-bg-level1: rgba(255, 255, 255, 0.6);
-            --joy-bg-level2: rgba(242, 242, 247, 0.8);
-            --joy-divider: rgba(60, 60, 67, 0.12);
-            --joy-text-primary: #1d1d1f;
-            --joy-text-secondary: #424245;
-            --joy-text-tertiary: #86868b;
-            --joy-primary-500: #007AFF;
-            --joy-primary-600: #0051D5;
-            --joy-primary-400: #409CFF;
-            --joy-success-500: #34C759;
-            --joy-warning-500: #FF9500;
-            --joy-danger-500: #FF3B30;
-            --joy-purple-500: #AF52DE;
-            --joy-pink-500: #FF2D55;
-            --joy-teal-500: #5AC8FA;
-            --joy-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
-            --joy-shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.06), 0 2px 6px 0 rgba(0, 0, 0, 0.04);
-            --joy-shadow-lg: 0 12px 40px 0 rgba(0, 0, 0, 0.1), 0 4px 12px 0 rgba(0, 0, 0, 0.06);
-            --joy-shadow-glow: 0 0 20px rgba(0, 122, 255, 0.3);
+            --joy-bg-surface: #1a1a1a;
+            --joy-bg-gradient: radial-gradient(ellipse at top, rgba(0, 122, 255, 0.12) 0%, transparent 60%),
+                               radial-gradient(ellipse at bottom right, rgba(175, 82, 222, 0.08) 0%, transparent 50%),
+                               radial-gradient(ellipse at bottom left, rgba(52, 199, 89, 0.06) 0%, transparent 50%),
+                               linear-gradient(to bottom, #1a1a1a 0%, #0f0f0f 100%);
+            --joy-bg-level1: rgba(40, 40, 40, 0.7);
+            --joy-bg-level2: rgba(50, 50, 50, 0.8);
+            --joy-divider: rgba(255, 255, 255, 0.1);
+            --joy-text-primary: #e5e5e7;
+            --joy-text-secondary: #a0a0a5;
+            --joy-text-tertiary: #6e6e73;
+            --joy-primary-500: #0a84ff;
+            --joy-primary-600: #0066cc;
+            --joy-primary-400: #409cff;
+            --joy-success-500: #32d74b;
+            --joy-warning-500: #ff9f0a;
+            --joy-danger-500: #ff453a;
+            --joy-purple-500: #bf5af2;
+            --joy-pink-500: #ff375f;
+            --joy-teal-500: #64d2ff;
+            --joy-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+            --joy-shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.4), 0 2px 6px 0 rgba(0, 0, 0, 0.3);
+            --joy-shadow-lg: 0 12px 40px 0 rgba(0, 0, 0, 0.6), 0 4px 12px 0 rgba(0, 0, 0, 0.4);
+            --joy-shadow-glow: 0 0 20px rgba(10, 132, 255, 0.4);
             --joy-radius-sm: 10px;
             --joy-radius-md: 16px;
             --joy-radius-lg: 24px;
@@ -66,15 +66,15 @@
         }
 
         .login-container {
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(30, 30, 30, 0.85);
             backdrop-filter: blur(60px) saturate(200%);
             -webkit-backdrop-filter: blur(60px) saturate(200%);
             border-radius: var(--joy-radius-lg);
             padding: 3rem;
             width: 100%;
             max-width: 400px;
-            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.8) inset, 0 20px 60px rgba(0, 0, 0, 0.1);
-            border: 0.5px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.1) inset, 0 20px 60px rgba(0, 0, 0, 0.6);
+            border: 0.5px solid rgba(255, 255, 255, 0.15);
             animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -102,7 +102,7 @@
             top: 0;
             bottom: 0;
             width: 240px;
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(25, 25, 25, 0.85);
             backdrop-filter: blur(60px) saturate(200%);
             -webkit-backdrop-filter: blur(60px) saturate(200%);
             border-right: 1px solid var(--joy-divider);
@@ -110,7 +110,7 @@
             overflow-y: hidden;
             overflow-x: hidden;
             z-index: 1000;
-            box-shadow: inset -1px 0 0 0 rgba(255, 255, 255, 0.5);
+            box-shadow: inset -1px 0 0 0 rgba(255, 255, 255, 0.05);
             display: flex;
             flex-direction: column;
         }
@@ -211,7 +211,7 @@
             right: 0;
             padding: 0.75rem 1rem;
             border-top: 1px solid var(--joy-divider);
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(20, 20, 20, 0.95);
             backdrop-filter: blur(20px);
         }
 
@@ -258,7 +258,7 @@
         }
 
         .top-bar {
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(25, 25, 25, 0.85);
             backdrop-filter: blur(60px) saturate(200%);
             -webkit-backdrop-filter: blur(60px) saturate(200%);
             border-bottom: 1px solid var(--joy-divider);
@@ -269,7 +269,7 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.5), var(--joy-shadow-sm);
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.05), var(--joy-shadow-sm);
         }
 
         .breadcrumb {
@@ -321,13 +321,13 @@
         }
 
         .stat-card {
-            background: rgba(255, 255, 255, 0.65);
+            background: rgba(30, 30, 30, 0.85);
             backdrop-filter: blur(30px) saturate(200%);
             -webkit-backdrop-filter: blur(30px) saturate(200%);
-            border: 0.5px solid rgba(255, 255, 255, 0.8);
+            border: 0.5px solid rgba(255, 255, 255, 0.15);
             border-radius: var(--joy-radius-md);
             padding: 1.25rem;
-            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.5) inset, var(--joy-shadow-sm);
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.05) inset, var(--joy-shadow-sm);
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
         }
@@ -420,17 +420,17 @@
         }
 
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.6);
+            background: rgba(50, 50, 50, 0.8);
             backdrop-filter: blur(20px);
             color: var(--joy-text-primary);
-            border: 0.5px solid rgba(60, 60, 67, 0.18);
-            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.5) inset, var(--joy-shadow-sm);
+            border: 0.5px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.05) inset, var(--joy-shadow-sm);
         }
 
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(60, 60, 60, 0.9);
             transform: translateY(-2px);
-            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.8) inset, var(--joy-shadow-md);
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.1) inset, var(--joy-shadow-md);
         }
 
         .btn-secondary:active {
@@ -463,17 +463,17 @@
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
-            background: rgba(255, 255, 255, 0.65);
+            background: rgba(30, 30, 30, 0.85);
             backdrop-filter: blur(30px) saturate(200%);
             -webkit-backdrop-filter: blur(30px) saturate(200%);
-            border: 0.5px solid rgba(255, 255, 255, 0.8);
+            border: 0.5px solid rgba(255, 255, 255, 0.15);
             border-radius: var(--joy-radius-md);
             overflow: hidden;
-            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.5) inset, var(--joy-shadow-sm);
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.05) inset, var(--joy-shadow-sm);
         }
 
         .modern-table thead {
-            background: rgba(0, 122, 255, 0.04);
+            background: rgba(10, 132, 255, 0.1);
             backdrop-filter: blur(10px);
         }
 
@@ -489,16 +489,15 @@
         }
 
         .modern-table tbody tr {
-            border-bottom: 2px solid rgba(0, 122, 255, 0.08);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
-            position: relative;
         }
 
         .modern-table tbody tr:hover {
-            background: rgba(0, 122, 255, 0.05);
+            background: rgba(10, 132, 255, 0.15);
             transform: scale(1.005);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
 
         .modern-table tbody tr:active {
@@ -509,26 +508,10 @@
             border-bottom: none;
         }
 
-        .modern-table tbody tr::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(0, 122, 255, 0.15) 50%, transparent);
-            opacity: 0.5;
-        }
-
         .modern-table td {
             padding: 0.875rem 1rem;
             font-size: 0.8125rem;
             color: var(--joy-text-primary);
-            border-right: 1px solid rgba(0, 122, 255, 0.04);
-        }
-
-        .modern-table td:last-child {
-            border-right: none;
         }
 
         /* Status Badges */
@@ -610,22 +593,22 @@
         textarea {
             width: 100%;
             padding: 0.625rem 0.875rem;
-            border: 0.5px solid rgba(60, 60, 67, 0.18);
+            border: 0.5px solid rgba(255, 255, 255, 0.15);
             border-radius: var(--joy-radius-sm);
             font-size: 0.875rem;
             font-family: inherit;
             color: var(--joy-text-primary);
-            background: rgba(255, 255, 255, 0.6);
+            background: rgba(40, 40, 40, 0.7);
             backdrop-filter: blur(20px);
-            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.5) inset;
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.05) inset;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         input:hover,
         select:hover,
         textarea:hover {
-            border-color: rgba(0, 122, 255, 0.3);
-            background: rgba(255, 255, 255, 0.8);
+            border-color: rgba(10, 132, 255, 0.4);
+            background: rgba(50, 50, 50, 0.8);
         }
 
         input:focus,
@@ -633,8 +616,8 @@
         textarea:focus {
             outline: none;
             border-color: var(--joy-primary-500);
-            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12), 0 1px 0 0 rgba(255, 255, 255, 0.8) inset;
-            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.2), 0 1px 0 0 rgba(255, 255, 255, 0.1) inset;
+            background: rgba(50, 50, 50, 0.9);
             transform: scale(1.01);
         }
 
@@ -695,16 +678,16 @@
         }
 
         .modal-content {
-            background: rgba(255, 255, 255, 0.75);
+            background: rgba(30, 30, 30, 0.95);
             backdrop-filter: blur(60px) saturate(200%);
             -webkit-backdrop-filter: blur(60px) saturate(200%);
-            border: 0.5px solid rgba(255, 255, 255, 0.8);
+            border: 0.5px solid rgba(255, 255, 255, 0.15);
             border-radius: var(--joy-radius-lg);
             max-width: 600px;
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.8) inset, 0 20px 60px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.1) inset, 0 20px 60px rgba(0, 0, 0, 0.6);
             animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -775,14 +758,14 @@
         }
 
         .vehicle-card {
-            background: rgba(255, 255, 255, 0.65);
+            background: rgba(30, 30, 30, 0.85);
             backdrop-filter: blur(30px) saturate(200%);
             -webkit-backdrop-filter: blur(30px) saturate(200%);
-            border: 0.5px solid rgba(255, 255, 255, 0.8);
+            border: 0.5px solid rgba(255, 255, 255, 0.15);
             border-radius: var(--joy-radius-md);
             overflow: hidden;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.5) inset, var(--joy-shadow-sm);
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.05) inset, var(--joy-shadow-sm);
             cursor: pointer;
         }
 
@@ -848,10 +831,10 @@
         /* Status Popup */
         .status-popup {
             position: fixed;
-            background: rgba(255, 255, 255, 0.75);
+            background: rgba(30, 30, 30, 0.95);
             backdrop-filter: blur(60px) saturate(200%);
             -webkit-backdrop-filter: blur(60px) saturate(200%);
-            border: 0.5px solid rgba(255, 255, 255, 0.8);
+            border: 0.5px solid rgba(255, 255, 255, 0.15);
             border-radius: var(--joy-radius-md);
             box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.8) inset, 0 12px 40px rgba(0, 0, 0, 0.12);
             padding: 0.5rem;

@@ -1686,33 +1686,33 @@ function createVehicleRow(vehicle) {
     const dateAdded = new Date(vehicle.dateAdded).toLocaleDateString();
 
     return `
-        <tr class="vehicle-row" onclick="openVehicleDetail(${vehicle.id})" style="cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.2s;">
-            <td style="padding: 0.5rem 0.75rem;">
+        <tr class="vehicle-row" onclick="openVehicleDetail(${vehicle.id})" style="cursor: pointer;">
+            <td>
                 <div style="font-weight: 600; font-size: 0.875rem; color: var(--accent);">${vehicle.stockNumber}</div>
             </td>
-            <td style="padding: 0.5rem 0.75rem;">
+            <td>
                 <div style="font-weight: 600; font-size: 0.875rem;">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
                 <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.125rem;">${vehicle.trim}</div>
             </td>
-            <td style="padding: 0.5rem 0.75rem;">
+            <td>
                 <div style="font-size: 0.8125rem;">${vehicle.vin}</div>
             </td>
-            <td style="padding: 0.5rem 0.75rem;">
+            <td>
                 <div style="font-size: 0.8125rem;">${vehicle.color}</div>
             </td>
-            <td style="padding: 0.5rem 0.75rem;">
+            <td>
                 ${vehicle.fleetCompany ? `<div style="font-size: 0.8125rem;">${vehicle.fleetCompany}</div>` : '<div style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>'}
             </td>
-            <td style="padding: 0.5rem 0.75rem;">
+            <td>
                 ${vehicle.operationCompany ? `<div style="font-size: 0.8125rem;">${vehicle.operationCompany}</div>` : '<div style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>'}
             </td>
-            <td style="padding: 0.5rem 0.75rem;">
+            <td>
                 ${customerName ? `<div style="font-size: 0.8125rem;">${customerName}</div>` : '<div style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>'}
             </td>
-            <td style="padding: 0.5rem 0.75rem;">
+            <td>
                 <span class="status-badge ${statusClass}">${statusText}</span>
             </td>
-            <td style="padding: 0.5rem 0.75rem;" onclick="event.stopPropagation();">
+            <td onclick="event.stopPropagation();">
                 <div style="display: flex; gap: 0.375rem;">
                     <button class="btn btn-small btn-secondary" onclick="openVehicleDetail(${vehicle.id})" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Details</button>
                     <button class="btn btn-small btn-secondary" onclick="openStatusPopup(${vehicle.id}, event)" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Status</button>
