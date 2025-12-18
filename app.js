@@ -1560,18 +1560,18 @@ function renderInventoryPage() {
         container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🚗</div><p>No vehicles found</p></div>';
     } else {
         container.innerHTML = `
-            <table class="vehicle-table" style="width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 12px; overflow: hidden;">
-                <thead style="background: rgba(10, 132, 255, 0.1); border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 10;">
+            <table class="modern-table">
+                <thead>
                     <tr>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Stock #</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Vehicle</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">VIN</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Color</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Fleet</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Operation</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Customer</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Status</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Actions</th>
+                        <th>Stock #</th>
+                        <th>Vehicle</th>
+                        <th>VIN</th>
+                        <th>Color</th>
+                        <th>Fleet</th>
+                        <th>Operation</th>
+                        <th>Customer</th>
+                        <th>Status</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1590,18 +1590,18 @@ function renderStatusPage(status, gridId, searchId, makeFilterId) {
         container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🚗</div><p>No vehicles in this status</p></div>';
     } else {
         container.innerHTML = `
-            <table class="vehicle-table" style="width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 12px; overflow: hidden;">
-                <thead style="background: rgba(10, 132, 255, 0.1); border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 10;">
+            <table class="modern-table">
+                <thead>
                     <tr>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Stock #</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Vehicle</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">VIN</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Color</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Fleet</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Operation</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Customer</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Status</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Actions</th>
+                        <th>Stock #</th>
+                        <th>Vehicle</th>
+                        <th>VIN</th>
+                        <th>Color</th>
+                        <th>Fleet</th>
+                        <th>Operation</th>
+                        <th>Customer</th>
+                        <th>Status</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>

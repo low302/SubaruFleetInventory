@@ -10,17 +10,17 @@
     <style>
         /* visionOS Inspired Design */
         :root {
-            --joy-bg-surface: #1a1a1a;
-            --joy-bg-gradient: radial-gradient(ellipse at top, rgba(0, 122, 255, 0.12) 0%, transparent 60%),
-                               radial-gradient(ellipse at bottom right, rgba(175, 82, 222, 0.08) 0%, transparent 50%),
-                               radial-gradient(ellipse at bottom left, rgba(52, 199, 89, 0.06) 0%, transparent 50%),
-                               linear-gradient(to bottom, #1a1a1a 0%, #0f0f0f 100%);
-            --joy-bg-level1: rgba(40, 40, 40, 0.7);
-            --joy-bg-level2: rgba(50, 50, 50, 0.8);
-            --joy-divider: rgba(255, 255, 255, 0.1);
-            --joy-text-primary: #e5e5e7;
-            --joy-text-secondary: #a0a0a5;
-            --joy-text-tertiary: #6e6e73;
+            /* Softer slate-based dark palette - easier on the eyes */
+            --joy-bg-surface: #1e293b;
+            --joy-bg-gradient: radial-gradient(ellipse at top, rgba(99, 102, 241, 0.08) 0%, transparent 60%),
+                               radial-gradient(ellipse at bottom right, rgba(236, 72, 153, 0.05) 0%, transparent 50%),
+                               linear-gradient(to bottom, #1e293b 0%, #0f172a 100%);
+            --joy-bg-level1: rgba(51, 65, 85, 0.6);
+            --joy-bg-level2: rgba(71, 85, 105, 0.7);
+            --joy-divider: rgba(226, 232, 240, 0.12);
+            --joy-text-primary: #e2e8f0;
+            --joy-text-secondary: #cbd5e1;
+            --joy-text-tertiary: #94a3b8;
             --joy-primary-500: #0a84ff;
             --joy-primary-600: #0066cc;
             --joy-primary-400: #409cff;
@@ -66,7 +66,7 @@
         }
 
         .login-container {
-            background: rgba(30, 30, 30, 0.85);
+            background: rgba(51, 65, 85, 0.6);
             backdrop-filter: blur(60px) saturate(200%);
             -webkit-backdrop-filter: blur(60px) saturate(200%);
             border-radius: var(--joy-radius-lg);
@@ -102,7 +102,7 @@
             top: 0;
             bottom: 0;
             width: 240px;
-            background: rgba(25, 25, 25, 0.85);
+            background: rgba(51, 65, 85, 0.7);
             backdrop-filter: blur(60px) saturate(200%);
             -webkit-backdrop-filter: blur(60px) saturate(200%);
             border-right: 1px solid var(--joy-divider);
@@ -211,7 +211,7 @@
             right: 0;
             padding: 0.75rem 1rem;
             border-top: 1px solid var(--joy-divider);
-            background: rgba(20, 20, 20, 0.95);
+            background: rgba(30, 41, 59, 0.95);
             backdrop-filter: blur(20px);
         }
 
@@ -258,7 +258,7 @@
         }
 
         .top-bar {
-            background: rgba(25, 25, 25, 0.85);
+            background: rgba(51, 65, 85, 0.7);
             backdrop-filter: blur(60px) saturate(200%);
             -webkit-backdrop-filter: blur(60px) saturate(200%);
             border-bottom: 1px solid var(--joy-divider);
@@ -321,7 +321,7 @@
         }
 
         .stat-card {
-            background: rgba(30, 30, 30, 0.85);
+            background: rgba(51, 65, 85, 0.6);
             backdrop-filter: blur(30px) saturate(200%);
             -webkit-backdrop-filter: blur(30px) saturate(200%);
             border: 0.5px solid rgba(255, 255, 255, 0.15);
@@ -420,7 +420,7 @@
         }
 
         .btn-secondary {
-            background: rgba(50, 50, 50, 0.8);
+            background: rgba(71, 85, 105, 0.6);
             backdrop-filter: blur(20px);
             color: var(--joy-text-primary);
             border: 0.5px solid rgba(255, 255, 255, 0.15);
@@ -428,7 +428,7 @@
         }
 
         .btn-secondary:hover {
-            background: rgba(60, 60, 60, 0.9);
+            background: rgba(71, 85, 105, 0.7);
             transform: translateY(-2px);
             box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.1) inset, var(--joy-shadow-md);
         }
@@ -463,7 +463,7 @@
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
-            background: rgba(30, 30, 30, 0.85);
+            background: rgba(51, 65, 85, 0.6);
             backdrop-filter: blur(30px) saturate(200%);
             -webkit-backdrop-filter: blur(30px) saturate(200%);
             border: 0.5px solid rgba(255, 255, 255, 0.15);
@@ -598,7 +598,7 @@
             font-size: 0.875rem;
             font-family: inherit;
             color: var(--joy-text-primary);
-            background: rgba(40, 40, 40, 0.7);
+            background: rgba(51, 65, 85, 0.5);
             backdrop-filter: blur(20px);
             box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.05) inset;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -608,7 +608,7 @@
         select:hover,
         textarea:hover {
             border-color: rgba(10, 132, 255, 0.4);
-            background: rgba(50, 50, 50, 0.8);
+            background: rgba(71, 85, 105, 0.6);
         }
 
         input:focus,
@@ -678,7 +678,7 @@
         }
 
         .modal-content {
-            background: rgba(30, 30, 30, 0.95);
+            background: rgba(51, 65, 85, 0.95);
             backdrop-filter: blur(60px) saturate(200%);
             -webkit-backdrop-filter: blur(60px) saturate(200%);
             border: 0.5px solid rgba(255, 255, 255, 0.15);
@@ -758,7 +758,7 @@
         }
 
         .vehicle-card {
-            background: rgba(30, 30, 30, 0.85);
+            background: rgba(51, 65, 85, 0.6);
             backdrop-filter: blur(30px) saturate(200%);
             -webkit-backdrop-filter: blur(30px) saturate(200%);
             border: 0.5px solid rgba(255, 255, 255, 0.15);
@@ -831,7 +831,7 @@
         /* Status Popup */
         .status-popup {
             position: fixed;
-            background: rgba(30, 30, 30, 0.95);
+            background: rgba(51, 65, 85, 0.95);
             backdrop-filter: blur(60px) saturate(200%);
             -webkit-backdrop-filter: blur(60px) saturate(200%);
             border: 0.5px solid rgba(255, 255, 255, 0.15);
@@ -914,7 +914,7 @@
             align-items: center;
             justify-content: center;
             transition: all 0.2s ease;
-            background: rgba(50, 50, 50, 0.8);
+            background: rgba(71, 85, 105, 0.6);
         }
 
         .custom-checkbox input[type="checkbox"]:checked + .checkbox-label .checkbox-box {
@@ -1182,25 +1182,25 @@
                         <!-- Dashboard Sections Grid -->
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
                             <!-- Pending Pickups (Top Left) -->
-                            <div style="background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
+                            <div style="background: rgba(51, 65, 85, 0.6); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
                                 <h2 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--joy-text-primary);">⏳ Pending Pickup</h2>
                                 <div id="pendingPickups"></div>
                             </div>
 
                             <!-- Scheduled Pickups (Top Right) -->
-                            <div style="background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
+                            <div style="background: rgba(51, 65, 85, 0.6); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
                                 <h2 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--joy-text-primary);">📅 Scheduled Pickups</h2>
                                 <div id="scheduledPickups"></div>
                             </div>
 
                             <!-- Newest Units (Bottom Left) -->
-                            <div style="background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
+                            <div style="background: rgba(51, 65, 85, 0.6); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
                                 <h2 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--joy-text-primary);">🆕 Newest Units</h2>
                                 <div id="newestVehicles"></div>
                             </div>
 
                             <!-- Oldest Units (Bottom Right) -->
-                            <div style="background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
+                            <div style="background: rgba(51, 65, 85, 0.6); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
                                 <h2 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--joy-text-primary);">⏰ Oldest Units</h2>
                                 <div id="oldestVehicles"></div>
                             </div>
@@ -1404,7 +1404,7 @@
                             <h1>Analytics</h1>
                             <p>Fleet inventory analytics and insights</p>
                         </div>
-                        <div style="background: rgba(30, 30, 30, 0.85); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 2rem;">
+                        <div style="background: rgba(51, 65, 85, 0.6); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 2rem;">
                             <canvas id="makeChart" style="max-height: 400px;"></canvas>
                         </div>
                     </div>
@@ -1779,7 +1779,7 @@
                 <div id="label" style="
                     width: 384px;
                     height: 192px;
-                    background: rgba(30, 30, 30, 0.95);
+                    background: rgba(51, 65, 85, 0.95);
                     border: 1px solid rgba(255, 255, 255, 0.15);
                     margin: 0 auto;
                     padding: 12px;
