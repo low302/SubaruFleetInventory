@@ -444,9 +444,9 @@ async function saveVehicleEdit(event) {
         return;
     }
 
-    // Get in stock date or keep existing
+    // Get in stock date - allow it to be cleared (null)
     const inStockDateInput = document.getElementById('editInStockDate').value;
-    const inStockDate = inStockDateInput ? inStockDateInput + 'T00:00:00.000Z' : (currentVehicle.inStockDate || currentVehicle.dateAdded);
+    const inStockDate = inStockDateInput ? inStockDateInput + 'T00:00:00.000Z' : null;
 
     // Update only the edited fields, preserve everything else
     const updatedVehicle = {
@@ -2460,3 +2460,43 @@ function filterPayments() {
         row.style.display = (matchesSearch && matchesMethod) ? '' : 'none';
     });
 }
+
+// ==================== UTILITY FUNCTIONS ====================
+
+// Utility function to fix in-stock dates for all in-transit vehicles
+// Can be called from browser console or triggered by a button
+async function fixInTransitDates() {
+    const confirmed = await showConfirmation(
+        'This will clear the in-stock date for ALL vehicles currently in "In-Transit" status. Continue?'
+    );
+
+    if (!confirmed) return;
+
+    try {
+        const response = await fetch(`${API_BASE}/inventory/fix-intransit-dates`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fix in-transit dates');
+        }
+
+        const result = await response.json();
+        showNotification(result.message || 'Successfully fixed in-transit dates!', 'success');
+
+        // Reload data to reflect changes
+        await loadAllData();
+        updateDashboard();
+        renderCurrentPage();
+
+        console.log('Fixed in-transit dates:', result);
+    } catch (error) {
+        console.error('Error fixing in-transit dates:', error);
+        showNotification('Failed to fix in-transit dates: ' + error.message, 'error');
+    }
+}
+
+// Make function available globally for console access
+window.fixInTransitDates = fixInTransitDates;

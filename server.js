@@ -401,6 +401,18 @@ app.delete('/api/inventory/:id', isAuthenticated, (req, res) => {
     });
 });
 
+// Fix in-stock dates for in-transit vehicles (utility endpoint)
+app.post('/api/inventory/fix-intransit-dates', isAuthenticated, (req, res) => {
+    db.run('UPDATE inventory SET inStockDate = NULL WHERE status = ?', ['in-transit'], function(err) {
+        if (err) {
+            console.error('Error fixing in-transit dates:', err);
+            return res.status(500).json({ error: err.message });
+        }
+        console.log('Fixed in-stock dates for in-transit vehicles, changes:', this.changes);
+        res.json({ success: true, changes: this.changes, message: `Cleared in-stock dates for ${this.changes} in-transit vehicle(s)` });
+    });
+});
+
 // ==================== SOLD VEHICLES ROUTES ====================
 
 // Get all sold vehicles
