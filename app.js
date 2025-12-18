@@ -200,10 +200,10 @@ async function addVehicle(event) {
         return;
     }
 
-    // Get in stock date - only set if provided, or if status is not in-transit
+    // Get in stock date - only set if user manually provides it
     const inStockDateInput = document.getElementById('inStockDate').value;
     const vehicleStatus = document.getElementById('status').value;
-    const inStockDate = inStockDateInput ? inStockDateInput + 'T00:00:00.000Z' : (vehicleStatus !== 'in-transit' ? new Date().toISOString() : null);
+    const inStockDate = inStockDateInput ? inStockDateInput + 'T00:00:00.000Z' : null;
 
     const vehicle = {
         id: Date.now(),
@@ -308,19 +308,7 @@ async function updateVehicleStatus() {
     } 
     // Regular status update within inventory
     else {
-        const oldStatus = currentVehicle.status;
         currentVehicle.status = newStatus;
-
-        // Handle in-stock date based on status changes
-        if (oldStatus === 'in-transit' && newStatus !== 'in-transit') {
-            // Vehicle arriving from transit - set in-stock date to today if not already set
-            if (!currentVehicle.inStockDate) {
-                currentVehicle.inStockDate = new Date().toISOString();
-            }
-        } else if (oldStatus !== 'in-transit' && newStatus === 'in-transit') {
-            // Vehicle going into transit - clear in-stock date
-            currentVehicle.inStockDate = null;
-        }
 
         try {
             const response = await fetch(`${API_BASE}/inventory/${currentVehicle.id}`, {

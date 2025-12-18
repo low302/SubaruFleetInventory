@@ -333,7 +333,7 @@ app.post('/api/inventory', isAuthenticated, (req, res) => {
         vehicle.operationCompany || '',
         vehicle.status,
         vehicle.dateAdded,
-        vehicle.inStockDate || vehicle.dateAdded,
+        vehicle.inStockDate || null,
         vehicle.customer ? JSON.stringify(vehicle.customer) : null,
         vehicle.documents ? JSON.stringify(vehicle.documents) : '[]'
     ];
@@ -375,7 +375,7 @@ app.put('/api/inventory/:id', isAuthenticated, (req, res) => {
         vehicle.pickupTime || null,
         vehicle.pickupNotes || null,
         vehicle.tradeInId || null,
-        vehicle.inStockDate || vehicle.dateAdded,
+        vehicle.inStockDate || null,
         vehicle.id
     ];
 
