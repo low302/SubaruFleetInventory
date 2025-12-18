@@ -1814,7 +1814,73 @@
         </div>
     </div>
 
+    <!-- Label Position Selector Modal -->
+    <div id="labelPositionModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Select Label Position</h2>
+                <button class="close-btn" onclick="closeLabelPositionModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 1rem; color: var(--joy-text-secondary); font-size: 0.875rem;">
+                    Click on the position where you want to print the label on your OL125 sheet (2 columns × 5 rows)
+                </p>
+
+                <!-- Label Grid Preview -->
+                <div id="labelGrid" style="
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 0.5rem;
+                    margin-bottom: 1.5rem;
+                    max-width: 400px;
+                    margin-left: auto;
+                    margin-right: auto;
+                ">
+                    <!-- Generate 10 label positions (2 cols × 5 rows) -->
+                </div>
+
+                <div style="display: flex; gap: 1rem;">
+                    <button onclick="printSelectedPosition()" class="btn btn-primary" style="flex: 1;">
+                        🖨️ Print Label
+                    </button>
+                    <button onclick="closeLabelPositionModal()" class="btn btn-secondary" style="flex: 1;">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <style>
+        /* Label Position Grid Styles */
+        .label-position-btn {
+            aspect-ratio: 2/1;
+            border: 2px solid var(--joy-divider);
+            border-radius: var(--joy-radius-sm);
+            background: rgba(71, 85, 105, 0.3);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--joy-text-secondary);
+        }
+
+        .label-position-btn:hover {
+            background: rgba(71, 85, 105, 0.5);
+            border-color: var(--joy-primary-500);
+            transform: scale(1.05);
+        }
+
+        .label-position-btn.selected {
+            background: var(--joy-primary-500);
+            border-color: var(--joy-primary-500);
+            color: white;
+            transform: scale(1.05);
+        }
+
         @media print {
             body * {
                 visibility: hidden;
@@ -1824,16 +1890,15 @@
             }
             #label {
                 position: absolute;
-                left: 0;
-                top: 0;
                 width: 4in;
                 height: 2in;
                 border: none !important;
                 margin: 0;
                 padding: 0.125in;
+                box-sizing: border-box;
             }
             @page {
-                size: 4in 2in;
+                size: 8.5in 11in;
                 margin: 0;
             }
         }

@@ -868,7 +868,94 @@ function generateLabel(vehicle) {
     openLabelModal();
 }
 
-function printLabel() { window.print(); }
+// Global variable to store selected label position
+let selectedLabelPosition = null;
+
+// OL125 label positions (2 columns × 5 rows)
+const OL125_POSITIONS = [
+    { row: 1, col: 1, top: '0.5in', left: '0.18in' },
+    { row: 1, col: 2, top: '0.5in', left: '4.32in' },
+    { row: 2, col: 1, top: '2.5in', left: '0.18in' },
+    { row: 2, col: 2, top: '2.5in', left: '4.32in' },
+    { row: 3, col: 1, top: '4.5in', left: '0.18in' },
+    { row: 3, col: 2, top: '4.5in', left: '4.32in' },
+    { row: 4, col: 1, top: '6.5in', left: '0.18in' },
+    { row: 4, col: 2, top: '6.5in', left: '4.32in' },
+    { row: 5, col: 1, top: '8.5in', left: '0.18in' },
+    { row: 5, col: 2, top: '8.5in', left: '4.32in' }
+];
+
+function printLabel() {
+    // Open position selector modal instead of printing directly
+    openLabelPositionModal();
+}
+
+function openLabelPositionModal() {
+    const modal = document.getElementById('labelPositionModal');
+    const grid = document.getElementById('labelGrid');
+
+    // Generate grid buttons
+    grid.innerHTML = OL125_POSITIONS.map((pos, index) => `
+        <button class="label-position-btn" onclick="selectLabelPosition(${index})">
+            Row ${pos.row}, Col ${pos.col}
+        </button>
+    `).join('');
+
+    modal.classList.add('active');
+}
+
+function closeLabelPositionModal() {
+    document.getElementById('labelPositionModal').classList.remove('active');
+    selectedLabelPosition = null;
+
+    // Remove selected class from all buttons
+    document.querySelectorAll('.label-position-btn').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+}
+
+function selectLabelPosition(index) {
+    selectedLabelPosition = index;
+
+    // Update button states
+    document.querySelectorAll('.label-position-btn').forEach((btn, i) => {
+        if (i === index) {
+            btn.classList.add('selected');
+        } else {
+            btn.classList.remove('selected');
+        }
+    });
+}
+
+function printSelectedPosition() {
+    if (selectedLabelPosition === null) {
+        showNotification('Please select a label position first', 'error');
+        return;
+    }
+
+    const position = OL125_POSITIONS[selectedLabelPosition];
+    const label = document.getElementById('label');
+
+    // Apply position for printing
+    label.style.position = 'absolute';
+    label.style.top = position.top;
+    label.style.left = position.left;
+
+    // Close modal and print
+    closeLabelPositionModal();
+
+    // Small delay to ensure styles are applied
+    setTimeout(() => {
+        window.print();
+
+        // Reset position after print
+        setTimeout(() => {
+            label.style.position = '';
+            label.style.top = '';
+            label.style.left = '';
+        }, 100);
+    }, 100);
+}
 
 async function saveLabel() {
     const label = document.getElementById('label');
