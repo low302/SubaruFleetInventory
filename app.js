@@ -181,6 +181,20 @@ async function loadTradeIns() {
     }
 }
 
+// Auto-generate stock number from VIN (CDXXXXX format where XXXXX = last 5 of VIN)
+function autoGenerateStockNumber() {
+    const vinInput = document.getElementById('vin').value.toUpperCase();
+    const stockNumberInput = document.getElementById('stockNumber');
+
+    // Only generate if VIN is 17 characters
+    if (vinInput.length === 17) {
+        const lastFive = vinInput.slice(-5);
+        stockNumberInput.value = 'CD' + lastFive;
+    } else {
+        stockNumberInput.value = '';
+    }
+}
+
 async function addVehicle(event) {
     event.preventDefault();
 

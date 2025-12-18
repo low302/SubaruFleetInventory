@@ -1423,12 +1423,12 @@
             <div class="modal-body">
                 <form id="vehicleForm" onsubmit="addVehicle(event)">
                     <div class="form-group">
-                        <label for="stockNumber">Stock #</label>
-                        <input type="text" id="stockNumber" required>
+                        <label for="vin">VIN</label>
+                        <input type="text" id="vin" maxlength="17" minlength="17" pattern="[A-HJ-NPR-Z0-9]{17}" title="VIN must be exactly 17 characters (letters and numbers, excluding I, O, Q)" required style="text-transform: uppercase;" oninput="autoGenerateStockNumber()">
                     </div>
                     <div class="form-group">
-                        <label for="vin">VIN</label>
-                        <input type="text" id="vin" maxlength="17" minlength="17" pattern="[A-HJ-NPR-Z0-9]{17}" title="VIN must be exactly 17 characters (letters and numbers, excluding I, O, Q)" required style="text-transform: uppercase;">
+                        <label for="stockNumber">Stock # <span style="font-size: 0.75rem; color: var(--joy-text-tertiary); font-weight: normal;">(Auto-generated from VIN)</span></label>
+                        <input type="text" id="stockNumber" required readonly style="background: rgba(71, 85, 105, 0.4); cursor: not-allowed;">
                     </div>
                     <div class="form-row">
                         <div class="form-group">
