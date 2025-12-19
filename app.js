@@ -873,16 +873,16 @@ let selectedLabelPosition = null;
 
 // OL125 label positions (2 columns × 5 rows)
 const OL125_POSITIONS = [
-    { row: 1, col: 1, top: '0.5in', left: '0.18in' },
-    { row: 1, col: 2, top: '0.5in', left: '4.32in' },
-    { row: 2, col: 1, top: '2.5in', left: '0.18in' },
-    { row: 2, col: 2, top: '2.5in', left: '4.32in' },
-    { row: 3, col: 1, top: '4.5in', left: '0.18in' },
-    { row: 3, col: 2, top: '4.5in', left: '4.32in' },
-    { row: 4, col: 1, top: '6.5in', left: '0.18in' },
-    { row: 4, col: 2, top: '6.5in', left: '4.32in' },
-    { row: 5, col: 1, top: '8.5in', left: '0.18in' },
-    { row: 5, col: 2, top: '8.5in', left: '4.32in' }
+    { row: 1, col: 1, top: '0.5in', left: '0.25in' },
+    { row: 1, col: 2, top: '0.5in', left: '4.25in' },
+    { row: 2, col: 1, top: '2.5in', left: '0.25in' },
+    { row: 2, col: 2, top: '2.5in', left: '4.25in' },
+    { row: 3, col: 1, top: '4.5in', left: '0.25in' },
+    { row: 3, col: 2, top: '4.5in', left: '4.25in' },
+    { row: 4, col: 1, top: '6.5in', left: '0.25in' },
+    { row: 4, col: 2, top: '6.5in', left: '4.25in' },
+    { row: 5, col: 1, top: '8.5in', left: '0.25in' },
+    { row: 5, col: 2, top: '8.5in', left: '4.25in' }
 ];
 
 function printLabel() {
@@ -936,25 +936,27 @@ function printSelectedPosition() {
     const position = OL125_POSITIONS[selectedLabelPosition];
     const label = document.getElementById('label');
 
-    // Apply position for printing
-    label.style.position = 'absolute';
-    label.style.top = position.top;
-    label.style.left = position.left;
+    // Set data attribute for CSS to use
+    label.setAttribute('data-print-position', selectedLabelPosition);
 
-    // Close modal and print
+    // Also set inline styles as backup
+    label.style.setProperty('--print-top', position.top);
+    label.style.setProperty('--print-left', position.left);
+
+    // Close modal
     closeLabelPositionModal();
 
-    // Small delay to ensure styles are applied
+    // Small delay to ensure styles are applied, then print
     setTimeout(() => {
         window.print();
 
-        // Reset position after print
+        // Reset after print dialog closes (longer delay)
         setTimeout(() => {
-            label.style.position = '';
-            label.style.top = '';
-            label.style.left = '';
-        }, 100);
-    }, 100);
+            label.removeAttribute('data-print-position');
+            label.style.removeProperty('--print-top');
+            label.style.removeProperty('--print-left');
+        }, 500);
+    }, 200);
 }
 
 async function saveLabel() {

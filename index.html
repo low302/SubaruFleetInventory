@@ -1912,7 +1912,21 @@
                 margin: 0 !important;
                 padding: 0.125in;
                 box-sizing: border-box;
+                top: var(--print-top, 0.5in) !important;
+                left: var(--print-left, 0.25in) !important;
             }
+
+            /* Specific position overrides using data attribute */
+            #label[data-print-position="0"] { top: 0.5in !important; left: 0.25in !important; }
+            #label[data-print-position="1"] { top: 0.5in !important; left: 4.25in !important; }
+            #label[data-print-position="2"] { top: 2.5in !important; left: 0.25in !important; }
+            #label[data-print-position="3"] { top: 2.5in !important; left: 4.25in !important; }
+            #label[data-print-position="4"] { top: 4.5in !important; left: 0.25in !important; }
+            #label[data-print-position="5"] { top: 4.5in !important; left: 4.25in !important; }
+            #label[data-print-position="6"] { top: 6.5in !important; left: 0.25in !important; }
+            #label[data-print-position="7"] { top: 6.5in !important; left: 4.25in !important; }
+            #label[data-print-position="8"] { top: 8.5in !important; left: 0.25in !important; }
+            #label[data-print-position="9"] { top: 8.5in !important; left: 4.25in !important; }
 
             @page {
                 size: 8.5in 11in;
