@@ -939,9 +939,8 @@ function printSelectedPosition() {
     // Set data attribute for CSS to use
     label.setAttribute('data-print-position', selectedLabelPosition);
 
-    // Also set inline styles as backup
-    label.style.setProperty('--print-top', position.top);
-    label.style.setProperty('--print-left', position.left);
+    // Debug log
+    console.log('Print position:', selectedLabelPosition, 'Position:', position);
 
     // Close modal
     closeLabelPositionModal();
@@ -953,8 +952,6 @@ function printSelectedPosition() {
         // Reset after print dialog closes (longer delay)
         setTimeout(() => {
             label.removeAttribute('data-print-position');
-            label.style.removeProperty('--print-top');
-            label.style.removeProperty('--print-left');
         }, 500);
     }, 200);
 }
