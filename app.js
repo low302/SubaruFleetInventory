@@ -1982,45 +1982,554 @@ function renderDetailModal(vehicle) {
     renderDocumentList();
 }
 
+// Store chart instances to destroy them before re-rendering
+let chartInstances = {};
+
 function renderAnalytics() {
-    const makeData = {};
-    vehicles.forEach(v => { makeData[v.make] = (makeData[v.make] || 0) + 1; });
-    
-    const canvas = document.getElementById('makeChart');
+    // Destroy existing charts to prevent memory leaks and rendering issues
+    Object.values(chartInstances).forEach(chart => {
+        if (chart) chart.destroy();
+    });
+    chartInstances = {};
+
+    const period = document.getElementById('revenuePeriodFilter')?.value || 'monthly';
+
+    // Chart color palette
+    const colors = {
+        primary: 'rgba(10, 132, 255, 0.8)',
+        success: 'rgba(50, 215, 75, 0.8)',
+        warning: 'rgba(255, 159, 10, 0.8)',
+        danger: 'rgba(255, 69, 58, 0.8)',
+        purple: 'rgba(191, 90, 242, 0.8)',
+        teal: 'rgba(100, 210, 255, 0.8)',
+        pink: 'rgba(255, 55, 95, 0.8)',
+        orange: 'rgba(255, 149, 0, 0.8)'
+    };
+
+    const textColor = '#cbd5e1';
+    const gridColor = 'rgba(226, 232, 240, 0.12)';
+
+    // 1. Revenue Tracker Chart
+    renderRevenueChart(period, colors, textColor, gridColor);
+
+    // 2. Average Days to Sale Chart
+    renderAgeChart(colors, textColor, gridColor);
+
+    // 3. Inventory Status Distribution Chart
+    renderStatusChart(colors, textColor);
+
+    // 4. Vehicles by Make Chart
+    renderMakeChart(colors, textColor, gridColor);
+
+    // 5. Payment Method Distribution Chart
+    renderPaymentChart(colors, textColor);
+
+    // 6. Top Selling Models Chart
+    renderTopModelsChart(colors, textColor, gridColor);
+
+    // 7. Fleet Company Distribution Chart
+    renderFleetCompanyChart(colors, textColor, gridColor);
+}
+
+function renderRevenueChart(period, colors, textColor, gridColor) {
+    const soldVehicles = vehicles.filter(v => v.status === 'sold' && v.saleDate && v.saleAmount);
+
+    if (soldVehicles.length === 0) {
+        const canvas = document.getElementById('revenueChart');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = textColor;
+            ctx.font = '14px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText('No sales data available', canvas.width / 2, canvas.height / 2);
+        }
+        return;
+    }
+
+    const revenueData = {};
+
+    soldVehicles.forEach(v => {
+        const date = new Date(v.saleDate);
+        let key;
+
+        if (period === 'weekly') {
+            const weekNum = getWeekNumber(date);
+            key = `Week ${weekNum}, ${date.getFullYear()}`;
+        } else if (period === 'monthly') {
+            key = `${date.toLocaleString('default', { month: 'short' })} ${date.getFullYear()}`;
+        } else {
+            key = date.getFullYear().toString();
+        }
+
+        revenueData[key] = (revenueData[key] || 0) + parseFloat(v.saleAmount || 0);
+    });
+
+    const sortedKeys = Object.keys(revenueData).sort((a, b) => {
+        const dateA = parsePeriodKey(a, period);
+        const dateB = parsePeriodKey(b, period);
+        return dateA - dateB;
+    });
+
+    const canvas = document.getElementById('revenueChart');
     if (canvas) {
-        new Chart(canvas, {
-            type: 'bar',
+        chartInstances.revenue = new Chart(canvas, {
+            type: 'line',
             data: {
-                labels: Object.keys(makeData),
-                datasets: [{ 
-                    label: 'Vehicles by Make', 
-                    data: Object.values(makeData), 
-                    backgroundColor: 'rgba(11, 107, 203, 0.8)', 
-                    borderColor: 'rgba(11, 107, 203, 1)', 
-                    borderWidth: 1 
+                labels: sortedKeys,
+                datasets: [{
+                    label: 'Revenue ($)',
+                    data: sortedKeys.map(k => revenueData[k]),
+                    backgroundColor: 'rgba(50, 215, 75, 0.2)',
+                    borderColor: colors.success,
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: colors.success,
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
                 }]
             },
             options: {
-                responsive: true, 
+                responsive: true,
                 maintainAspectRatio: false,
-                plugins: { 
-                    legend: { 
-                        labels: { color: '#171A1C' } 
-                    } 
+                plugins: {
+                    legend: {
+                        labels: { color: textColor, font: { size: 12, weight: '600' } }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                return `Revenue: $${context.parsed.y.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                            }
+                        }
+                    }
                 },
-                scales: { 
-                    y: { 
-                        beginAtZero: true, 
-                        ticks: { color: '#555E68' }, 
-                        grid: { color: 'rgba(205, 215, 225, 0.3)' } 
-                    }, 
-                    x: { 
-                        ticks: { color: '#555E68' }, 
-                        grid: { color: 'rgba(205, 215, 225, 0.3)' } 
-                    } 
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: textColor,
+                            callback: (value) => '$' + value.toLocaleString()
+                        },
+                        grid: { color: gridColor }
+                    },
+                    x: {
+                        ticks: { color: textColor },
+                        grid: { color: gridColor }
+                    }
                 }
             }
         });
+    }
+}
+
+function renderAgeChart(colors, textColor, gridColor) {
+    const soldVehicles = vehicles.filter(v => v.status === 'sold' && v.saleDate && v.inStockDate);
+
+    if (soldVehicles.length === 0) {
+        const canvas = document.getElementById('ageChart');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = textColor;
+            ctx.font = '14px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText('No sold vehicle data available', canvas.width / 2, canvas.height / 2);
+        }
+        return;
+    }
+
+    const ageByMake = {};
+
+    soldVehicles.forEach(v => {
+        const inStockDate = new Date(v.inStockDate);
+        const saleDate = new Date(v.saleDate);
+        const daysInInventory = Math.floor((saleDate - inStockDate) / (1000 * 60 * 60 * 24));
+
+        if (!ageByMake[v.make]) {
+            ageByMake[v.make] = { total: 0, count: 0 };
+        }
+        ageByMake[v.make].total += daysInInventory;
+        ageByMake[v.make].count += 1;
+    });
+
+    const averages = Object.keys(ageByMake).map(make => ({
+        make,
+        avg: ageByMake[make].total / ageByMake[make].count
+    })).sort((a, b) => b.avg - a.avg);
+
+    const canvas = document.getElementById('ageChart');
+    if (canvas) {
+        chartInstances.age = new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: averages.map(a => a.make),
+                datasets: [{
+                    label: 'Avg Days in Inventory',
+                    data: averages.map(a => a.avg),
+                    backgroundColor: colors.warning,
+                    borderColor: colors.warning.replace('0.8', '1'),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: textColor, font: { size: 12, weight: '600' } }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                return `Avg Days: ${Math.round(context.parsed.y)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: textColor,
+                            callback: (value) => Math.round(value) + ' days'
+                        },
+                        grid: { color: gridColor }
+                    },
+                    x: {
+                        ticks: { color: textColor },
+                        grid: { color: gridColor }
+                    }
+                }
+            }
+        });
+    }
+}
+
+function renderStatusChart(colors, textColor) {
+    const statusData = {
+        'In Stock': 0,
+        'In-Transit': 0,
+        'PDI': 0,
+        'Pending Pickup': 0,
+        'Pickup Scheduled': 0,
+        'Sold': 0
+    };
+
+    vehicles.forEach(v => {
+        switch(v.status) {
+            case 'in-stock': statusData['In Stock']++; break;
+            case 'in-transit': statusData['In-Transit']++; break;
+            case 'pdi': statusData['PDI']++; break;
+            case 'pending-pickup': statusData['Pending Pickup']++; break;
+            case 'pickup-scheduled': statusData['Pickup Scheduled']++; break;
+            case 'sold': statusData['Sold']++; break;
+        }
+    });
+
+    const canvas = document.getElementById('statusChart');
+    if (canvas) {
+        chartInstances.status = new Chart(canvas, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(statusData),
+                datasets: [{
+                    data: Object.values(statusData),
+                    backgroundColor: [
+                        colors.primary,
+                        colors.warning,
+                        colors.purple,
+                        colors.orange,
+                        colors.success,
+                        colors.teal
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#1e293b'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: textColor,
+                            font: { size: 11, weight: '600' },
+                            padding: 10
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+function renderMakeChart(colors, textColor, gridColor) {
+    const makeData = {};
+    vehicles.forEach(v => { makeData[v.make] = (makeData[v.make] || 0) + 1; });
+
+    const canvas = document.getElementById('makeChart');
+    if (canvas) {
+        chartInstances.make = new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(makeData),
+                datasets: [{
+                    label: 'Vehicles by Make',
+                    data: Object.values(makeData),
+                    backgroundColor: colors.primary,
+                    borderColor: colors.primary.replace('0.8', '1'),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: textColor, font: { size: 12, weight: '600' } }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: textColor,
+                            stepSize: 1
+                        },
+                        grid: { color: gridColor }
+                    },
+                    x: {
+                        ticks: { color: textColor },
+                        grid: { color: gridColor }
+                    }
+                }
+            }
+        });
+    }
+}
+
+function renderPaymentChart(colors, textColor) {
+    const soldVehicles = vehicles.filter(v => v.status === 'sold' && v.paymentMethod);
+
+    if (soldVehicles.length === 0) {
+        const canvas = document.getElementById('paymentChart');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = textColor;
+            ctx.font = '14px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText('No payment data available', canvas.width / 2, canvas.height / 2);
+        }
+        return;
+    }
+
+    const paymentData = {};
+    soldVehicles.forEach(v => {
+        paymentData[v.paymentMethod] = (paymentData[v.paymentMethod] || 0) + 1;
+    });
+
+    const canvas = document.getElementById('paymentChart');
+    if (canvas) {
+        chartInstances.payment = new Chart(canvas, {
+            type: 'pie',
+            data: {
+                labels: Object.keys(paymentData),
+                datasets: [{
+                    data: Object.values(paymentData),
+                    backgroundColor: [
+                        colors.success,
+                        colors.primary,
+                        colors.purple
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#1e293b'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: textColor,
+                            font: { size: 11, weight: '600' },
+                            padding: 15
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+function renderTopModelsChart(colors, textColor, gridColor) {
+    const soldVehicles = vehicles.filter(v => v.status === 'sold');
+
+    if (soldVehicles.length === 0) {
+        const canvas = document.getElementById('modelsChart');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = textColor;
+            ctx.font = '14px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText('No sold vehicle data available', canvas.width / 2, canvas.height / 2);
+        }
+        return;
+    }
+
+    const modelData = {};
+    soldVehicles.forEach(v => {
+        const modelKey = `${v.make} ${v.model}`;
+        modelData[modelKey] = (modelData[modelKey] || 0) + 1;
+    });
+
+    const sortedModels = Object.entries(modelData)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+
+    const canvas = document.getElementById('modelsChart');
+    if (canvas) {
+        chartInstances.models = new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: sortedModels.map(m => m[0]),
+                datasets: [{
+                    label: 'Units Sold',
+                    data: sortedModels.map(m => m[1]),
+                    backgroundColor: colors.teal,
+                    borderColor: colors.teal.replace('0.8', '1'),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: textColor, font: { size: 12, weight: '600' } }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: { color: textColor },
+                        grid: { color: gridColor }
+                    },
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: textColor,
+                            stepSize: 1
+                        },
+                        grid: { color: gridColor }
+                    }
+                }
+            }
+        });
+    }
+}
+
+function renderFleetCompanyChart(colors, textColor, gridColor) {
+    // Filter for vehicles currently on lot (not sold)
+    const onLotVehicles = vehicles.filter(v => v.status !== 'sold' && v.fleetCompany);
+
+    if (onLotVehicles.length === 0) {
+        const canvas = document.getElementById('fleetCompanyChart');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = textColor;
+            ctx.font = '14px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText('No fleet company data available', canvas.width / 2, canvas.height / 2);
+        }
+        return;
+    }
+
+    const companyData = {};
+    onLotVehicles.forEach(v => {
+        const company = v.fleetCompany || 'Unknown';
+        companyData[company] = (companyData[company] || 0) + 1;
+    });
+
+    const sortedCompanies = Object.entries(companyData)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+
+    const canvas = document.getElementById('fleetCompanyChart');
+    if (canvas) {
+        chartInstances.fleetCompany = new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: sortedCompanies.map(c => c[0]),
+                datasets: [{
+                    label: 'Units on Lot',
+                    data: sortedCompanies.map(c => c[1]),
+                    backgroundColor: colors.pink,
+                    borderColor: colors.pink.replace('0.8', '1'),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: textColor, font: { size: 12, weight: '600' } }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: { color: textColor },
+                        grid: { color: gridColor }
+                    },
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: textColor,
+                            stepSize: 1
+                        },
+                        grid: { color: gridColor }
+                    }
+                }
+            }
+        });
+    }
+}
+
+// Helper function to get week number
+function getWeekNumber(date) {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
+// Helper function to parse period keys for sorting
+function parsePeriodKey(key, period) {
+    if (period === 'yearly') {
+        return new Date(parseInt(key), 0, 1);
+    } else if (period === 'monthly') {
+        const parts = key.split(' ');
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const month = monthNames.indexOf(parts[0]);
+        const year = parseInt(parts[1]);
+        return new Date(year, month, 1);
+    } else {
+        const parts = key.split(', ');
+        const year = parseInt(parts[1]);
+        const week = parseInt(parts[0].split(' ')[1]);
+        return new Date(year, 0, 1 + (week - 1) * 7);
     }
 }
 
