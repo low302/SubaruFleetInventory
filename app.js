@@ -2881,6 +2881,221 @@ function closeSoldModal() {
     toggleTradeInSection();
 }
 
+function openImportCSVModal() {
+    document.getElementById('importCSVModal').classList.add('active');
+    document.getElementById('importCSVForm').reset();
+    document.getElementById('importPreview').style.display = 'none';
+    document.getElementById('importResults').style.display = 'none';
+}
+
+function closeImportCSVModal() {
+    document.getElementById('importCSVModal').classList.remove('active');
+    document.getElementById('importCSVForm').reset();
+    document.getElementById('importPreview').style.display = 'none';
+    document.getElementById('importResults').style.display = 'none';
+}
+
+function downloadExampleCSV() {
+    const exampleData = [
+        ['Stock Number', 'VIN', 'Year', 'Make', 'Model', 'Trim', 'Color', 'Fleet Company', 'Operation Company', 'Status'],
+        ['SUB001', '1HGBH41JXMN109186', '2024', 'Subaru', 'Outback', 'Premium', 'Crystal White Pearl', 'Acme Fleet', 'Northeast Operations', 'in-stock'],
+        ['SUB002', '4S4BTANC5M3128456', '2024', 'Subaru', 'Forester', 'Sport', 'Magnetite Gray Metallic', 'ABC Rentals', 'West Coast Ops', 'in-transit'],
+        ['SUB003', 'JF2SKAGC8MH523789', '2023', 'Subaru', 'Crosstrek', 'Limited', 'Horizon Blue Pearl', 'Enterprise Fleet', 'Southern Region', 'pdi'],
+        ['SUB004', '4S3GTAA68M1742590', '2024', 'Subaru', 'Ascent', 'Touring', 'Autumn Green Metallic', '', '', 'in-stock']
+    ];
+
+    const csv = exampleData.map(row => row.map(field => '"' + field + '"').join(',')).join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'vehicle-import-template.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+
+    showNotification('Example CSV template downloaded', 'success');
+}
+
+async function handleCSVImport(event) {
+    event.preventDefault();
+
+    const fileInput = document.getElementById('csvFileInput');
+    const file = fileInput.files[0];
+
+    if (!file) {
+        showNotification('Please select a CSV file', 'error');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        const text = e.target.result;
+        const lines = text.split('\n').filter(line => line.trim());
+
+        if (lines.length < 2) {
+            showNotification('CSV file is empty or invalid', 'error');
+            return;
+        }
+
+        // Parse CSV
+        const parseCSVLine = (line) => {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            return result;
+        };
+
+        const headers = parseCSVLine(lines[0]);
+        const vehicles = [];
+        const errors = [];
+
+        // Validate headers
+        const requiredHeaders = ['Stock Number', 'VIN', 'Year', 'Make', 'Model', 'Trim', 'Color'];
+        const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+
+        if (missingHeaders.length > 0) {
+            showNotification(`Missing required columns: ${missingHeaders.join(', ')}`, 'error');
+            return;
+        }
+
+        // Parse data rows
+        for (let i = 1; i < lines.length; i++) {
+            const values = parseCSVLine(lines[i]);
+            if (values.length < 7) continue; // Skip invalid rows
+
+            const vehicle = {
+                id: Date.now() + i,
+                stockNumber: values[0],
+                vin: values[1].toUpperCase(),
+                year: parseInt(values[2]),
+                make: values[3],
+                model: values[4],
+                trim: values[5],
+                color: values[6],
+                fleetCompany: values[7] || '',
+                operationCompany: values[8] || '',
+                status: values[9] || 'in-stock',
+                dateAdded: new Date().toISOString(),
+                inStockDate: new Date().toISOString()
+            };
+
+            // Validation
+            const vinPattern = /^[A-HJ-NPR-Z0-9]{17}$/;
+            if (!vinPattern.test(vehicle.vin)) {
+                errors.push(`Row ${i + 1}: Invalid VIN format - ${vehicle.vin}`);
+                continue;
+            }
+
+            if (vehicle.year < 2000 || vehicle.year > 2030) {
+                errors.push(`Row ${i + 1}: Invalid year - ${vehicle.year}`);
+                continue;
+            }
+
+            const validStatuses = ['in-stock', 'in-transit', 'pdi', 'pending-pickup', 'pickup-scheduled'];
+            if (vehicle.status && !validStatuses.includes(vehicle.status)) {
+                errors.push(`Row ${i + 1}: Invalid status - ${vehicle.status}`);
+                continue;
+            }
+
+            vehicles.push(vehicle);
+        }
+
+        // Show preview
+        const previewDiv = document.getElementById('importPreview');
+        const previewContent = document.getElementById('importPreviewContent');
+        previewDiv.style.display = 'block';
+
+        previewContent.innerHTML = `
+            <p style="font-size: 0.875rem; margin-bottom: 0.5rem;">
+                <strong style="color: var(--joy-success-500);">${vehicles.length} vehicles</strong> ready to import
+                ${errors.length > 0 ? `<br><strong style="color: var(--joy-danger-500);">${errors.length} errors</strong> found` : ''}
+            </p>
+            ${errors.length > 0 ? `
+                <div style="max-height: 150px; overflow-y: auto; background: rgba(255, 69, 58, 0.1); border: 1px solid rgba(255, 69, 58, 0.3); border-radius: 4px; padding: 0.5rem; margin-top: 0.5rem;">
+                    ${errors.map(err => `<div style="font-size: 0.75rem; color: var(--joy-danger-500);">${err}</div>`).join('')}
+                </div>
+            ` : ''}
+        `;
+
+        if (vehicles.length === 0) {
+            showNotification('No valid vehicles to import', 'error');
+            return;
+        }
+
+        // Import vehicles
+        try {
+            let successCount = 0;
+            let failCount = 0;
+
+            for (const vehicle of vehicles) {
+                try {
+                    const response = await fetch(`${API_BASE}/inventory`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify(vehicle)
+                    });
+
+                    if (response.ok) {
+                        successCount++;
+                    } else {
+                        failCount++;
+                        const errorData = await response.json();
+                        errors.push(`${vehicle.stockNumber}: ${errorData.error || 'Failed to import'}`);
+                    }
+                } catch (error) {
+                    failCount++;
+                    errors.push(`${vehicle.stockNumber}: ${error.message}`);
+                }
+            }
+
+            // Show results
+            const resultsDiv = document.getElementById('importResults');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = `
+                <div style="padding: 1rem; background: rgba(50, 215, 75, 0.1); border: 1px solid rgba(50, 215, 75, 0.3); border-radius: var(--joy-radius-sm);">
+                    <h4 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--joy-success-500);">Import Complete</h4>
+                    <p style="font-size: 0.8125rem; color: var(--joy-text-secondary);">
+                        ✅ ${successCount} vehicles imported successfully<br>
+                        ${failCount > 0 ? `❌ ${failCount} vehicles failed` : ''}
+                    </p>
+                </div>
+            `;
+
+            await loadInventory();
+            renderCurrentPage();
+            showNotification(`Successfully imported ${successCount} vehicles`, 'success');
+
+            // Reset form after successful import
+            setTimeout(() => {
+                closeImportCSVModal();
+            }, 2000);
+
+        } catch (error) {
+            console.error('Import error:', error);
+            showNotification('Failed to import vehicles: ' + error.message, 'error');
+        }
+    };
+
+    reader.readAsText(file);
+}
+
 // Open status popup
 function openStatusPopup(vehicleId, event) {
     event.stopPropagation();

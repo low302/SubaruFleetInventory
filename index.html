@@ -1220,6 +1220,9 @@
                                     <option value="pending-pickup">Pending Pickup</option>
                                     <option value="pickup-scheduled">Pickup Scheduled</option>
                                 </select>
+                                <button class="btn btn-primary" onclick="openImportCSVModal()" style="white-space: nowrap;">
+                                    📂 Import CSV
+                                </button>
                             </div>
                         </div>
 
@@ -1839,6 +1842,60 @@
                         Schedule Pickup
                     </button>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import CSV Modal -->
+    <div id="importCSVModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>Import Vehicles from CSV</h2>
+                <button class="close-btn" onclick="closeImportCSVModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="background: rgba(10, 132, 255, 0.1); border: 1px solid rgba(10, 132, 255, 0.3); border-radius: var(--joy-radius-sm); padding: 1rem; margin-bottom: 1.5rem;">
+                    <h4 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--joy-text-primary);">📋 CSV Format Requirements</h4>
+                    <p style="font-size: 0.8125rem; color: var(--joy-text-secondary); margin-bottom: 0.5rem;">Your CSV file must include these columns in order:</p>
+                    <ul style="font-size: 0.8125rem; color: var(--joy-text-secondary); margin-left: 1.25rem; line-height: 1.6;">
+                        <li><strong>Stock Number</strong> (required)</li>
+                        <li><strong>VIN</strong> (required, 17 characters)</li>
+                        <li><strong>Year</strong> (required)</li>
+                        <li><strong>Make</strong> (required)</li>
+                        <li><strong>Model</strong> (required)</li>
+                        <li><strong>Trim</strong> (required)</li>
+                        <li><strong>Color</strong> (required)</li>
+                        <li><strong>Fleet Company</strong> (optional)</li>
+                        <li><strong>Operation Company</strong> (optional)</li>
+                        <li><strong>Status</strong> (optional: in-stock, in-transit, pdi, pending-pickup, pickup-scheduled)</li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <button class="btn btn-secondary" onclick="downloadExampleCSV()" style="width: 100%;">
+                        📥 Download Example CSV Template
+                    </button>
+                </div>
+
+                <form id="importCSVForm" onsubmit="handleCSVImport(event)">
+                    <div class="form-group">
+                        <label for="csvFileInput">Select CSV File</label>
+                        <input type="file" id="csvFileInput" accept=".csv" required style="width: 100%; padding: 0.5rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--joy-radius-sm); color: var(--text);">
+                    </div>
+
+                    <div id="importPreview" style="display: none; margin-top: 1rem; padding: 1rem; background: rgba(0, 0, 0, 0.2); border-radius: var(--joy-radius-sm); max-height: 300px; overflow-y: auto;">
+                        <h4 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem;">Preview</h4>
+                        <div id="importPreviewContent"></div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                        Import Vehicles
+                    </button>
+                </form>
+
+                <div id="importResults" style="display: none; margin-top: 1rem;">
+                    <!-- Import results will be shown here -->
+                </div>
             </div>
         </div>
     </div>
