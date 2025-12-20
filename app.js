@@ -271,10 +271,13 @@ async function updateVehicleStatus() {
     if (!currentVehicle) return;
     const newStatus = document.getElementById('detailStatus').value;
     const currentlyInSold = soldVehicles.some(v => v.id === currentVehicle.id);
-    
+
     // Moving TO sold status - show sold modal
     if (newStatus === 'sold' && !currentlyInSold) {
+        // Save reference to vehicle before closing modal
+        const vehicleToSell = currentVehicle;
         closeDetailModal();
+        currentVehicle = vehicleToSell; // Restore the vehicle reference
         openSoldModal();
         return;
     } 
@@ -2825,8 +2828,14 @@ function toggleTradeInSection() {
 }
 
 async function handleSoldSubmit(event) {
+    console.log('handleSoldSubmit called', event);
     event.preventDefault();
-    if (!currentVehicle) return;
+    console.log('currentVehicle:', currentVehicle);
+    if (!currentVehicle) {
+        console.error('No currentVehicle found!');
+        showNotification('Error: No vehicle selected', 'error');
+        return;
+    }
 
     // Get payment information
     const saleInfo = {
