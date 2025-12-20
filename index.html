@@ -1192,18 +1192,6 @@
                                 <h2 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--joy-text-primary);">📅 Scheduled Pickups</h2>
                                 <div id="scheduledPickups"></div>
                             </div>
-
-                            <!-- Newest Units (Bottom Left) -->
-                            <div style="background: rgba(51, 65, 85, 0.6); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
-                                <h2 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--joy-text-primary);">🆕 Newest Units</h2>
-                                <div id="newestVehicles"></div>
-                            </div>
-
-                            <!-- Oldest Units (Bottom Right) -->
-                            <div style="background: rgba(51, 65, 85, 0.6); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
-                                <h2 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--joy-text-primary);">⏰ Oldest Units</h2>
-                                <div id="oldestVehicles"></div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -1326,7 +1314,7 @@
                             <div class="search-box">
                                 <input type="text" id="soldSearchInput" placeholder="Search..." oninput="renderCurrentPage()">
                             </div>
-                            <div class="filter-group" style="display: flex; gap: 0.5rem; align-items: center;">
+                            <div class="filter-group" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
                                 <select id="soldMonthFilter" class="filter-select" onchange="renderCurrentPage()">
                                     <option value="">All Months</option>
                                     <option value="1">January</option>
@@ -1348,8 +1336,8 @@
                                 <select id="soldMakeFilter" class="filter-select" onchange="renderCurrentPage()">
                                     <option value="">All Makes</option>
                                 </select>
-                                <button class="btn btn-primary" onclick="exportSoldVehicles()" style="white-space: nowrap;">
-                                    Export
+                                <button class="btn btn-primary" onclick="exportSoldVehicles()" style="white-space: nowrap; min-width: 100px;">
+                                    📥 Export
                                 </button>
                             </div>
                         </div>
@@ -1578,44 +1566,8 @@
                 <button class="close-btn" onclick="closeDetailModal()">&times;</button>
             </div>
             <div class="modal-body">
+                <!-- Vehicle Information -->
                 <div id="detailContent"></div>
-
-                <!-- Document Management Section -->
-                <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--joy-divider);">
-                    <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Documents</h3>
-
-                    <!-- Upload Document -->
-                    <div style="margin-bottom: 1rem;">
-                        <input type="file" id="pdfUploadInput" accept=".pdf" style="display: none;" onchange="handlePDFUpload(event)">
-                        <button class="btn btn-secondary" onclick="document.getElementById('pdfUploadInput').click()" style="width: 100%;">
-                            📎 Upload PDF Document
-                        </button>
-                    </div>
-
-                    <!-- Document List -->
-                    <div id="documentList" style="margin-top: 1rem;">
-                        <!-- Documents will be listed here -->
-                    </div>
-                </div>
-
-                <!-- Status Update Section -->
-                <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--joy-divider);">
-                    <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Update Status</h3>
-                    <div class="form-group">
-                        <label for="detailStatus">Vehicle Status</label>
-                        <select id="detailStatus">
-                            <option value="in-stock">In Stock</option>
-                            <option value="in-transit">In-Transit</option>
-                            <option value="pdi">PDI</option>
-                            <option value="pending-pickup">Pending Pickup</option>
-                            <option value="pickup-scheduled">Pickup Scheduled</option>
-                            <option value="sold">Sold</option>
-                        </select>
-                    </div>
-                    <button class="btn btn-secondary" onclick="updateVehicleStatus()" style="width: 100%;">
-                        Update Status
-                    </button>
-                </div>
 
                 <!-- Customer Information Section -->
                 <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--joy-divider);">
@@ -1643,6 +1595,43 @@
                             Save Customer Info
                         </button>
                     </form>
+                </div>
+
+                <!-- Status Update Section -->
+                <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--joy-divider);">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Update Status</h3>
+                    <div class="form-group">
+                        <label for="detailStatus">Vehicle Status</label>
+                        <select id="detailStatus">
+                            <option value="in-stock">In Stock</option>
+                            <option value="in-transit">In-Transit</option>
+                            <option value="pdi">PDI</option>
+                            <option value="pending-pickup">Pending Pickup</option>
+                            <option value="pickup-scheduled">Pickup Scheduled</option>
+                            <option value="sold">Sold</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-secondary" onclick="updateVehicleStatus()" style="width: 100%;">
+                        Update Status
+                    </button>
+                </div>
+
+                <!-- Document Management Section -->
+                <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--joy-divider);">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Upload Documents</h3>
+
+                    <!-- Upload Document -->
+                    <div style="margin-bottom: 1rem;">
+                        <input type="file" id="pdfUploadInput" accept=".pdf" style="display: none;" onchange="handlePDFUpload(event)">
+                        <button class="btn btn-secondary" onclick="document.getElementById('pdfUploadInput').click()" style="width: 100%;">
+                            📎 Upload PDF Document
+                        </button>
+                    </div>
+
+                    <!-- Document List -->
+                    <div id="documentList" style="margin-top: 1rem;">
+                        <!-- Documents will be listed here -->
+                    </div>
                 </div>
 
                 <!-- Payment Information Section (Only visible when car is sold) -->
