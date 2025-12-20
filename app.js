@@ -3037,11 +3037,11 @@ function closeImportCSVModal() {
 
 function downloadExampleCSV() {
     const exampleData = [
-        ['Stock Number', 'VIN', 'Year', 'Make', 'Model', 'Trim', 'Color', 'Fleet Company', 'Operation Company', 'Status'],
-        ['SUB001', '1HGBH41JXMN109186', '2024', 'Subaru', 'Outback', 'Premium', 'Crystal White Pearl', 'Acme Fleet', 'Northeast Operations', 'in-stock'],
-        ['SUB002', '4S4BTANC5M3128456', '2024', 'Subaru', 'Forester', 'Sport', 'Magnetite Gray Metallic', 'ABC Rentals', 'West Coast Ops', 'in-transit'],
-        ['SUB003', 'JF2SKAGC8MH523789', '2023', 'Subaru', 'Crosstrek', 'Limited', 'Horizon Blue Pearl', 'Enterprise Fleet', 'Southern Region', 'pdi'],
-        ['SUB004', '4S3GTAA68M1742590', '2024', 'Subaru', 'Ascent', 'Touring', 'Autumn Green Metallic', '', '', 'in-stock']
+        ['Stock Number', 'VIN', 'Year', 'Make', 'Model', 'Trim', 'Color', 'Fleet Company', 'Operation Company', 'Status', 'In Stock Date', 'Customer First Name', 'Customer Last Name', 'Customer Phone', 'Sale Date', 'Sale Amount', 'Payment Method', 'Payment Reference'],
+        ['SUB001', '1HGBH41JXMN109186', '2024', 'Subaru', 'Outback', 'Premium', 'Crystal White Pearl', 'Acme Fleet', 'Northeast Operations', 'in-stock', '2024-01-15', '', '', '', '', '', '', ''],
+        ['SUB002', '4S4BTANC5M3128456', '2024', 'Subaru', 'Forester', 'Sport', 'Magnetite Gray Metallic', 'ABC Rentals', 'West Coast Ops', 'in-transit', '2024-01-20', '', '', '', '', '', '', ''],
+        ['SUB003', 'JF2SKAGC8MH523789', '2023', 'Subaru', 'Crosstrek', 'Limited', 'Horizon Blue Pearl', 'Enterprise Fleet', 'Southern Region', 'sold', '2023-12-10', 'John', 'Smith', '555-123-4567', '2024-01-05', '28500', 'ACH', 'TXN123456'],
+        ['SUB004', '4S3GTAA68M1742590', '2024', 'Subaru', 'Ascent', 'Touring', 'Autumn Green Metallic', '', '', 'sold', '2024-01-10', 'Jane', 'Doe', '555-987-6543', '2024-01-18', '35000', 'Check', 'CHK789012']
     ];
 
     const csv = exampleData.map(row => row.map(field => '"' + field + '"').join(',')).join('\n');
@@ -3119,6 +3119,20 @@ async function handleCSVImport(event) {
             const values = parseCSVLine(lines[i]);
             if (values.length < 7) continue; // Skip invalid rows
 
+            // Parse customer and payment information if present
+            const customerInfo = {};
+            if (values[11] || values[12] || values[13]) {
+                customerInfo.firstName = values[11] || '';
+                customerInfo.lastName = values[12] || '';
+                customerInfo.phone = values[13] || '';
+            }
+            if (values[14] || values[15] || values[16] || values[17]) {
+                customerInfo.saleDate = values[14] || '';
+                customerInfo.saleAmount = parseFloat(values[15]) || 0;
+                customerInfo.paymentMethod = values[16] || '';
+                customerInfo.paymentReference = values[17] || '';
+            }
+
             const vehicle = {
                 id: Date.now() + i,
                 stockNumber: values[0],
@@ -3132,7 +3146,8 @@ async function handleCSVImport(event) {
                 operationCompany: values[8] || '',
                 status: values[9] || 'in-stock',
                 dateAdded: new Date().toISOString(),
-                inStockDate: new Date().toISOString()
+                inStockDate: values[10] ? new Date(values[10]).toISOString() : new Date().toISOString(),
+                customer: Object.keys(customerInfo).length > 0 ? customerInfo : undefined
             };
 
             // Validation
@@ -3182,10 +3197,21 @@ async function handleCSVImport(event) {
         try {
             let successCount = 0;
             let failCount = 0;
+            let soldCount = 0;
 
             for (const vehicle of vehicles) {
                 try {
-                    const response = await fetch(`${API_BASE}/inventory`, {
+                    // Determine if vehicle should go to sold_vehicles or inventory
+                    const isSold = vehicle.customer?.saleDate || vehicle.status === 'sold';
+                    const endpoint = isSold ? `${API_BASE}/sold-vehicles` : `${API_BASE}/inventory`;
+
+                    // Set status to 'sold' if it has sale information
+                    if (isSold) {
+                        vehicle.status = 'sold';
+                        soldCount++;
+                    }
+
+                    const response = await fetch(endpoint, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         credentials: 'include',
@@ -3213,14 +3239,15 @@ async function handleCSVImport(event) {
                     <h4 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--joy-success-500);">Import Complete</h4>
                     <p style="font-size: 0.8125rem; color: var(--joy-text-secondary);">
                         ✅ ${successCount} vehicles imported successfully<br>
+                        ${soldCount > 0 ? `💰 ${soldCount} imported as sold<br>` : ''}
                         ${failCount > 0 ? `❌ ${failCount} vehicles failed` : ''}
                     </p>
                 </div>
             `;
 
-            await loadInventory();
+            await loadAllData();
             renderCurrentPage();
-            showNotification(`Successfully imported ${successCount} vehicles`, 'success');
+            showNotification(`Successfully imported ${successCount} vehicles (${soldCount} sold)`, 'success');
 
             // Reset form after successful import
             setTimeout(() => {

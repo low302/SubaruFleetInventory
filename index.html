@@ -1879,18 +1879,37 @@
                 <div style="background: rgba(10, 132, 255, 0.1); border: 1px solid rgba(10, 132, 255, 0.3); border-radius: var(--joy-radius-sm); padding: 1rem; margin-bottom: 1.5rem;">
                     <h4 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--joy-text-primary);">📋 CSV Format Requirements</h4>
                     <p style="font-size: 0.8125rem; color: var(--joy-text-secondary); margin-bottom: 0.5rem;">Your CSV file must include these columns in order:</p>
-                    <ul style="font-size: 0.8125rem; color: var(--joy-text-secondary); margin-left: 1.25rem; line-height: 1.6;">
-                        <li><strong>Stock Number</strong> (required)</li>
-                        <li><strong>VIN</strong> (required, 17 characters)</li>
-                        <li><strong>Year</strong> (required)</li>
-                        <li><strong>Make</strong> (required)</li>
-                        <li><strong>Model</strong> (required)</li>
-                        <li><strong>Trim</strong> (required)</li>
-                        <li><strong>Color</strong> (required)</li>
-                        <li><strong>Fleet Company</strong> (optional)</li>
-                        <li><strong>Operation Company</strong> (optional)</li>
-                        <li><strong>Status</strong> (optional: in-stock, in-transit, pdi, pending-pickup, pickup-scheduled)</li>
-                    </ul>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                        <div>
+                            <p style="font-size: 0.75rem; font-weight: 600; color: var(--joy-text-primary); margin-bottom: 0.25rem;">Required:</p>
+                            <ul style="font-size: 0.75rem; color: var(--joy-text-secondary); margin-left: 1rem; line-height: 1.5;">
+                                <li>Stock Number</li>
+                                <li>VIN (17 chars)</li>
+                                <li>Year</li>
+                                <li>Make</li>
+                                <li>Model</li>
+                                <li>Trim</li>
+                                <li>Color</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p style="font-size: 0.75rem; font-weight: 600; color: var(--joy-text-primary); margin-bottom: 0.25rem;">Optional:</p>
+                            <ul style="font-size: 0.75rem; color: var(--joy-text-secondary); margin-left: 1rem; line-height: 1.5;">
+                                <li>Fleet Company</li>
+                                <li>Operation Company</li>
+                                <li>Status</li>
+                                <li>In Stock Date</li>
+                                <li>Customer First Name</li>
+                                <li>Customer Last Name</li>
+                                <li>Customer Phone</li>
+                                <li>Sale Date</li>
+                                <li>Sale Amount</li>
+                                <li>Payment Method</li>
+                                <li>Payment Reference</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.75rem; color: var(--joy-warning-500); margin-top: 0.5rem;">💡 If Sale Date is provided, vehicle will be imported as sold.</p>
                 </div>
 
                 <div style="margin-bottom: 1.5rem;">
