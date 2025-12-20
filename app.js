@@ -2032,7 +2032,11 @@ function renderAnalytics() {
 }
 
 function renderRevenueChart(period, colors, textColor, gridColor) {
-    const soldVehicles = vehicles.filter(v => v.status === 'sold' && v.saleDate && v.saleAmount);
+    const soldVehicles = vehicles.filter(v => {
+        const saleDate = v.customer?.saleDate || v.saleDate;
+        const saleAmount = v.customer?.saleAmount || v.saleAmount;
+        return v.status === 'sold' && saleDate && saleAmount;
+    });
 
     if (soldVehicles.length === 0) {
         const canvas = document.getElementById('revenueChart');
@@ -2050,7 +2054,9 @@ function renderRevenueChart(period, colors, textColor, gridColor) {
     const revenueData = {};
 
     soldVehicles.forEach(v => {
-        const date = new Date(v.saleDate);
+        const saleDate = v.customer?.saleDate || v.saleDate;
+        const saleAmount = v.customer?.saleAmount || v.saleAmount;
+        const date = new Date(saleDate);
         let key;
 
         if (period === 'weekly') {
@@ -2062,7 +2068,7 @@ function renderRevenueChart(period, colors, textColor, gridColor) {
             key = date.getFullYear().toString();
         }
 
-        revenueData[key] = (revenueData[key] || 0) + parseFloat(v.saleAmount || 0);
+        revenueData[key] = (revenueData[key] || 0) + parseFloat(saleAmount || 0);
     });
 
     const sortedKeys = Object.keys(revenueData).sort((a, b) => {
@@ -2127,7 +2133,10 @@ function renderRevenueChart(period, colors, textColor, gridColor) {
 }
 
 function renderAgeChart(colors, textColor, gridColor) {
-    const soldVehicles = vehicles.filter(v => v.status === 'sold' && v.saleDate && v.inStockDate);
+    const soldVehicles = vehicles.filter(v => {
+        const saleDate = v.customer?.saleDate || v.saleDate;
+        return v.status === 'sold' && saleDate && v.inStockDate;
+    });
 
     if (soldVehicles.length === 0) {
         const canvas = document.getElementById('ageChart');
@@ -2145,9 +2154,10 @@ function renderAgeChart(colors, textColor, gridColor) {
     const ageByMake = {};
 
     soldVehicles.forEach(v => {
+        const saleDate = v.customer?.saleDate || v.saleDate;
         const inStockDate = new Date(v.inStockDate);
-        const saleDate = new Date(v.saleDate);
-        const daysInInventory = Math.floor((saleDate - inStockDate) / (1000 * 60 * 60 * 24));
+        const saleDateObj = new Date(saleDate);
+        const daysInInventory = Math.floor((saleDateObj - inStockDate) / (1000 * 60 * 60 * 24));
 
         if (!ageByMake[v.make]) {
             ageByMake[v.make] = { total: 0, count: 0 };
@@ -2314,7 +2324,10 @@ function renderMakeChart(colors, textColor, gridColor) {
 }
 
 function renderPaymentChart(colors, textColor) {
-    const soldVehicles = vehicles.filter(v => v.status === 'sold' && v.paymentMethod);
+    const soldVehicles = vehicles.filter(v => {
+        const paymentMethod = v.customer?.paymentMethod || v.paymentMethod;
+        return v.status === 'sold' && paymentMethod;
+    });
 
     if (soldVehicles.length === 0) {
         const canvas = document.getElementById('paymentChart');
@@ -2331,7 +2344,8 @@ function renderPaymentChart(colors, textColor) {
 
     const paymentData = {};
     soldVehicles.forEach(v => {
-        paymentData[v.paymentMethod] = (paymentData[v.paymentMethod] || 0) + 1;
+        const paymentMethod = v.customer?.paymentMethod || v.paymentMethod;
+        paymentData[paymentMethod] = (paymentData[paymentMethod] || 0) + 1;
     });
 
     const canvas = document.getElementById('paymentChart');
