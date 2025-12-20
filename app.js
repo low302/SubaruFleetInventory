@@ -1752,8 +1752,44 @@ function renderStatusPage(status, gridId, searchId, makeFilterId) {
 
 function renderSoldPage() {
     const container = document.getElementById('soldGrid');
-    if (soldVehicles.length === 0) {
-        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💰</div><p>No sold vehicles</p></div>';
+
+    // Apply filters
+    let filtered = soldVehicles;
+
+    // Filter by month/year
+    const monthFilter = document.getElementById('soldMonthFilter')?.value;
+    const yearFilter = document.getElementById('soldYearFilter')?.value;
+
+    if (monthFilter || yearFilter) {
+        filtered = filtered.filter(v => {
+            if (!v.customer?.saleDate) return false;
+            const saleDate = new Date(v.customer.saleDate);
+            if (yearFilter && saleDate.getFullYear().toString() !== yearFilter) return false;
+            if (monthFilter && (saleDate.getMonth() + 1).toString() !== monthFilter) return false;
+            return true;
+        });
+    }
+
+    // Filter by search
+    const searchTerm = document.getElementById('soldSearchInput')?.value.toLowerCase() || '';
+    if (searchTerm) {
+        filtered = filtered.filter(v => {
+            return v.stockNumber.toLowerCase().includes(searchTerm) ||
+                   v.vin.toLowerCase().includes(searchTerm) ||
+                   `${v.year} ${v.make} ${v.model}`.toLowerCase().includes(searchTerm) ||
+                   (v.customer?.firstName || '').toLowerCase().includes(searchTerm) ||
+                   (v.customer?.lastName || '').toLowerCase().includes(searchTerm);
+        });
+    }
+
+    // Filter by make
+    const makeFilter = document.getElementById('soldMakeFilter')?.value;
+    if (makeFilter) {
+        filtered = filtered.filter(v => v.make === makeFilter);
+    }
+
+    if (filtered.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💰</div><p>No sold vehicles match your filters</p></div>';
     } else {
         container.innerHTML = `
             <table class="vehicle-table" style="width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 12px; overflow: hidden;">
@@ -1766,17 +1802,142 @@ function renderSoldPage() {
                         <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Fleet</th>
                         <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Operation</th>
                         <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Customer</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Sold Date</th>
                         <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Status</th>
                         <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${soldVehicles.map(v => createVehicleRow(v)).join('')}
+                    ${filtered.map(v => createSoldVehicleRow(v)).join('')}
                 </tbody>
             </table>
         `;
     }
     updateMakeFilter('soldMakeFilter', soldVehicles);
+    updateYearFilter();
+}
+
+function updateYearFilter() {
+    const yearFilter = document.getElementById('soldYearFilter');
+    if (!yearFilter) return;
+
+    // Get unique years from sold vehicles' sale dates
+    const years = new Set();
+    soldVehicles.forEach(v => {
+        if (v.customer?.saleDate) {
+            const year = new Date(v.customer.saleDate).getFullYear();
+            years.add(year);
+        }
+    });
+
+    // Sort years in descending order
+    const sortedYears = Array.from(years).sort((a, b) => b - a);
+
+    // Keep the current selection
+    const currentValue = yearFilter.value;
+
+    // Populate the filter
+    yearFilter.innerHTML = '<option value="">All Years</option>' +
+        sortedYears.map(year => `<option value="${year}">${year}</option>`).join('');
+
+    // Restore selection if it still exists
+    if (currentValue && sortedYears.includes(parseInt(currentValue))) {
+        yearFilter.value = currentValue;
+    }
+}
+
+function exportSoldVehicles() {
+    // Get the currently filtered vehicles
+    let filtered = soldVehicles;
+
+    // Apply same filters as renderSoldPage
+    const monthFilter = document.getElementById('soldMonthFilter')?.value;
+    const yearFilter = document.getElementById('soldYearFilter')?.value;
+
+    if (monthFilter || yearFilter) {
+        filtered = filtered.filter(v => {
+            if (!v.customer?.saleDate) return false;
+            const saleDate = new Date(v.customer.saleDate);
+            if (yearFilter && saleDate.getFullYear().toString() !== yearFilter) return false;
+            if (monthFilter && (saleDate.getMonth() + 1).toString() !== monthFilter) return false;
+            return true;
+        });
+    }
+
+    const searchTerm = document.getElementById('soldSearchInput')?.value.toLowerCase() || '';
+    if (searchTerm) {
+        filtered = filtered.filter(v => {
+            return v.stockNumber.toLowerCase().includes(searchTerm) ||
+                   v.vin.toLowerCase().includes(searchTerm) ||
+                   `${v.year} ${v.make} ${v.model}`.toLowerCase().includes(searchTerm) ||
+                   (v.customer?.firstName || '').toLowerCase().includes(searchTerm) ||
+                   (v.customer?.lastName || '').toLowerCase().includes(searchTerm);
+        });
+    }
+
+    const makeFilter = document.getElementById('soldMakeFilter')?.value;
+    if (makeFilter) {
+        filtered = filtered.filter(v => v.make === makeFilter);
+    }
+
+    if (filtered.length === 0) {
+        showNotification('No vehicles to export', 'error');
+        return;
+    }
+
+    // Create CSV content
+    const headers = ['Stock #', 'Year', 'Make', 'Model', 'Trim', 'VIN', 'Color', 'Fleet Company', 'Operation Company', 'Customer Name', 'Sale Date', 'Sale Amount', 'Payment Method', 'Payment Reference'];
+
+    const rows = filtered.map(v => {
+        const customerName = v.customer ? `${v.customer.firstName || ''} ${v.customer.lastName || ''}`.trim() : '';
+        const soldDate = v.customer?.saleDate ? new Date(v.customer.saleDate).toLocaleDateString() : '';
+        const saleAmount = v.customer?.saleAmount ? `$${v.customer.saleAmount.toFixed(2)}` : '';
+
+        return [
+            v.stockNumber,
+            v.year,
+            v.make,
+            v.model,
+            v.trim,
+            v.vin,
+            v.color,
+            v.fleetCompany || '',
+            v.operationCompany || '',
+            customerName,
+            soldDate,
+            saleAmount,
+            v.customer?.paymentMethod || '',
+            v.customer?.paymentReference || ''
+        ].map(field => `"${field}"`).join(',');
+    });
+
+    const csv = [headers.join(','), ...rows].join('\n');
+
+    // Create filename with filter info
+    let filename = 'sold-vehicles';
+    if (yearFilter && monthFilter) {
+        const monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        filename += `-${monthNames[parseInt(monthFilter)]}-${yearFilter}`;
+    } else if (yearFilter) {
+        filename += `-${yearFilter}`;
+    } else if (monthFilter) {
+        const monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        filename += `-${monthNames[parseInt(monthFilter)]}`;
+    }
+    filename += '.csv';
+
+    // Download the file
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+
+    showNotification(`Exported ${filtered.length} vehicle${filtered.length !== 1 ? 's' : ''} to ${filename}`, 'success');
 }
 
 function renderTradeInsPage() {
@@ -1845,6 +2006,52 @@ function createVehicleRow(vehicle) {
             </td>
             <td>
                 ${customerName ? `<div style="font-size: 0.8125rem;">${customerName}</div>` : '<div style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>'}
+            </td>
+            <td>
+                <span class="status-badge ${statusClass}">${statusText}</span>
+            </td>
+            <td onclick="event.stopPropagation();">
+                <div style="display: flex; gap: 0.375rem;">
+                    <button class="btn btn-small btn-secondary" onclick="openVehicleDetail(${vehicle.id})" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Details</button>
+                    <button class="btn btn-small btn-secondary" onclick="openStatusPopup(${vehicle.id}, event)" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Status</button>
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
+function createSoldVehicleRow(vehicle) {
+    const statusClass = `status-${vehicle.status}`;
+    const statusText = vehicle.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    const customerName = vehicle.customer ? `${vehicle.customer.firstName || ''} ${vehicle.customer.lastName || ''}`.trim() : '';
+    const soldDate = vehicle.customer?.saleDate ? new Date(vehicle.customer.saleDate).toLocaleDateString() : '-';
+
+    return `
+        <tr class="vehicle-row" onclick="openVehicleDetail(${vehicle.id})" style="cursor: pointer;">
+            <td>
+                <div style="font-weight: 600; font-size: 0.875rem; color: var(--accent);">${vehicle.stockNumber}</div>
+            </td>
+            <td>
+                <div style="font-weight: 600; font-size: 0.875rem;">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.125rem;">${vehicle.trim}</div>
+            </td>
+            <td>
+                <div style="font-size: 0.8125rem;">${vehicle.vin}</div>
+            </td>
+            <td>
+                <div style="font-size: 0.8125rem;">${vehicle.color}</div>
+            </td>
+            <td>
+                ${vehicle.fleetCompany ? `<div style="font-size: 0.8125rem;">${vehicle.fleetCompany}</div>` : '<div style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>'}
+            </td>
+            <td>
+                ${vehicle.operationCompany ? `<div style="font-size: 0.8125rem;">${vehicle.operationCompany}</div>` : '<div style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>'}
+            </td>
+            <td>
+                ${customerName ? `<div style="font-size: 0.8125rem;">${customerName}</div>` : '<div style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>'}
+            </td>
+            <td>
+                <div style="font-size: 0.8125rem; font-weight: 500;">${soldDate}</div>
             </td>
             <td>
                 <span class="status-badge ${statusClass}">${statusText}</span>
