@@ -902,29 +902,74 @@ function generateLabel(vehicle) {
         qrContainer.innerHTML = `<div style="width: 140px; height: 140px; background: #f0f0f0; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 9px; text-align: center; padding: 8px; word-break: break-all; font-family: monospace; font-weight: 600;">${vehicle.vin}</div>`;
     }
 
-    openLabelModal();
+    // Populate key tag preview
+    document.getElementById('keyLabelStock').textContent = vehicle.stockNumber;
+    document.getElementById('keyLabelVehicle').textContent = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
+    const vinLast8 = vehicle.vin ? vehicle.vin.slice(-8) : '';
+    document.getElementById('keyLabelVin').textContent = `VIN: ${vinLast8}`;
+    document.getElementById('keyLabelColor').textContent = `Color: ${vehicle.color || 'N/A'}`;
+    document.getElementById('keyLabelFleet').textContent = `Fleet: ${vehicle.fleetCompany || 'N/A'}`;
+    document.getElementById('keyLabelOperation').textContent = `Op Co: ${vehicle.operationCompany || 'N/A'}`;
+
+    openLabelTypeModal();
 }
 
 // Global variable to store selected label position
 let selectedLabelPosition = null;
+let selectedKeyLabelPositions = [];
 
 // OL125 label positions (2 columns × 5 rows)
 const OL125_POSITIONS = [
-    { row: 1, col: 1, top: '0.5in', left: '0.25in' },
-    { row: 1, col: 2, top: '0.5in', left: '4.25in' },
-    { row: 2, col: 1, top: '2.5in', left: '0.25in' },
-    { row: 2, col: 2, top: '2.5in', left: '4.25in' },
-    { row: 3, col: 1, top: '4.5in', left: '0.25in' },
-    { row: 3, col: 2, top: '4.5in', left: '4.25in' },
-    { row: 4, col: 1, top: '6.5in', left: '0.25in' },
-    { row: 4, col: 2, top: '6.5in', left: '4.25in' },
-    { row: 5, col: 1, top: '8.5in', left: '0.25in' },
-    { row: 5, col: 2, top: '8.5in', left: '4.25in' }
+    { row: 1, col: 1, top: '0.5in', left: '0.1875in' },   // 3/16" left margin
+    { row: 1, col: 2, top: '0.5in', left: '4.3125in' },  // 4" label + 1/8" gutter
+    { row: 2, col: 1, top: '2.5in', left: '0.1875in' },
+    { row: 2, col: 2, top: '2.5in', left: '4.3125in' },
+    { row: 3, col: 1, top: '4.5in', left: '0.1875in' },
+    { row: 3, col: 2, top: '4.5in', left: '4.3125in' },
+    { row: 4, col: 1, top: '6.5in', left: '0.1875in' },
+    { row: 4, col: 2, top: '6.5in', left: '4.3125in' },
+    { row: 5, col: 1, top: '8.5in', left: '0.1875in' },
+    { row: 5, col: 2, top: '8.5in', left: '4.3125in' }
 ];
+
+// OL875 label positions (3 columns × 10 rows)
+const OL875_POSITIONS = Array.from({ length: 30 }, (_, index) => {
+    const row = Math.floor(index / 3) + 1;
+    const col = (index % 3) + 1;
+    const top = `${0.5 + (row - 1) * 1}in`; // 1" vertical pitch
+    const leftVal = 0.21975 + (col - 1) * 2.7335; // 0.21975" left margin, 2.7335" pitch
+    return {
+        row,
+        col,
+        top,
+        left: `${leftVal.toFixed(5)}in`
+    };
+});
 
 function printLabel() {
     // Open position selector modal instead of printing directly
     openLabelPositionModal();
+}
+
+function printKeyLabel() {
+    openKeyLabelPositionModal();
+}
+
+function openLabelTypeModal() {
+    document.getElementById('labelTypeModal').classList.add('active');
+}
+
+function closeLabelTypeModal() {
+    document.getElementById('labelTypeModal').classList.remove('active');
+}
+
+function chooseLabelType(type) {
+    closeLabelTypeModal();
+    if (type === 'folder') {
+        openLabelModal();
+    } else {
+        openKeyLabelModal();
+    }
 }
 
 function openLabelPositionModal() {
@@ -946,7 +991,7 @@ function closeLabelPositionModal() {
     selectedLabelPosition = null;
 
     // Remove selected class from all buttons
-    document.querySelectorAll('.label-position-btn').forEach(btn => {
+    document.querySelectorAll('#labelGrid .label-position-btn').forEach(btn => {
         btn.classList.remove('selected');
     });
 }
@@ -955,12 +1000,48 @@ function selectLabelPosition(index) {
     selectedLabelPosition = index;
 
     // Update button states
-    document.querySelectorAll('.label-position-btn').forEach((btn, i) => {
+    document.querySelectorAll('#labelGrid .label-position-btn').forEach((btn, i) => {
         if (i === index) {
             btn.classList.add('selected');
         } else {
             btn.classList.remove('selected');
         }
+    });
+}
+
+function openKeyLabelPositionModal() {
+    const modal = document.getElementById('keyLabelPositionModal');
+    const grid = document.getElementById('keyLabelGrid');
+
+    grid.innerHTML = OL875_POSITIONS.map((pos, index) => `
+        <button class="label-position-btn" style="aspect-ratio: 2.5935 / 1;" onclick="selectKeyLabelPosition(${index})">
+            Row ${pos.row}, Col ${pos.col}
+        </button>
+    `).join('');
+
+    modal.classList.add('active');
+}
+
+function closeKeyLabelPositionModal() {
+    document.getElementById('keyLabelPositionModal').classList.remove('active');
+    selectedKeyLabelPositions = [];
+    document.querySelectorAll('#keyLabelGrid .label-position-btn').forEach(btn => btn.classList.remove('selected'));
+}
+
+function selectKeyLabelPosition(index) {
+    const alreadySelected = selectedKeyLabelPositions.includes(index);
+    if (alreadySelected) {
+        selectedKeyLabelPositions = selectedKeyLabelPositions.filter(i => i !== index);
+    } else {
+        if (selectedKeyLabelPositions.length >= 2) {
+            showNotification('You can select up to 2 key tag positions at once', 'error');
+            return;
+        }
+        selectedKeyLabelPositions.push(index);
+    }
+
+    document.querySelectorAll('#keyLabelGrid .label-position-btn').forEach((btn, i) => {
+        btn.classList.toggle('selected', selectedKeyLabelPositions.includes(i));
     });
 }
 
@@ -972,9 +1053,18 @@ function printSelectedPosition() {
 
     const position = OL125_POSITIONS[selectedLabelPosition];
     const label = document.getElementById('label');
+    const labelParent = label.parentNode;
+    const placeholder = document.createComment('label-placeholder');
 
-    // Set data attribute for CSS to use
+    // Move label to body for print so modal positioning/flex styles do not interfere
+    labelParent.insertBefore(placeholder, label);
+    document.body.appendChild(label);
+
+    // Set data attribute and CSS custom properties for precise positioning
     label.setAttribute('data-print-position', selectedLabelPosition);
+    label.style.setProperty('--print-top', position.top);
+    label.style.setProperty('--print-left', position.left);
+    label.classList.add('printing');
 
     // Debug log
     console.log('Print position:', selectedLabelPosition, 'Position:', position);
@@ -989,6 +1079,54 @@ function printSelectedPosition() {
         // Reset after print dialog closes (longer delay)
         setTimeout(() => {
             label.removeAttribute('data-print-position');
+            label.style.removeProperty('--print-top');
+            label.style.removeProperty('--print-left');
+            label.classList.remove('printing');
+
+            // Return label to its original place in the modal
+            if (placeholder.parentNode) {
+                placeholder.replaceWith(label);
+            } else {
+                labelParent.appendChild(label);
+            }
+        }, 500);
+    }, 200);
+}
+
+function printSelectedKeyPosition() {
+    if (selectedKeyLabelPositions.length === 0) {
+        showNotification('Please select at least one key tag position', 'error');
+        return;
+    }
+    if (selectedKeyLabelPositions.length > 2) {
+        showNotification('You can print up to 2 key tags at once', 'error');
+        return;
+    }
+
+    const positions = selectedKeyLabelPositions.map(i => OL875_POSITIONS[i]);
+    const originalLabel = document.getElementById('keyLabel');
+    const clones = [];
+
+    positions.forEach((position, idx) => {
+        const clone = originalLabel.cloneNode(true);
+        clone.removeAttribute('id');
+        clone.setAttribute('data-print-position', selectedKeyLabelPositions[idx]);
+        clone.style.setProperty('--print-top', position.top);
+        clone.style.setProperty('--print-left', position.left);
+        clone.classList.add('printing');
+        document.body.appendChild(clone);
+        clones.push(clone);
+    });
+
+    console.log('Print key positions:', selectedKeyLabelPositions, 'Positions:', positions);
+
+    closeKeyLabelPositionModal();
+
+    setTimeout(() => {
+        window.print();
+
+        setTimeout(() => {
+            clones.forEach(clone => clone.remove());
         }, 500);
     }, 200);
 }
@@ -2839,6 +2977,8 @@ function openVehicleDetail(vehicleId) {
 function closeDetailModal() { document.getElementById('detailModal').classList.remove('active'); currentVehicle = null; }
 function openLabelModal() { document.getElementById('labelModal').classList.add('active'); }
 function closeLabelModal() { document.getElementById('labelModal').classList.remove('active'); }
+function openKeyLabelModal() { document.getElementById('keyLabelModal').classList.add('active'); }
+function closeKeyLabelModal() { document.getElementById('keyLabelModal').classList.remove('active'); }
 function openTradeInModal() {
     document.getElementById('tradeInModal').classList.add('active');
 }

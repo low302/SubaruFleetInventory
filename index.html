@@ -709,6 +709,28 @@
             padding: 1.5rem;
         }
 
+        /* Custom scrollbars to match UI */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(148, 163, 184, 0.6) rgba(30, 41, 59, 0.6);
+        }
+        *::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        *::-webkit-scrollbar-track {
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 999px;
+        }
+        *::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(148, 163, 184, 0.8), rgba(100, 116, 139, 0.9));
+            border-radius: 999px;
+            border: 2px solid rgba(30, 41, 59, 0.6);
+        }
+        *::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, rgba(148, 163, 184, 1), rgba(100, 116, 139, 1));
+        }
+
         .close-btn {
             background: none;
             border: none;
@@ -1900,20 +1922,49 @@
         </div>
     </div>
 
-    <!-- Label Modal -->
+    <!-- Label Type Modal -->
+    <div id="labelTypeModal" class="modal">
+        <div class="modal-content" style="max-width: 520px;">
+            <div class="modal-header">
+                <h2>Select Label Type</h2>
+                <button class="close-btn" onclick="closeLabelTypeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 1rem; color: var(--joy-text-secondary); font-size: 0.95rem;">Choose which label you want to generate for this vehicle.</p>
+                <div style="display: grid; gap: 1rem;">
+                    <button class="btn btn-secondary label-type-option" onclick="chooseLabelType('folder')">
+                        <div style="text-align: left;">
+                            <div style="font-weight: 700; font-size: 1rem;">Folder Tag</div>
+                            <div style="font-size: 0.9rem; color: var(--joy-text-secondary);">OL125 • 2" × 4" • For vehicle folders</div>
+                        </div>
+                        <span style="font-weight: 700; font-size: 1.25rem;">→</span>
+                    </button>
+                    <button class="btn btn-secondary label-type-option" onclick="chooseLabelType('key')">
+                        <div style="text-align: left;">
+                            <div style="font-weight: 700; font-size: 1rem;">Key Tag</div>
+                            <div style="font-size: 0.9rem; color: var(--joy-text-secondary);">OL875 • 1" × 2.5935" • For key rings</div>
+                        </div>
+                        <span style="font-weight: 700; font-size: 1.25rem;">→</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Folder Label Modal -->
     <div id="labelModal" class="modal">
         <div class="modal-content" style="max-width: 800px;">
             <div class="modal-header">
-                <h2>Print Label - Avery 94207</h2>
+                <h2>Folder Tag - Online Labels OL125</h2>
                 <button class="close-btn" onclick="closeLabelModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <div style="text-align: center; margin-bottom: 1.5rem;">
-                    <p style="font-size: 0.875rem; color: var(--joy-text-tertiary);">Preview - Avery 94207 (2" × 4" Label)</p>
+                    <p style="font-size: 0.875rem; color: var(--joy-text-tertiary);">Preview - OL125 (2" × 4" Label)</p>
                 </div>
 
-                <!-- Avery 94207 Label (2" x 4" = 192px x 384px at 96 DPI) -->
-                <div id="label" style="
+                <!-- OL125 Label (2" x 4" = 192px x 384px at 96 DPI) -->
+                <div id="label" class="printable-label folder-label" style="
                     width: 384px;
                     height: 192px;
                     background: rgba(51, 65, 85, 0.95);
@@ -1922,7 +1973,7 @@
                     padding: 12px;
                     display: flex;
                     gap: 12px;
-                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    font-family: 'Ubuntu', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                     box-sizing: border-box;
                     page-break-inside: avoid;
                 ">
@@ -1945,6 +1996,65 @@
                     </button>
                     <button onclick="saveLabel()" class="btn btn-secondary" style="flex: 1;">
                         💾 Save as Image
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Label Modal -->
+    <div id="keyLabelModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2>Key Tag - Online Labels OL875</h2>
+                <button class="close-btn" onclick="closeKeyLabelModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-bottom: 1.25rem;">
+                    <p style="font-size: 0.875rem; color: var(--joy-text-tertiary);">Preview - OL875 (1" × 2.5935" Label)</p>
+                </div>
+                <div id="keyLabel" class="printable-label key-label" style="
+                    width: 260px;
+                    height: 96px;
+                    background: rgba(51, 65, 85, 0.95);
+                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    margin: 0 auto;
+                    padding: 6px 9px;
+                    display: flex;
+                    gap: 8px;
+                    font-family: 'Ubuntu', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    box-sizing: border-box;
+                    page-break-inside: avoid;
+                    border-radius: 6px;
+                    align-items: center;
+                ">
+                    <div style="
+                        background: rgba(255, 255, 255, 0.9);
+                        color: #0f172a;
+                        padding: 6px 9px;
+                        border-radius: 4px;
+                        min-width: 72px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        text-align: center;
+                        line-height: 1.05;
+                        box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+                    ">
+                        <div style="font-size: 9px; font-weight: 600; color: #334155; letter-spacing: 0.02em;">Stock #</div>
+                        <div id="keyLabelStock" style="font-size: 15px; font-weight: 800; color: #0f172a; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
+                    </div>
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; justify-content: center; line-height: 1.1;">
+                        <div id="keyLabelVehicle" style="font-size: 11px; font-weight: 700; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
+                        <div id="keyLabelVin" style="font-size: 9px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
+                        <div id="keyLabelColor" style="font-size: 9px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
+                        <div id="keyLabelFleet" style="font-size: 9px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
+                        <div id="keyLabelOperation" style="font-size: 9px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1.25rem;">
+                    <button onclick="printKeyLabel()" class="btn btn-primary" style="flex: 1;">
+                        🖨️ Print Key Tag
                     </button>
                 </div>
             </div>
@@ -1989,7 +2099,50 @@
         </div>
     </div>
 
+    <!-- Key Label Position Selector Modal -->
+    <div id="keyLabelPositionModal" class="modal">
+        <div class="modal-content" style="max-width: 820px;">
+            <div class="modal-header">
+                <h2>Select Key Tag Position</h2>
+                <button class="close-btn" onclick="closeKeyLabelPositionModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 1rem; color: var(--joy-text-secondary); font-size: 0.875rem;">
+                    Click on the position where you want to print the key tag on your OL875 sheet (3 columns × 10 rows)
+                </p>
+                <div id="keyLabelGrid" class="key-label-grid" style="
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 0.4rem;
+                    margin-bottom: 1.5rem;
+                    max-width: 760px;
+                    width: 100%;
+                    margin-left: auto;
+                    margin-right: auto;
+                ">
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <button onclick="printSelectedKeyPosition()" class="btn btn-primary" style="flex: 1;">
+                        🖨️ Print Key Tag
+                    </button>
+                    <button onclick="closeKeyLabelPositionModal()" class="btn btn-secondary" style="flex: 1;">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <style>
+        .label-type-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+            border: 1px solid var(--joy-divider);
+            background: rgba(71, 85, 105, 0.3);
+        }
+
         /* Label Position Grid Styles */
         .label-position-btn {
             aspect-ratio: 2/1;
@@ -2021,14 +2174,14 @@
             transform: scale(1.05);
         }
 
+        .key-label-grid .label-position-btn {
+            min-height: 44px;
+        }
+
         @media print {
             @page {
                 size: 8.5in 11in;
                 margin: 0;
-            }
-
-            * {
-                visibility: hidden !important;
             }
 
             html, body {
@@ -2039,80 +2192,48 @@
                 overflow: visible !important;
             }
 
-            #label, #label * {
-                visibility: visible !important;
+            /* Hide everything except the active printing label */
+            body > *:not(.printing) {
+                display: none !important;
             }
 
-            #label {
-                position: absolute !important;
+            .printing {
+                position: fixed !important;
+                margin: 0 !important;
+                visibility: visible !important;
+                box-sizing: border-box !important;
+            }
+
+            .printing * {
+                visibility: visible !important;
+                color: #000 !important;
+            }
+
+            .printing.folder-label {
                 display: flex !important;
                 width: 4in !important;
                 height: 2in !important;
+                top: var(--print-top, 0.5in) !important;
+                left: var(--print-left, 0.1875in) !important;
                 border: 1px solid #ccc !important;
                 background: white !important;
-                margin: 0 !important;
                 padding: 0.125in !important;
-                box-sizing: border-box !important;
                 gap: 12px !important;
                 flex-direction: row !important;
             }
 
-            #label > div {
-                color: #000 !important;
-            }
-
-            #labelStockNumber {
-                color: #1d1d1f !important;
-            }
-
-            #labelVehicle {
-                color: #424245 !important;
-            }
-
-            #labelInfo {
-                color: #86868b !important;
-            }
-
-            /* Specific position overrides using data attribute */
-            #label[data-print-position="0"] {
-                top: 0.5in !important;
-                left: 0.25in !important;
-            }
-            #label[data-print-position="1"] {
-                top: 0.5in !important;
-                left: 4.25in !important;
-            }
-            #label[data-print-position="2"] {
-                top: 2.5in !important;
-                left: 0.25in !important;
-            }
-            #label[data-print-position="3"] {
-                top: 2.5in !important;
-                left: 4.25in !important;
-            }
-            #label[data-print-position="4"] {
-                top: 4.5in !important;
-                left: 0.25in !important;
-            }
-            #label[data-print-position="5"] {
-                top: 4.5in !important;
-                left: 4.25in !important;
-            }
-            #label[data-print-position="6"] {
-                top: 6.5in !important;
-                left: 0.25in !important;
-            }
-            #label[data-print-position="7"] {
-                top: 6.5in !important;
-                left: 4.25in !important;
-            }
-            #label[data-print-position="8"] {
-                top: 8.5in !important;
-                left: 0.25in !important;
-            }
-            #label[data-print-position="9"] {
-                top: 8.5in !important;
-                left: 4.25in !important;
+            .printing.key-label {
+                display: flex !important;
+                width: 2.5935in !important;
+                height: 1in !important;
+                top: var(--print-top, 0.5in) !important;
+                left: var(--print-left, 0.21975in) !important;
+                border: none !important;
+                background: white !important;
+                padding: 0.07in 0.09in !important;
+                gap: 8px !important;
+                border-radius: 0.125in !important;
+                align-items: center !important;
             }
         }
     </style>
