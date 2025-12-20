@@ -1612,6 +1612,20 @@
                             <label for="customerPhone">Phone Number</label>
                             <input type="tel" id="customerPhone" pattern="[0-9]{3}-?[0-9]{3}-?[0-9]{4}" title="Phone format: 123-456-7890 or 1234567890" placeholder="123-456-7890">
                         </div>
+                        <div class="form-group">
+                            <label for="notes">Notes</label>
+                            <textarea id="notes" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                            Save Customer Info
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Payment Information Section (Only visible when car is sold) -->
+                <div id="paymentInfoSection" style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--joy-divider); display: none;">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Payment Information</h3>
+                    <form id="paymentForm" onsubmit="savePaymentInfo(event)">
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="saleAmount">Sale Amount ($)</label>
@@ -1637,12 +1651,8 @@
                                 <input type="text" id="paymentReference" placeholder="Transaction/Check #">
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="notes">Notes</label>
-                            <textarea id="notes" rows="3"></textarea>
-                        </div>
                         <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
-                            Save Customer Info
+                            Save Payment Info
                         </button>
                     </form>
                 </div>

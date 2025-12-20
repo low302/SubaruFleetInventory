@@ -391,15 +391,19 @@ async function deleteVehicle(vehicleId) {
 async function saveCustomerInfo(event) {
     event.preventDefault();
     if (!currentVehicle) return;
+
+    // Preserve existing payment information if it exists
+    const existingCustomer = currentVehicle.customer || {};
     currentVehicle.customer = {
         firstName: document.getElementById('customerFirstName').value,
         lastName: document.getElementById('customerLastName').value,
         phone: document.getElementById('customerPhone').value,
-        saleAmount: parseFloat(document.getElementById('saleAmount').value) || 0,
-        saleDate: document.getElementById('saleDate').value,
-        paymentMethod: document.getElementById('paymentMethod').value,
-        paymentReference: document.getElementById('paymentReference').value,
-        notes: document.getElementById('notes').value
+        notes: document.getElementById('notes').value,
+        // Preserve payment fields
+        saleAmount: existingCustomer.saleAmount || 0,
+        saleDate: existingCustomer.saleDate || '',
+        paymentMethod: existingCustomer.paymentMethod || '',
+        paymentReference: existingCustomer.paymentReference || ''
     };
     try {
         const response = await fetch(`${API_BASE}/inventory/${currentVehicle.id}`, {
@@ -415,6 +419,36 @@ async function saveCustomerInfo(event) {
     } catch (error) {
         console.error('Error saving customer info:', error);
         showNotification('Failed to save customer information. Please try again.', 'error');
+    }
+}
+
+async function savePaymentInfo(event) {
+    event.preventDefault();
+    if (!currentVehicle) return;
+
+    // Preserve existing customer information if it exists
+    const existingCustomer = currentVehicle.customer || {};
+    currentVehicle.customer = {
+        ...existingCustomer,
+        saleAmount: parseFloat(document.getElementById('saleAmount').value) || 0,
+        saleDate: document.getElementById('saleDate').value,
+        paymentMethod: document.getElementById('paymentMethod').value,
+        paymentReference: document.getElementById('paymentReference').value
+    };
+    try {
+        const response = await fetch(`${API_BASE}/inventory/${currentVehicle.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(currentVehicle)
+        });
+        if (!response.ok) throw new Error('Failed to save payment info');
+        await loadInventory();
+        showNotification('Payment information saved successfully!', 'success');
+        renderDetailModal(currentVehicle);
+    } catch (error) {
+        console.error('Error saving payment info:', error);
+        showNotification('Failed to save payment information. Please try again.', 'error');
     }
 }
 
@@ -1964,18 +1998,35 @@ function renderDetailModal(vehicle) {
     }
     
     document.getElementById('detailStatus').value = vehicle.status;
-    
+
+    // Check if vehicle is sold
+    const isSold = vehicle.status === 'sold' || soldVehicles.some(v => v.id === vehicle.id);
+
+    // Show/hide payment section based on sold status
+    const paymentSection = document.getElementById('paymentInfoSection');
+    if (paymentSection) {
+        paymentSection.style.display = isSold ? 'block' : 'none';
+    }
+
+    // Populate customer information
     if (vehicle.customer) {
         document.getElementById('customerFirstName').value = vehicle.customer.firstName || '';
         document.getElementById('customerLastName').value = vehicle.customer.lastName || '';
         document.getElementById('customerPhone').value = vehicle.customer.phone || '';
-        document.getElementById('saleAmount').value = vehicle.customer.saleAmount || '';
-        document.getElementById('saleDate').value = vehicle.customer.saleDate || '';
-        document.getElementById('paymentMethod').value = vehicle.customer.paymentMethod || '';
-        document.getElementById('paymentReference').value = vehicle.customer.paymentReference || '';
         document.getElementById('notes').value = vehicle.customer.notes || '';
+
+        // Populate payment information separately (only if vehicle is sold)
+        if (isSold) {
+            document.getElementById('saleAmount').value = vehicle.customer.saleAmount || '';
+            document.getElementById('saleDate').value = vehicle.customer.saleDate || '';
+            document.getElementById('paymentMethod').value = vehicle.customer.paymentMethod || '';
+            document.getElementById('paymentReference').value = vehicle.customer.paymentReference || '';
+        }
     } else {
         document.getElementById('customerForm').reset();
+        if (isSold && document.getElementById('paymentForm')) {
+            document.getElementById('paymentForm').reset();
+        }
     }
 
     // Render document list
