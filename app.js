@@ -3165,10 +3165,15 @@ async function handleCSVImport(event) {
                 continue;
             }
 
-            const validStatuses = ['in-stock', 'in-transit', 'pdi', 'pending-pickup', 'pickup-scheduled'];
-            if (vehicle.status && !validStatuses.includes(vehicle.status)) {
+            const validStatuses = ['in-stock', 'in-transit', 'pdi', 'pending-pickup', 'pickup-scheduled', 'sold'];
+            if (vehicle.status && !validStatuses.includes(vehicle.status.toLowerCase())) {
                 errors.push(`Row ${i + 1}: Invalid status - ${vehicle.status}`);
                 continue;
+            }
+
+            // Normalize status to lowercase
+            if (vehicle.status) {
+                vehicle.status = vehicle.status.toLowerCase();
             }
 
             vehicles.push(vehicle);
