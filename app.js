@@ -1930,25 +1930,27 @@ function renderSoldPage() {
         container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💰</div><p>No sold vehicles match your filters</p></div>';
     } else {
         container.innerHTML = `
-            <table class="vehicle-table" style="width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 12px; overflow: hidden;">
-                <thead style="background: rgba(10, 132, 255, 0.1); border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 10;">
-                    <tr>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Stock #</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Vehicle</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">VIN</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Color</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Fleet</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Operation</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Customer</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Sold Date</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Status</th>
-                        <th style="padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${filtered.map(v => createSoldVehicleRow(v)).join('')}
-                </tbody>
-            </table>
+            <div style="overflow-x: auto;">
+                <table class="vehicle-table" style="width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 12px; overflow: hidden; table-layout: auto;">
+                    <thead style="background: rgba(10, 132, 255, 0.1); border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 10;">
+                        <tr>
+                            <th style="padding: 0.75rem; text-align: left; font-weight: 600; font-size: 0.8125rem; white-space: nowrap;">Stock #</th>
+                            <th style="padding: 0.75rem; text-align: left; font-weight: 600; font-size: 0.8125rem; min-width: 180px;">Vehicle</th>
+                            <th style="padding: 0.75rem; text-align: left; font-weight: 600; font-size: 0.8125rem; min-width: 140px;">VIN</th>
+                            <th style="padding: 0.75rem; text-align: left; font-weight: 600; font-size: 0.8125rem;">Color</th>
+                            <th style="padding: 0.75rem; text-align: left; font-weight: 600; font-size: 0.8125rem; min-width: 120px;">Fleet</th>
+                            <th style="padding: 0.75rem; text-align: left; font-weight: 600; font-size: 0.8125rem; min-width: 120px;">Operation</th>
+                            <th style="padding: 0.75rem; text-align: left; font-weight: 600; font-size: 0.8125rem; min-width: 110px;">Customer</th>
+                            <th style="padding: 0.75rem; text-align: left; font-weight: 600; font-size: 0.8125rem; white-space: nowrap;">Sold Date</th>
+                            <th style="padding: 0.75rem; text-align: left; font-weight: 600; font-size: 0.8125rem;">Status</th>
+                            <th style="padding: 0.75rem; text-align: left; font-weight: 600; font-size: 0.8125rem; white-space: nowrap;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filtered.map(v => createSoldVehicleRow(v)).join('')}
+                    </tbody>
+                </table>
+            </div>
         `;
     }
     updateMakeFilter('soldMakeFilter', soldVehicles);
@@ -2165,39 +2167,39 @@ function createSoldVehicleRow(vehicle) {
     const soldDate = vehicle.customer?.saleDate ? new Date(vehicle.customer.saleDate).toLocaleDateString() : '-';
 
     return `
-        <tr class="vehicle-row" onclick="openVehicleDetail(${vehicle.id})" style="cursor: pointer;">
-            <td>
-                <div style="font-weight: 600; font-size: 0.875rem; color: var(--accent);">${vehicle.stockNumber}</div>
+        <tr class="vehicle-row" onclick="openVehicleDetail(${vehicle.id})" style="cursor: pointer; border-bottom: 1px solid var(--border);">
+            <td style="padding: 0.75rem; vertical-align: middle;">
+                <div style="font-weight: 600; font-size: 0.8125rem; color: var(--accent); white-space: nowrap;">${vehicle.stockNumber}</div>
             </td>
-            <td>
-                <div style="font-weight: 600; font-size: 0.875rem;">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
-                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.125rem;">${vehicle.trim}</div>
+            <td style="padding: 0.75rem; vertical-align: middle;">
+                <div style="font-weight: 600; font-size: 0.8125rem; line-height: 1.3;">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.125rem; line-height: 1.2;">${vehicle.trim}</div>
             </td>
-            <td>
-                <div style="font-size: 0.8125rem;">${vehicle.vin}</div>
+            <td style="padding: 0.75rem; vertical-align: middle;">
+                <div style="font-size: 0.75rem; font-family: monospace; word-break: break-all;">${vehicle.vin}</div>
             </td>
-            <td>
+            <td style="padding: 0.75rem; vertical-align: middle;">
                 <div style="font-size: 0.8125rem;">${vehicle.color}</div>
             </td>
-            <td>
-                ${vehicle.fleetCompany ? `<div style="font-size: 0.8125rem;">${vehicle.fleetCompany}</div>` : '<div style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>'}
+            <td style="padding: 0.75rem; vertical-align: middle;">
+                ${vehicle.fleetCompany ? `<div style="font-size: 0.8125rem; overflow: hidden; text-overflow: ellipsis;">${vehicle.fleetCompany}</div>` : '<div style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>'}
             </td>
-            <td>
-                ${vehicle.operationCompany ? `<div style="font-size: 0.8125rem;">${vehicle.operationCompany}</div>` : '<div style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>'}
+            <td style="padding: 0.75rem; vertical-align: middle;">
+                ${vehicle.operationCompany ? `<div style="font-size: 0.8125rem; overflow: hidden; text-overflow: ellipsis;">${vehicle.operationCompany}</div>` : '<div style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>'}
             </td>
-            <td>
+            <td style="padding: 0.75rem; vertical-align: middle;">
                 ${customerName ? `<div style="font-size: 0.8125rem;">${customerName}</div>` : '<div style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>'}
             </td>
-            <td>
-                <div style="font-size: 0.8125rem; font-weight: 500;">${soldDate}</div>
+            <td style="padding: 0.75rem; vertical-align: middle;">
+                <div style="font-size: 0.8125rem; font-weight: 500; white-space: nowrap;">${soldDate}</div>
             </td>
-            <td>
+            <td style="padding: 0.75rem; vertical-align: middle;">
                 <span class="status-badge ${statusClass}">${statusText}</span>
             </td>
-            <td onclick="event.stopPropagation();">
-                <div style="display: flex; gap: 0.375rem;">
-                    <button class="btn btn-small btn-secondary" onclick="openVehicleDetail(${vehicle.id})" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Details</button>
-                    <button class="btn btn-small btn-secondary" onclick="openStatusPopup(${vehicle.id}, event)" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Status</button>
+            <td onclick="event.stopPropagation()" style="padding: 0.75rem; vertical-align: middle;">
+                <div style="display: flex; gap: 0.375rem; flex-wrap: nowrap;">
+                    <button class="btn btn-small btn-secondary" onclick="openVehicleDetail(${vehicle.id})" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; white-space: nowrap;">Details</button>
+                    <button class="btn btn-small btn-secondary" onclick="openStatusPopup(${vehicle.id}, event)" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; white-space: nowrap;">Status</button>
                 </div>
             </td>
         </tr>
