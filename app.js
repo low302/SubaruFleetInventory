@@ -2280,7 +2280,13 @@ function renderDetailModal(vehicle) {
                 <div class="info-item"><div class="info-label">Fleet Company</div><div class="info-value">${vehicle.fleetCompany || 'N/A'}</div></div>
                 <div class="info-item"><div class="info-label">Operation Company</div><div class="info-value">${vehicle.operationCompany || 'N/A'}</div></div>
                 <div class="info-item"><div class="info-label">In Stock Date</div><div class="info-value">${vehicle.inStockDate ? new Date(vehicle.inStockDate).toLocaleDateString() : 'N/A'}</div></div>
-                <div class="info-item"><div class="info-label">Days in Stock</div><div class="info-value">${Math.floor((new Date() - new Date(vehicle.inStockDate || vehicle.dateAdded)) / (1000 * 60 * 60 * 24))} days</div></div>
+                <div class="info-item"><div class="info-label">Days in Stock</div><div class="info-value">${(() => {
+                    const inStockDate = new Date(vehicle.inStockDate || vehicle.dateAdded);
+                    const isSold = vehicle.status === 'sold' || soldVehicles.some(v => v.id === vehicle.id);
+                    const endDate = isSold && vehicle.customer?.saleDate ? new Date(vehicle.customer.saleDate) : new Date();
+                    const days = Math.floor((endDate - inStockDate) / (1000 * 60 * 60 * 24));
+                    return days >= 0 ? days + ' days' : 'N/A';
+                })()}</div></div>
             </div>
             <div style="margin-top: 2rem; display: flex; gap: 1rem;">
                 <button class="btn btn-secondary" onclick='generateLabel(${vehicleJson})' style="flex: 1;">🏷️ Generate Label</button>
