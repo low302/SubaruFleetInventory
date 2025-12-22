@@ -2094,9 +2094,22 @@ function renderTradeInsPage() {
                     <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary); display: flex; align-items: center; gap: 0.5rem;">
                         <span>⏳</span> Awaiting Pickup <span style="background: var(--joy-warning-500); color: white; padding: 0.125rem 0.5rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">${awaitingPickup.length}</span>
                     </h3>
-                    <div class="vehicle-grid">
-                        ${awaitingPickup.map(t => createTradeInCard(t)).join('')}
-                    </div>
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>Stock #</th>
+                                <th>Vehicle</th>
+                                <th>VIN</th>
+                                <th>Color</th>
+                                <th>Mileage</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${awaitingPickup.map(t => createTradeInRow(t)).join('')}
+                        </tbody>
+                    </table>
                 </div>
             ` : ''}
 
@@ -2105,9 +2118,22 @@ function renderTradeInsPage() {
                     <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary); display: flex; align-items: center; gap: 0.5rem;">
                         <span>✓</span> Picked Up <span style="background: var(--joy-success-500); color: white; padding: 0.125rem 0.5rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">${pickedUp.length}</span>
                     </h3>
-                    <div class="vehicle-grid">
-                        ${pickedUp.map(t => createTradeInCard(t)).join('')}
-                    </div>
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>Stock #</th>
+                                <th>Vehicle</th>
+                                <th>VIN</th>
+                                <th>Color</th>
+                                <th>Mileage</th>
+                                <th>Picked Up Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${pickedUp.map(t => createTradeInRow(t)).join('')}
+                        </tbody>
+                    </table>
                 </div>
             ` : ''}
         `;
@@ -2255,6 +2281,50 @@ function createTradeInCard(tradeIn) {
                 </div>
             </div>
         </div>
+    `;
+}
+
+function createTradeInRow(tradeIn) {
+    const statusBadge = tradeIn.pickedUp
+        ? '<span class="status-badge" style="background: var(--joy-success-soft-bg); color: var(--joy-success-500);">✓ Picked Up</span>'
+        : '<span class="status-badge status-pending-pickup">Awaiting Pickup</span>';
+    const pickedUpDate = tradeIn.pickedUp && tradeIn.pickedUpDate
+        ? new Date(tradeIn.pickedUpDate).toLocaleDateString()
+        : '-';
+
+    return `
+        <tr class="vehicle-row" onclick="openTradeInDetail(${tradeIn.id})" style="cursor: pointer;">
+            <td>
+                <div style="font-weight: 600; font-size: 0.875rem; color: var(--accent);">${tradeIn.stockNumber || 'Fleet Return'}</div>
+            </td>
+            <td>
+                <div style="font-weight: 600; font-size: 0.875rem;">${tradeIn.year} ${tradeIn.make} ${tradeIn.model}</div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.125rem;">${tradeIn.trim || ''}</div>
+            </td>
+            <td>
+                <div style="font-size: 0.8125rem;">${tradeIn.vin}</div>
+            </td>
+            <td>
+                <div style="font-size: 0.8125rem;">${tradeIn.color}</div>
+            </td>
+            <td>
+                <div style="font-size: 0.8125rem;">${tradeIn.mileage ? tradeIn.mileage.toLocaleString() : 'N/A'}</div>
+            </td>
+            <td>
+                ${tradeIn.pickedUp ? `<div style="font-size: 0.8125rem;">${pickedUpDate}</div>` : statusBadge}
+            </td>
+            <td onclick="event.stopPropagation();">
+                <div style="display: flex; gap: 0.375rem; align-items: center;">
+                    <button class="btn btn-small btn-secondary" onclick="openTradeInDetail(${tradeIn.id})" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Details</button>
+                    <label class="custom-checkbox" style="margin: 0;">
+                        <input type="checkbox" id="pickup-${tradeIn.id}" ${tradeIn.pickedUp ? 'checked' : ''} onchange="toggleTradeInPickup(${tradeIn.id})">
+                        <span class="checkbox-label">
+                            <span class="checkbox-box"></span>
+                        </span>
+                    </label>
+                </div>
+            </td>
+        </tr>
     `;
 }
 
