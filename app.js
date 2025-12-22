@@ -1930,27 +1930,25 @@ function renderSoldPage() {
         container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💰</div><p>No sold vehicles match your filters</p></div>';
     } else {
         container.innerHTML = `
-            <div style="overflow-x: auto;">
-                <table class="vehicle-table" style="width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 12px; overflow: hidden; table-layout: auto;">
-                    <thead style="background: rgba(10, 132, 255, 0.1); border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 10;">
-                        <tr>
-                            <th style="padding: 0.75rem; text-align: left; font-weight: 600; font-size: 0.8125rem; white-space: nowrap;">Stock #</th>
-                            <th style="padding: 0.75rem; text-align: left; font-weight: 600; font-size: 0.8125rem; min-width: 180px;">Vehicle</th>
-                            <th style="padding: 0.75rem; text-align: left; font-weight: 600; font-size: 0.8125rem; min-width: 140px;">VIN</th>
-                            <th style="padding: 0.75rem; text-align: left; font-weight: 600; font-size: 0.8125rem;">Color</th>
-                            <th style="padding: 0.75rem; text-align: left; font-weight: 600; font-size: 0.8125rem; min-width: 120px;">Fleet</th>
-                            <th style="padding: 0.75rem; text-align: left; font-weight: 600; font-size: 0.8125rem; min-width: 120px;">Operation</th>
-                            <th style="padding: 0.75rem; text-align: left; font-weight: 600; font-size: 0.8125rem; min-width: 110px;">Customer</th>
-                            <th style="padding: 0.75rem; text-align: left; font-weight: 600; font-size: 0.8125rem; white-space: nowrap;">Sold Date</th>
-                            <th style="padding: 0.75rem; text-align: left; font-weight: 600; font-size: 0.8125rem;">Status</th>
-                            <th style="padding: 0.75rem; text-align: left; font-weight: 600; font-size: 0.8125rem; white-space: nowrap;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${filtered.map(v => createSoldVehicleRow(v)).join('')}
-                    </tbody>
-                </table>
-            </div>
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Stock #</th>
+                        <th>Vehicle</th>
+                        <th>VIN</th>
+                        <th>Color</th>
+                        <th>Fleet</th>
+                        <th>Operation</th>
+                        <th>Customer</th>
+                        <th>Sold Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${filtered.map(v => createSoldVehicleRow(v)).join('')}
+                </tbody>
+            </table>
         `;
     }
     updateMakeFilter('soldMakeFilter', soldVehicles);
@@ -2167,39 +2165,39 @@ function createSoldVehicleRow(vehicle) {
     const soldDate = vehicle.customer?.saleDate ? new Date(vehicle.customer.saleDate).toLocaleDateString() : '-';
 
     return `
-        <tr class="vehicle-row" onclick="openVehicleDetail(${vehicle.id})" style="cursor: pointer; border-bottom: 1px solid var(--border);">
-            <td style="padding: 0.75rem; vertical-align: middle;">
-                <div style="font-weight: 600; font-size: 0.8125rem; color: var(--accent); white-space: nowrap;">${vehicle.stockNumber}</div>
+        <tr class="vehicle-row" onclick="openVehicleDetail(${vehicle.id})" style="cursor: pointer;">
+            <td>
+                <div style="font-weight: 600; font-size: 0.875rem; color: var(--accent);">${vehicle.stockNumber}</div>
             </td>
-            <td style="padding: 0.75rem; vertical-align: middle;">
-                <div style="font-weight: 600; font-size: 0.8125rem; line-height: 1.3;">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
-                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.125rem; line-height: 1.2;">${vehicle.trim}</div>
+            <td>
+                <div style="font-weight: 600; font-size: 0.875rem;">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.125rem;">${vehicle.trim}</div>
             </td>
-            <td style="padding: 0.75rem; vertical-align: middle;">
-                <div style="font-size: 0.75rem; font-family: monospace; word-break: break-all;">${vehicle.vin}</div>
+            <td>
+                <div style="font-size: 0.8125rem;">${vehicle.vin}</div>
             </td>
-            <td style="padding: 0.75rem; vertical-align: middle;">
+            <td>
                 <div style="font-size: 0.8125rem;">${vehicle.color}</div>
             </td>
-            <td style="padding: 0.75rem; vertical-align: middle;">
-                ${vehicle.fleetCompany ? `<div style="font-size: 0.8125rem; overflow: hidden; text-overflow: ellipsis;">${vehicle.fleetCompany}</div>` : '<div style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>'}
+            <td>
+                ${vehicle.fleetCompany ? `<div style="font-size: 0.8125rem;">${vehicle.fleetCompany}</div>` : '<div style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>'}
             </td>
-            <td style="padding: 0.75rem; vertical-align: middle;">
-                ${vehicle.operationCompany ? `<div style="font-size: 0.8125rem; overflow: hidden; text-overflow: ellipsis;">${vehicle.operationCompany}</div>` : '<div style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>'}
+            <td>
+                ${vehicle.operationCompany ? `<div style="font-size: 0.8125rem;">${vehicle.operationCompany}</div>` : '<div style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>'}
             </td>
-            <td style="padding: 0.75rem; vertical-align: middle;">
+            <td>
                 ${customerName ? `<div style="font-size: 0.8125rem;">${customerName}</div>` : '<div style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>'}
             </td>
-            <td style="padding: 0.75rem; vertical-align: middle;">
-                <div style="font-size: 0.8125rem; font-weight: 500; white-space: nowrap;">${soldDate}</div>
+            <td>
+                <div style="font-size: 0.8125rem; font-weight: 500;">${soldDate}</div>
             </td>
-            <td style="padding: 0.75rem; vertical-align: middle;">
+            <td>
                 <span class="status-badge ${statusClass}">${statusText}</span>
             </td>
-            <td onclick="event.stopPropagation()" style="padding: 0.75rem; vertical-align: middle;">
-                <div style="display: flex; gap: 0.375rem; flex-wrap: nowrap;">
-                    <button class="btn btn-small btn-secondary" onclick="openVehicleDetail(${vehicle.id})" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; white-space: nowrap;">Details</button>
-                    <button class="btn btn-small btn-secondary" onclick="openStatusPopup(${vehicle.id}, event)" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; white-space: nowrap;">Status</button>
+            <td onclick="event.stopPropagation();">
+                <div style="display: flex; gap: 0.375rem;">
+                    <button class="btn btn-small btn-secondary" onclick="openVehicleDetail(${vehicle.id})" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Details</button>
+                    <button class="btn btn-small btn-secondary" onclick="openStatusPopup(${vehicle.id}, event)" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Status</button>
                 </div>
             </td>
         </tr>
@@ -2433,13 +2431,13 @@ function renderAnalytics() {
 }
 
 function renderRevenueChart(period, colors, textColor, gridColor) {
-    const soldVehicles = vehicles.filter(v => {
+    const soldVehiclesWithSales = soldVehicles.filter(v => {
         const saleDate = v.customer?.saleDate || v.saleDate;
         const saleAmount = v.customer?.saleAmount || v.saleAmount;
-        return v.status === 'sold' && saleDate && saleAmount;
+        return saleDate && saleAmount;
     });
 
-    if (soldVehicles.length === 0) {
+    if (soldVehiclesWithSales.length === 0) {
         const canvas = document.getElementById('revenueChart');
         if (canvas) {
             const ctx = canvas.getContext('2d');
@@ -2454,7 +2452,7 @@ function renderRevenueChart(period, colors, textColor, gridColor) {
 
     const revenueData = {};
 
-    soldVehicles.forEach(v => {
+    soldVehiclesWithSales.forEach(v => {
         const saleDate = v.customer?.saleDate || v.saleDate;
         const saleAmount = v.customer?.saleAmount || v.saleAmount;
         const date = new Date(saleDate);
@@ -2534,12 +2532,12 @@ function renderRevenueChart(period, colors, textColor, gridColor) {
 }
 
 function renderAgeChart(colors, textColor, gridColor) {
-    const soldVehicles = vehicles.filter(v => {
+    const soldVehiclesWithDates = soldVehicles.filter(v => {
         const saleDate = v.customer?.saleDate || v.saleDate;
-        return v.status === 'sold' && saleDate && v.inStockDate;
+        return saleDate && v.inStockDate;
     });
 
-    if (soldVehicles.length === 0) {
+    if (soldVehiclesWithDates.length === 0) {
         const canvas = document.getElementById('ageChart');
         if (canvas) {
             const ctx = canvas.getContext('2d');
@@ -2554,7 +2552,7 @@ function renderAgeChart(colors, textColor, gridColor) {
 
     const ageByMake = {};
 
-    soldVehicles.forEach(v => {
+    soldVehiclesWithDates.forEach(v => {
         const saleDate = v.customer?.saleDate || v.saleDate;
         const inStockDate = new Date(v.inStockDate);
         const saleDateObj = new Date(saleDate);
@@ -2725,12 +2723,12 @@ function renderMakeChart(colors, textColor, gridColor) {
 }
 
 function renderPaymentChart(colors, textColor) {
-    const soldVehicles = vehicles.filter(v => {
+    const soldVehiclesWithPayment = soldVehicles.filter(v => {
         const paymentMethod = v.customer?.paymentMethod || v.paymentMethod;
-        return v.status === 'sold' && paymentMethod;
+        return paymentMethod;
     });
 
-    if (soldVehicles.length === 0) {
+    if (soldVehiclesWithPayment.length === 0) {
         const canvas = document.getElementById('paymentChart');
         if (canvas) {
             const ctx = canvas.getContext('2d');
@@ -2744,7 +2742,7 @@ function renderPaymentChart(colors, textColor) {
     }
 
     const paymentData = {};
-    soldVehicles.forEach(v => {
+    soldVehiclesWithPayment.forEach(v => {
         const paymentMethod = v.customer?.paymentMethod || v.paymentMethod;
         paymentData[paymentMethod] = (paymentData[paymentMethod] || 0) + 1;
     });
@@ -2785,8 +2783,6 @@ function renderPaymentChart(colors, textColor) {
 }
 
 function renderTopModelsChart(colors, textColor, gridColor) {
-    const soldVehicles = vehicles.filter(v => v.status === 'sold');
-
     if (soldVehicles.length === 0) {
         const canvas = document.getElementById('modelsChart');
         if (canvas) {
