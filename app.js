@@ -3119,14 +3119,17 @@ async function handleCSVImport(event) {
             const values = parseCSVLine(lines[i]);
             if (values.length < 7) continue; // Skip invalid rows
 
+            // Helper function to check if value is not empty
+            const hasValue = (val) => val && val.trim() !== '';
+
             // Parse customer and payment information if present
             const customerInfo = {};
-            if (values[11] || values[12] || values[13]) {
+            if (hasValue(values[11]) || hasValue(values[12]) || hasValue(values[13])) {
                 customerInfo.firstName = values[11] || '';
                 customerInfo.lastName = values[12] || '';
                 customerInfo.phone = values[13] || '';
             }
-            if (values[14] || values[15] || values[16] || values[17]) {
+            if (hasValue(values[14]) || hasValue(values[15]) || hasValue(values[16]) || hasValue(values[17])) {
                 customerInfo.saleDate = values[14] || '';
                 customerInfo.saleAmount = parseFloat(values[15]) || 0;
                 customerInfo.paymentMethod = values[16] || '';
@@ -3136,7 +3139,7 @@ async function handleCSVImport(event) {
             const vehicle = {
                 id: Date.now() + i,
                 stockNumber: values[0],
-                vin: values[1].toUpperCase(),
+                vin: values[1] ? values[1].toUpperCase() : '',
                 year: parseInt(values[2]),
                 make: values[3],
                 model: values[4],
@@ -3146,7 +3149,7 @@ async function handleCSVImport(event) {
                 operationCompany: values[8] || '',
                 status: values[9] || 'in-stock',
                 dateAdded: new Date().toISOString(),
-                inStockDate: values[10] ? new Date(values[10]).toISOString() : new Date().toISOString(),
+                inStockDate: hasValue(values[10]) ? new Date(values[10]).toISOString() : new Date().toISOString(),
                 customer: Object.keys(customerInfo).length > 0 ? customerInfo : undefined
             };
 
@@ -3202,7 +3205,8 @@ async function handleCSVImport(event) {
             for (const vehicle of vehicles) {
                 try {
                     // Determine if vehicle should go to sold_vehicles or inventory
-                    const isSold = vehicle.customer?.saleDate || vehicle.status === 'sold';
+                    const hasSaleDate = vehicle.customer?.saleDate && vehicle.customer.saleDate.trim() !== '';
+                    const isSold = hasSaleDate || vehicle.status === 'sold';
                     const endpoint = isSold ? `${API_BASE}/sold-vehicles` : `${API_BASE}/inventory`;
 
                     // Set status to 'sold' if it has sale information
@@ -3210,6 +3214,8 @@ async function handleCSVImport(event) {
                         vehicle.status = 'sold';
                         soldCount++;
                     }
+
+                    console.log('Importing vehicle:', vehicle.stockNumber, 'to', endpoint, 'isSold:', isSold);
 
                     const response = await fetch(endpoint, {
                         method: 'POST',
@@ -3220,13 +3226,16 @@ async function handleCSVImport(event) {
 
                     if (response.ok) {
                         successCount++;
+                        console.log('Successfully imported:', vehicle.stockNumber);
                     } else {
                         failCount++;
                         const errorData = await response.json();
+                        console.error('Failed to import:', vehicle.stockNumber, errorData);
                         errors.push(`${vehicle.stockNumber}: ${errorData.error || 'Failed to import'}`);
                     }
                 } catch (error) {
                     failCount++;
+                    console.error('Import error for', vehicle.stockNumber, ':', error);
                     errors.push(`${vehicle.stockNumber}: ${error.message}`);
                 }
             }
