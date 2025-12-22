@@ -2556,13 +2556,18 @@ function renderAgeChart(colors, textColor, gridColor) {
         const saleDate = v.customer?.saleDate || v.saleDate;
         const inStockDate = new Date(v.inStockDate);
         const saleDateObj = new Date(saleDate);
+
+        // Calculate days between in stock date and sold date
         const daysInInventory = Math.floor((saleDateObj - inStockDate) / (1000 * 60 * 60 * 24));
 
-        if (!ageByMake[v.make]) {
-            ageByMake[v.make] = { total: 0, count: 0 };
+        // Only include positive day values (sold date should be after in stock date)
+        if (daysInInventory >= 0) {
+            if (!ageByMake[v.make]) {
+                ageByMake[v.make] = { total: 0, count: 0 };
+            }
+            ageByMake[v.make].total += daysInInventory;
+            ageByMake[v.make].count += 1;
         }
-        ageByMake[v.make].total += daysInInventory;
-        ageByMake[v.make].count += 1;
     });
 
     const averages = Object.keys(ageByMake).map(make => ({
@@ -2678,18 +2683,26 @@ function renderStatusChart(colors, textColor) {
 }
 
 function renderMakeChart(colors, textColor, gridColor) {
-    const makeData = {};
-    vehicles.forEach(v => { makeData[v.make] = (makeData[v.make] || 0) + 1; });
+    const modelData = {};
+    vehicles.forEach(v => {
+        const modelKey = `${v.make} ${v.model}`;
+        modelData[modelKey] = (modelData[modelKey] || 0) + 1;
+    });
+
+    // Sort by count and get top models
+    const sortedModels = Object.entries(modelData)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
 
     const canvas = document.getElementById('makeChart');
     if (canvas) {
         chartInstances.make = new Chart(canvas, {
             type: 'bar',
             data: {
-                labels: Object.keys(makeData),
+                labels: sortedModels.map(m => m[0]),
                 datasets: [{
-                    label: 'Vehicles by Make',
-                    data: Object.values(makeData),
+                    label: 'Vehicles by Model',
+                    data: sortedModels.map(m => m[1]),
                     backgroundColor: colors.primary,
                     borderColor: colors.primary.replace('0.8', '1'),
                     borderWidth: 1

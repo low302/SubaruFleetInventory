@@ -481,12 +481,12 @@ app.delete('/api/sold-vehicles/:id', isAuthenticated, (req, res) => {
 // Update sold vehicle
 app.put('/api/sold-vehicles/:id', isAuthenticated, (req, res) => {
     const vehicle = req.body;
-    const sql = `UPDATE sold_vehicles SET 
-        stockNumber = ?, vin = ?, year = ?, make = ?, model = ?, trim = ?, 
+    const sql = `UPDATE sold_vehicles SET
+        stockNumber = ?, vin = ?, year = ?, make = ?, model = ?, trim = ?,
         color = ?, fleetCompany = ?, operationCompany = ?, status = ?, customer = ?, documents = ?,
-        tradeInId = ?
+        tradeInId = ?, inStockDate = ?
         WHERE id = ?`;
-    
+
     const params = [
         vehicle.stockNumber,
         vehicle.vin,
@@ -501,6 +501,7 @@ app.put('/api/sold-vehicles/:id', isAuthenticated, (req, res) => {
         vehicle.customer ? JSON.stringify(vehicle.customer) : null,
         vehicle.documents ? JSON.stringify(vehicle.documents) : '[]',
         vehicle.tradeInId || null,
+        vehicle.inStockDate || null,
         vehicle.id
     ];
 
