@@ -2588,40 +2588,68 @@ function renderAgeChart(colors, textColor, gridColor) {
             data: {
                 labels: averages.map(a => a.make),
                 datasets: [{
-                    label: 'Avg Days in Inventory',
+                    label: 'Average Days to Sale',
                     data: averages.map(a => a.avg),
-                    backgroundColor: colors.warning,
-                    borderColor: colors.warning.replace('0.8', '1'),
-                    borderWidth: 1
+                    backgroundColor: averages.map((a, i) => {
+                        // Color gradient based on days - green for fast, yellow for medium, red for slow
+                        const days = a.avg;
+                        if (days < 30) return 'rgba(50, 215, 75, 0.8)'; // Green
+                        if (days < 60) return 'rgba(255, 159, 10, 0.8)'; // Orange
+                        return 'rgba(255, 69, 58, 0.8)'; // Red
+                    }),
+                    borderColor: averages.map((a, i) => {
+                        const days = a.avg;
+                        if (days < 30) return 'rgba(50, 215, 75, 1)';
+                        if (days < 60) return 'rgba(255, 159, 10, 1)';
+                        return 'rgba(255, 69, 58, 1)';
+                    }),
+                    borderWidth: 2,
+                    borderRadius: 6
                 }]
             },
             options: {
+                indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        labels: { color: textColor, font: { size: 12, weight: '600' } }
+                        display: false
                     },
                     tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        padding: 12,
+                        titleColor: textColor,
+                        bodyColor: textColor,
+                        borderColor: 'rgba(255, 255, 255, 0.2)',
+                        borderWidth: 1,
                         callbacks: {
                             label: (context) => {
-                                return `Avg Days: ${Math.round(context.parsed.y)}`;
+                                const days = Math.round(context.parsed.x);
+                                return `Average: ${days} day${days !== 1 ? 's' : ''} to sale`;
                             }
                         }
                     }
                 },
                 scales: {
-                    y: {
+                    x: {
                         beginAtZero: true,
                         ticks: {
                             color: textColor,
                             callback: (value) => Math.round(value) + ' days'
                         },
-                        grid: { color: gridColor }
+                        grid: {
+                            color: gridColor,
+                            drawBorder: false
+                        }
                     },
-                    x: {
-                        ticks: { color: textColor },
-                        grid: { color: gridColor }
+                    y: {
+                        ticks: {
+                            color: textColor,
+                            font: { size: 13, weight: '600' }
+                        },
+                        grid: {
+                            display: false
+                        }
                     }
                 }
             }
@@ -2632,17 +2660,15 @@ function renderAgeChart(colors, textColor, gridColor) {
 function renderStatusChart(colors, textColor) {
     const statusData = {
         'In Stock': 0,
-        'In-Transit': 0,
         'PDI': 0,
         'Pending Pickup': 0,
-        'Pickup Scheduled': 0,
-        'Sold': 0
+        'Pickup Scheduled': 0
     };
 
-    vehicles.forEach(v => {
+    // Exclude in-transit vehicles from status chart
+    vehicles.filter(v => v.status !== 'in-transit').forEach(v => {
         switch(v.status) {
             case 'in-stock': statusData['In Stock']++; break;
-            case 'in-transit': statusData['In-Transit']++; break;
             case 'pdi': statusData['PDI']++; break;
             case 'pending-pickup': statusData['Pending Pickup']++; break;
             case 'pickup-scheduled': statusData['Pickup Scheduled']++; break;
@@ -2690,7 +2716,8 @@ function renderStatusChart(colors, textColor) {
 
 function renderMakeChart(colors, textColor, gridColor) {
     const modelData = {};
-    vehicles.forEach(v => {
+    // Exclude in-transit vehicles
+    vehicles.filter(v => v.status !== 'in-transit').forEach(v => {
         const modelKey = `${v.make} ${v.model}`;
         modelData[modelKey] = (modelData[modelKey] || 0) + 1;
     });
@@ -2868,8 +2895,8 @@ function renderTopModelsChart(colors, textColor, gridColor) {
 }
 
 function renderFleetCompanyChart(colors, textColor, gridColor) {
-    // Filter for vehicles currently on lot (not sold)
-    const onLotVehicles = vehicles.filter(v => v.status !== 'sold' && v.fleetCompany);
+    // Filter for vehicles currently on lot (not sold, not in-transit)
+    const onLotVehicles = vehicles.filter(v => v.status !== 'sold' && v.status !== 'in-transit' && v.fleetCompany);
 
     if (onLotVehicles.length === 0) {
         const canvas = document.getElementById('fleetCompanyChart');
