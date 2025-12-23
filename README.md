@@ -1,6 +1,6 @@
 # Brandon Tomes Subaru - Fleet Inventory System
 
-A full-stack vehicle inventory management system with authentication, database persistence, and modern UI.
+A full-stack vehicle inventory management system with authentication, database persistence, and modern UI. **Now optimized for iOS devices!**
 
 ## Quick Start
 
@@ -22,6 +22,9 @@ docker-compose up -d --build
 - 📤 CSV export functionality
 - 🔄 Trade-in tracking
 - 📅 Pickup scheduling
+- 📱 **Mobile-optimized** with collapsible sidebar
+- 🍎 **iOS Safari compatible** with safe area support
+- 👆 **Touch-friendly** with 44px minimum touch targets
 
 ## Architecture
 
@@ -64,6 +67,35 @@ The system is configured to work on your local network:
 - Access from same computer: `http://localhost:8080`
 - Access from other devices: `http://YOUR_IP:8080`
 - Find your IP: `ipconfig` (Windows) or `ifconfig` (Mac/Linux)
+
+## Mobile Access (iOS & iPad)
+
+The application is fully optimized for iOS devices:
+
+### Supported Devices
+- ✅ iPad Pro 11" (and all iPad models)
+- ✅ iPhone 17 Pro Max (and all iPhone models)
+- ✅ iOS Safari 15+
+
+### Mobile Features
+- **Collapsible Sidebar**: Hamburger menu (☰) in top-left corner
+- **Touch-Optimized**: All buttons are 44px minimum (Apple guidelines)
+- **Safe Areas**: Respects notch, Dynamic Island, and home indicator
+- **Smooth Animations**: 60fps slide transitions
+- **Responsive Tables**: Horizontal scroll on small screens
+- **No Zoom**: Forms don't trigger unwanted zoom
+
+### Testing on Your iOS Device
+1. Connect your iPhone/iPad to the same WiFi as your computer
+2. Find your computer's IP address (see Network Access above)
+3. Open Safari on your iOS device
+4. Navigate to `http://YOUR_IP:8080`
+5. Login and test the hamburger menu!
+
+**Tip:** Add to home screen for a native app-like experience:
+- Tap Share → Add to Home Screen
+
+See [MOBILE-TESTING-GUIDE.md](MOBILE-TESTING-GUIDE.md) for detailed testing instructions.
 
 ## Troubleshooting
 

@@ -5,6 +5,57 @@ let tradeIns = [];
 let currentVehicle = null;
 let currentFilter = { search: '', make: '', status: '' };
 
+// Mobile Sidebar Toggle
+function initMobileSidebar() {
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    if (!menuToggle || !sidebar || !sidebarOverlay) return;
+
+    // Toggle sidebar
+    function toggleSidebar() {
+        sidebar.classList.toggle('active');
+        sidebarOverlay.classList.toggle('active');
+        menuToggle.classList.toggle('active');
+    }
+
+    // Close sidebar
+    function closeSidebar() {
+        sidebar.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
+        menuToggle.classList.remove('active');
+    }
+
+    // Event listeners
+    menuToggle.addEventListener('click', toggleSidebar);
+    sidebarOverlay.addEventListener('click', closeSidebar);
+
+    // Close sidebar when clicking nav links on mobile
+    navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 1024) {
+                closeSidebar();
+            }
+        });
+    });
+
+    // Close sidebar on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sidebar.classList.contains('active')) {
+            closeSidebar();
+        }
+    });
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 1024) {
+            closeSidebar();
+        }
+    });
+}
+
 // Custom notification system to replace browser alerts
 function showNotification(message, type = 'info') {
     const modal = document.getElementById('notificationModal');
@@ -2256,36 +2307,6 @@ function createVehicleCard(vehicle) {
     `;
 }
 
-function createTradeInCard(tradeIn) {
-    return `
-        <div class="vehicle-card ${tradeIn.pickedUp ? 'picked-up-card' : ''}" onclick="openTradeInDetail(${tradeIn.id})" style="cursor: pointer;">
-            <div class="vehicle-header">
-                <div class="vehicle-stock">${tradeIn.stockNumber || 'Fleet Return'}</div>
-                <div class="vehicle-title">${tradeIn.year} ${tradeIn.make} ${tradeIn.model}</div>
-            </div>
-            <div class="vehicle-body">
-                <div class="vehicle-info">
-                    <div class="info-item"><div class="info-label">VIN</div><div class="info-value">${tradeIn.vin}</div></div>
-                    <div class="info-item"><div class="info-label">Color</div><div class="info-value">${tradeIn.color}</div></div>
-                    <div class="info-item"><div class="info-label">Mileage</div><div class="info-value">${tradeIn.mileage ? tradeIn.mileage.toLocaleString() : 'N/A'}</div></div>
-                    <div class="info-item"><div class="info-label">Status</div><div class="info-value">${tradeIn.pickedUp ? '<span class="picked-up-badge">✓ Picked Up</span>' : '<span class="status-badge status-pending-pickup">Awaiting Pickup</span>'}</div></div>
-                </div>
-                ${tradeIn.notes ? `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);"><div class="info-label">Notes</div><div class="info-value">${tradeIn.notes}</div></div>` : ''}
-                ${tradeIn.pickedUp && tradeIn.pickedUpDate ? `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);"><div class="info-label">Picked Up</div><div class="info-value">${formatDate(tradeIn.pickedUpDate)}</div></div>` : ''}
-                <div class="vehicle-actions" onclick="event.stopPropagation();">
-                    <label class="custom-checkbox">
-                        <input type="checkbox" id="pickup-${tradeIn.id}" ${tradeIn.pickedUp ? 'checked' : ''} onchange="toggleTradeInPickup(${tradeIn.id})">
-                        <span class="checkbox-label">
-                            <span class="checkbox-box"></span>
-                            <span class="checkbox-text">Mark as Picked Up</span>
-                        </span>
-                    </label>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
 function createTradeInRow(tradeIn) {
     const statusBadge = tradeIn.pickedUp
         ? '<span class="status-badge" style="background: var(--joy-success-soft-bg); color: var(--joy-success-500);">✓ Picked Up</span>'
@@ -3713,7 +3734,10 @@ function formatDate(dateString) { if (!dateString) return 'N/A'; return new Date
 
 document.addEventListener('DOMContentLoaded', function() {
     checkAuth();
-    
+
+    // Initialize mobile sidebar
+    initMobileSidebar();
+
     // Add event listeners only if elements exist
     const loginForm = document.getElementById('loginForm');
     if (loginForm) loginForm.addEventListener('submit', login);

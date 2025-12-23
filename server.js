@@ -138,6 +138,7 @@ function initializeDatabase() {
             operationCompany TEXT,
             status TEXT NOT NULL,
             dateAdded DATETIME NOT NULL,
+            inStockDate TEXT,
             customer TEXT,
             documents TEXT,
             pickupDate TEXT,
@@ -162,6 +163,7 @@ function initializeDatabase() {
             operationCompany TEXT,
             status TEXT NOT NULL,
             dateAdded DATETIME NOT NULL,
+            inStockDate TEXT,
             customer TEXT,
             documents TEXT,
             tradeInId INTEGER,
@@ -332,7 +334,7 @@ app.post('/api/inventory', isAuthenticated, (req, res) => {
         vehicle.fleetCompany || '',
         vehicle.operationCompany || '',
         vehicle.status,
-        vehicle.dateAdded,
+        vehicle.dateAdded || new Date().toISOString(),
         vehicle.inStockDate || null,
         vehicle.customer ? JSON.stringify(vehicle.customer) : null,
         vehicle.documents ? JSON.stringify(vehicle.documents) : '[]'
@@ -434,10 +436,10 @@ app.get('/api/sold-vehicles', isAuthenticated, (req, res) => {
 // Add sold vehicle - UPDATED WITH operationCompany
 app.post('/api/sold-vehicles', isAuthenticated, (req, res) => {
     const vehicle = req.body;
-    const sql = `INSERT INTO sold_vehicles 
-        (id, stockNumber, vin, year, make, model, trim, color, fleetCompany, operationCompany, status, dateAdded, customer, documents, tradeInId)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-    
+    const sql = `INSERT INTO sold_vehicles
+        (id, stockNumber, vin, year, make, model, trim, color, fleetCompany, operationCompany, status, dateAdded, inStockDate, customer, documents, tradeInId)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
     const params = [
         vehicle.id,
         vehicle.stockNumber,
@@ -450,7 +452,8 @@ app.post('/api/sold-vehicles', isAuthenticated, (req, res) => {
         vehicle.fleetCompany || '',
         vehicle.operationCompany || '',
         vehicle.status,
-        vehicle.dateAdded,
+        vehicle.dateAdded || new Date().toISOString(),
+        vehicle.inStockDate || null,
         vehicle.customer ? JSON.stringify(vehicle.customer) : null,
         vehicle.documents ? JSON.stringify(vehicle.documents) : '[]',
         vehicle.tradeInId || null
