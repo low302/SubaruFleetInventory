@@ -1613,7 +1613,9 @@ function updateDashboard() {
     if (totalVehicles) totalVehicles.textContent = vehicles.length;
 
     const inStockVehicles = document.getElementById('inStockVehicles');
-    if (inStockVehicles) inStockVehicles.textContent = vehicles.filter(v => v.status === 'in-stock').length;
+    if (inStockVehicles) inStockVehicles.textContent = vehicles.filter(v =>
+        v.status === 'in-stock' || v.status === 'pdi' || v.status === 'pending-pickup' || v.status === 'pickup-scheduled'
+    ).length;
 
     const inTransitCount = document.getElementById('inTransitCount');
     if (inTransitCount) inTransitCount.textContent = vehicles.filter(v => v.status === 'in-transit').length;
