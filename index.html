@@ -860,6 +860,8 @@
         .filter-group {
             display: flex;
             gap: 0.75rem;
+            flex-wrap: wrap;
+            align-items: center;
         }
 
         .filter-select {
@@ -1448,7 +1450,7 @@
                             <div class="search-box">
                                 <input type="text" id="transitSearchInput" placeholder="Search..." oninput="renderCurrentPage()">
                             </div>
-                            <select id="transitMakeFilter" class="filter-select">
+                            <select id="transitMakeFilter" class="filter-select" onchange="renderCurrentPage()">
                                 <option value="">All Makes</option>
                             </select>
                         </div>
@@ -1467,7 +1469,7 @@
                             <div class="search-box">
                                 <input type="text" id="pdiSearchInput" placeholder="Search..." oninput="renderCurrentPage()">
                             </div>
-                            <select id="pdiMakeFilter" class="filter-select">
+                            <select id="pdiMakeFilter" class="filter-select" onchange="renderCurrentPage()">
                                 <option value="">All Makes</option>
                             </select>
                         </div>
@@ -1486,7 +1488,7 @@
                             <div class="search-box">
                                 <input type="text" id="pendingPickupSearchInput" placeholder="Search..." oninput="renderCurrentPage()">
                             </div>
-                            <select id="pendingPickupMakeFilter" class="filter-select">
+                            <select id="pendingPickupMakeFilter" class="filter-select" onchange="renderCurrentPage()">
                                 <option value="">All Makes</option>
                             </select>
                         </div>
@@ -1505,7 +1507,7 @@
                             <div class="search-box">
                                 <input type="text" id="pickupScheduledSearchInput" placeholder="Search..." oninput="renderCurrentPage()">
                             </div>
-                            <select id="pickupScheduledMakeFilter" class="filter-select">
+                            <select id="pickupScheduledMakeFilter" class="filter-select" onchange="renderCurrentPage()">
                                 <option value="">All Makes</option>
                             </select>
                         </div>
@@ -1567,7 +1569,7 @@
                                 <input type="text" id="tradeInSearchInput" placeholder="Search trade-ins..." oninput="renderCurrentPage()">
                             </div>
                             <div class="filter-group">
-                                <select id="tradeInMakeFilter" class="filter-select">
+                                <select id="tradeInMakeFilter" class="filter-select" onchange="renderCurrentPage()">
                                     <option value="">All Makes</option>
                                 </select>
                                 <button class="btn btn-primary" onclick="openManualTradeInModal()">

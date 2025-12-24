@@ -1912,7 +1912,30 @@ function renderInventoryPage() {
 }
 
 function renderStatusPage(status, gridId, searchId, makeFilterId) {
-    const filtered = vehicles.filter(v => v.status === status);
+    let filtered = vehicles.filter(v => v.status === status);
+
+    // Apply search filter
+    const searchInput = document.getElementById(searchId);
+    const searchTerm = searchInput?.value.toLowerCase() || '';
+    if (searchTerm) {
+        filtered = filtered.filter(v => {
+            return v.stockNumber.toLowerCase().includes(searchTerm) ||
+                   v.vin.toLowerCase().includes(searchTerm) ||
+                   v.make.toLowerCase().includes(searchTerm) ||
+                   v.model.toLowerCase().includes(searchTerm) ||
+                   `${v.year} ${v.make} ${v.model}`.toLowerCase().includes(searchTerm) ||
+                   (v.customer?.firstName || '').toLowerCase().includes(searchTerm) ||
+                   (v.customer?.lastName || '').toLowerCase().includes(searchTerm);
+        });
+    }
+
+    // Apply make filter
+    const makeFilterSelect = document.getElementById(makeFilterId);
+    const makeFilter = makeFilterSelect?.value || '';
+    if (makeFilter) {
+        filtered = filtered.filter(v => v.make === makeFilter);
+    }
+
     const container = document.getElementById(gridId);
     if (filtered.length === 0) {
         container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🚗</div><p>No vehicles in this status</p></div>';
@@ -1938,7 +1961,8 @@ function renderStatusPage(status, gridId, searchId, makeFilterId) {
             </table>
         `;
     }
-    updateMakeFilter(makeFilterId, filtered);
+    // Update make filter with all vehicles of this status (not just filtered ones)
+    updateMakeFilter(makeFilterId, vehicles.filter(v => v.status === status));
 }
 
 function renderSoldPage() {
@@ -2134,12 +2158,33 @@ function exportSoldVehicles() {
 function renderTradeInsPage() {
     const container = document.getElementById('tradeInGrid');
 
-    // Separate trade-ins into picked up and awaiting pickup
-    const awaitingPickup = tradeIns.filter(t => !t.pickedUp);
-    const pickedUp = tradeIns.filter(t => t.pickedUp);
+    // Apply search filter
+    let filtered = tradeIns;
+    const searchInput = document.getElementById('tradeInSearchInput');
+    const searchTerm = searchInput?.value.toLowerCase() || '';
+    if (searchTerm) {
+        filtered = filtered.filter(t => {
+            return t.stockNumber.toLowerCase().includes(searchTerm) ||
+                   t.vin.toLowerCase().includes(searchTerm) ||
+                   t.make.toLowerCase().includes(searchTerm) ||
+                   t.model.toLowerCase().includes(searchTerm) ||
+                   `${t.year} ${t.make} ${t.model}`.toLowerCase().includes(searchTerm);
+        });
+    }
 
-    if (tradeIns.length === 0) {
-        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔄</div><p>No fleet returns</p></div>';
+    // Apply make filter
+    const makeFilterSelect = document.getElementById('tradeInMakeFilter');
+    const makeFilter = makeFilterSelect?.value || '';
+    if (makeFilter) {
+        filtered = filtered.filter(t => t.make === makeFilter);
+    }
+
+    // Separate trade-ins into picked up and awaiting pickup
+    const awaitingPickup = filtered.filter(t => !t.pickedUp);
+    const pickedUp = filtered.filter(t => t.pickedUp);
+
+    if (filtered.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔄</div><p>No fleet returns match your filters</p></div>';
     } else {
         container.innerHTML = `
             ${awaitingPickup.length > 0 ? `
