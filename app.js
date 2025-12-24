@@ -3914,3 +3914,268 @@ async function fixInTransitDates() {
 
 // Make function available globally for console access
 window.fixInTransitDates = fixInTransitDates;
+
+// ==================== EXPORT FUNCTIONS ====================
+
+let exportData = {
+    items: [],
+    type: '',
+    selectedIds: new Set()
+};
+
+function exportInventory() {
+    // Filter vehicles same as renderInventoryPage
+    const nonTransitVehicles = vehicles.filter(v => v.status !== 'in-transit');
+    const filtered = filterVehicles(nonTransitVehicles);
+
+    if (filtered.length === 0) {
+        showNotification('No vehicles to export', 'warning');
+        return;
+    }
+
+    exportData.items = filtered;
+    exportData.type = 'inventory';
+    exportData.selectedIds.clear();
+
+    openExportModal('Inventory');
+}
+
+function exportTradeIns() {
+    if (tradeIns.length === 0) {
+        showNotification('No trade-ins to export', 'warning');
+        return;
+    }
+
+    exportData.items = tradeIns;
+    exportData.type = 'tradeins';
+    exportData.selectedIds.clear();
+
+    openExportModal('Trade-Ins');
+}
+
+function openExportModal(category) {
+    const modal = document.getElementById('exportModal');
+    const title = document.getElementById('exportModalTitle');
+    const itemsList = document.getElementById('exportItemsList');
+    const itemCount = document.getElementById('exportItemCount');
+
+    title.textContent = `Export ${category}`;
+    itemCount.textContent = exportData.items.length;
+
+    // Populate items list
+    itemsList.innerHTML = exportData.items.map((item, index) => {
+        const itemId = item.id;
+        const displayText = exportData.type === 'tradeins'
+            ? `${item.stockNumber} - ${item.year} ${item.make} ${item.model} (${item.vin})`
+            : `${item.stockNumber} - ${item.year} ${item.make} ${item.model} - ${item.status}`;
+
+        return `
+            <div style="padding: 0.5rem; border-bottom: 1px solid var(--joy-divider); display: flex; align-items: center;">
+                <label style="display: flex; align-items: center; cursor: pointer; width: 100%;">
+                    <input type="checkbox"
+                           class="export-item-checkbox"
+                           data-item-id="${itemId}"
+                           onchange="toggleExportItem(${itemId})"
+                           style="margin-right: 0.75rem;">
+                    <span style="font-size: 0.875rem; color: var(--joy-text-secondary);">${displayText}</span>
+                </label>
+            </div>
+        `;
+    }).join('');
+
+    modal.style.display = 'flex';
+}
+
+function closeExportModal() {
+    const modal = document.getElementById('exportModal');
+    modal.style.display = 'none';
+    exportData.selectedIds.clear();
+}
+
+function toggleExportItem(itemId) {
+    if (exportData.selectedIds.has(itemId)) {
+        exportData.selectedIds.delete(itemId);
+    } else {
+        exportData.selectedIds.add(itemId);
+    }
+    updateSelectAllCheckbox();
+}
+
+function toggleSelectAllExport() {
+    const selectAllCheckbox = document.getElementById('selectAllExport');
+    const checkboxes = document.querySelectorAll('.export-item-checkbox');
+
+    if (selectAllCheckbox.checked) {
+        checkboxes.forEach(cb => {
+            cb.checked = true;
+            exportData.selectedIds.add(parseInt(cb.dataset.itemId));
+        });
+    } else {
+        checkboxes.forEach(cb => {
+            cb.checked = false;
+        });
+        exportData.selectedIds.clear();
+    }
+}
+
+function updateSelectAllCheckbox() {
+    const selectAllCheckbox = document.getElementById('selectAllExport');
+    const checkboxes = document.querySelectorAll('.export-item-checkbox');
+    const checkedCount = document.querySelectorAll('.export-item-checkbox:checked').length;
+
+    selectAllCheckbox.checked = checkedCount === checkboxes.length && checkboxes.length > 0;
+    selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
+}
+
+function exportSelected(format) {
+    if (exportData.selectedIds.size === 0) {
+        showNotification('Please select at least one item to export', 'warning');
+        return;
+    }
+
+    // Filter selected items
+    const selectedItems = exportData.items.filter(item => exportData.selectedIds.has(item.id));
+
+    if (format === 'csv') {
+        exportToCSV(selectedItems);
+    } else if (format === 'xlsx') {
+        exportToExcel(selectedItems);
+    }
+
+    closeExportModal();
+}
+
+function exportToCSV(items) {
+    let headers, rows, filename;
+
+    if (exportData.type === 'inventory') {
+        headers = ['Stock #', 'Year', 'Make', 'Model', 'Trim', 'VIN', 'Color', 'Fleet Company', 'Operation Company', 'Customer Name', 'Status', 'In Stock Date'];
+
+        rows = items.map(v => {
+            const customerName = v.customer ? `${v.customer.firstName || ''} ${v.customer.lastName || ''}`.trim() : '';
+            const inStockDate = v.inStockDate ? new Date(v.inStockDate).toLocaleDateString() : '';
+
+            return [
+                v.stockNumber,
+                v.year,
+                v.make,
+                v.model,
+                v.trim,
+                v.vin,
+                v.color,
+                v.fleetCompany || '',
+                v.operationCompany || '',
+                customerName,
+                v.status,
+                inStockDate
+            ].map(field => `"${field}"`).join(',');
+        });
+
+        filename = `inventory-export-${new Date().toISOString().split('T')[0]}.csv`;
+    } else if (exportData.type === 'tradeins') {
+        headers = ['Stock #', 'Year', 'Make', 'Model', 'VIN', 'Color', 'Mileage', 'Condition', 'Picked Up', 'Pickup Date'];
+
+        rows = items.map(t => {
+            const pickupDate = t.pickupDate ? new Date(t.pickupDate).toLocaleDateString() : '';
+
+            return [
+                t.stockNumber,
+                t.year,
+                t.make,
+                t.model,
+                t.vin,
+                t.color,
+                t.mileage || '',
+                t.condition || '',
+                t.pickedUp ? 'Yes' : 'No',
+                pickupDate
+            ].map(field => `"${field}"`).join(',');
+        });
+
+        filename = `tradeins-export-${new Date().toISOString().split('T')[0]}.csv`;
+    }
+
+    const csv = [headers.join(','), ...rows].join('\n');
+
+    // Download the file
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+
+    showNotification(`Exported ${items.length} item${items.length !== 1 ? 's' : ''} to ${filename}`, 'success');
+}
+
+function exportToExcel(items) {
+    let worksheetData, filename;
+
+    if (exportData.type === 'inventory') {
+        worksheetData = items.map(v => {
+            const customerName = v.customer ? `${v.customer.firstName || ''} ${v.customer.lastName || ''}`.trim() : '';
+            const inStockDate = v.inStockDate ? new Date(v.inStockDate).toLocaleDateString() : '';
+
+            return {
+                'Stock #': v.stockNumber,
+                'Year': v.year,
+                'Make': v.make,
+                'Model': v.model,
+                'Trim': v.trim,
+                'VIN': v.vin,
+                'Color': v.color,
+                'Fleet Company': v.fleetCompany || '',
+                'Operation Company': v.operationCompany || '',
+                'Customer Name': customerName,
+                'Status': v.status,
+                'In Stock Date': inStockDate
+            };
+        });
+
+        filename = `inventory-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+    } else if (exportData.type === 'tradeins') {
+        worksheetData = items.map(t => {
+            const pickupDate = t.pickupDate ? new Date(t.pickupDate).toLocaleDateString() : '';
+
+            return {
+                'Stock #': t.stockNumber,
+                'Year': t.year,
+                'Make': t.make,
+                'Model': t.model,
+                'VIN': t.vin,
+                'Color': t.color,
+                'Mileage': t.mileage || '',
+                'Condition': t.condition || '',
+                'Picked Up': t.pickedUp ? 'Yes' : 'No',
+                'Pickup Date': pickupDate
+            };
+        });
+
+        filename = `tradeins-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+    }
+
+    // Create workbook and worksheet
+    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, exportData.type === 'inventory' ? 'Inventory' : 'Trade-Ins');
+
+    // Auto-size columns
+    const cols = [];
+    const headers = Object.keys(worksheetData[0] || {});
+    headers.forEach(header => {
+        const maxLength = Math.max(
+            header.length,
+            ...worksheetData.map(row => String(row[header] || '').length)
+        );
+        cols.push({ wch: Math.min(maxLength + 2, 50) });
+    });
+    worksheet['!cols'] = cols;
+
+    // Download the file
+    XLSX.writeFile(workbook, filename);
+
+    showNotification(`Exported ${items.length} item${items.length !== 1 ? 's' : ''} to ${filename}`, 'success');
+}

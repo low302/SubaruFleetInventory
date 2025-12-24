@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
         /* visionOS Inspired Design */
         :root {
@@ -1426,6 +1427,9 @@
                                 <button class="btn btn-primary" onclick="openImportCSVModal()" style="white-space: nowrap;">
                                     📂 Import CSV
                                 </button>
+                                <button class="btn btn-primary" onclick="exportInventory()" style="white-space: nowrap; min-width: 100px;">
+                                    📥 Export
+                                </button>
                             </div>
                         </div>
 
@@ -1568,6 +1572,9 @@
                                 </select>
                                 <button class="btn btn-primary" onclick="openManualTradeInModal()">
                                     + Add Trade-In
+                                </button>
+                                <button class="btn btn-primary" onclick="exportTradeIns()" style="white-space: nowrap; min-width: 100px;">
+                                    📥 Export
                                 </button>
                             </div>
                         </div>
@@ -2544,6 +2551,37 @@
                 <div style="display: flex; gap: 1rem;">
                     <button id="confirmCancelBtn" class="btn btn-secondary" style="flex: 1;">Cancel</button>
                     <button id="confirmOkBtn" class="btn btn-danger" style="flex: 1;">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Selection Modal -->
+    <div id="exportModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h2 id="exportModalTitle">Export Vehicles</h2>
+                <button class="close-btn" onclick="closeExportModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <label style="font-weight: 600; color: var(--joy-text-primary);">
+                            <input type="checkbox" id="selectAllExport" onchange="toggleSelectAllExport()" style="margin-right: 0.5rem;">
+                            Select All (<span id="exportItemCount">0</span> items)
+                        </label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-sm btn-secondary" onclick="exportSelected('csv')" style="padding: 0.4rem 0.8rem; font-size: 0.875rem;">
+                                📄 Export CSV
+                            </button>
+                            <button class="btn btn-sm btn-primary" onclick="exportSelected('xlsx')" style="padding: 0.4rem 0.8rem; font-size: 0.875rem;">
+                                📊 Export Excel
+                            </button>
+                        </div>
+                    </div>
+                    <div id="exportItemsList" style="max-height: 400px; overflow-y: auto; background: rgba(30, 41, 59, 0.5); border-radius: var(--joy-radius-sm); padding: 0.75rem;">
+                        <!-- Items will be populated here -->
+                    </div>
                 </div>
             </div>
         </div>
