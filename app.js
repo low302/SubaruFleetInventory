@@ -3998,6 +3998,112 @@ function exportTradeIns() {
     openExportModal('Trade-Ins');
 }
 
+function exportInTransit() {
+    const filtered = vehicles.filter(v => v.status === 'in-transit');
+
+    if (filtered.length === 0) {
+        showNotification('No in-transit vehicles to export', 'warning');
+        return;
+    }
+
+    exportData.items = filtered;
+    exportData.type = 'in-transit';
+    exportData.selectedIds.clear();
+
+    openExportModal('In-Transit Vehicles');
+}
+
+function exportPDI() {
+    const filtered = vehicles.filter(v => v.status === 'pdi');
+
+    if (filtered.length === 0) {
+        showNotification('No PDI vehicles to export', 'warning');
+        return;
+    }
+
+    exportData.items = filtered;
+    exportData.type = 'pdi';
+    exportData.selectedIds.clear();
+
+    openExportModal('PDI Vehicles');
+}
+
+function exportPendingPickup() {
+    const filtered = vehicles.filter(v => v.status === 'pending-pickup');
+
+    if (filtered.length === 0) {
+        showNotification('No pending pickup vehicles to export', 'warning');
+        return;
+    }
+
+    exportData.items = filtered;
+    exportData.type = 'pending-pickup';
+    exportData.selectedIds.clear();
+
+    openExportModal('Pending Pickup Vehicles');
+}
+
+function exportPickupScheduled() {
+    const filtered = vehicles.filter(v => v.status === 'pickup-scheduled');
+
+    if (filtered.length === 0) {
+        showNotification('No pickup scheduled vehicles to export', 'warning');
+        return;
+    }
+
+    exportData.items = filtered;
+    exportData.type = 'pickup-scheduled';
+    exportData.selectedIds.clear();
+
+    openExportModal('Pickup Scheduled Vehicles');
+}
+
+function exportSold() {
+    // Get the currently filtered vehicles
+    let filtered = soldVehicles;
+
+    // Apply same filters as renderSoldPage
+    const monthFilter = document.getElementById('soldMonthFilter')?.value;
+    const yearFilter = document.getElementById('soldYearFilter')?.value;
+
+    if (monthFilter || yearFilter) {
+        filtered = filtered.filter(v => {
+            if (!v.customer?.saleDate) return false;
+            const saleDate = new Date(v.customer.saleDate);
+            if (yearFilter && saleDate.getFullYear().toString() !== yearFilter) return false;
+            if (monthFilter && (saleDate.getMonth() + 1).toString() !== monthFilter) return false;
+            return true;
+        });
+    }
+
+    const searchTerm = document.getElementById('soldSearchInput')?.value.toLowerCase() || '';
+    if (searchTerm) {
+        filtered = filtered.filter(v => {
+            return v.stockNumber.toLowerCase().includes(searchTerm) ||
+                   v.vin.toLowerCase().includes(searchTerm) ||
+                   `${v.year} ${v.make} ${v.model}`.toLowerCase().includes(searchTerm) ||
+                   (v.customer?.firstName || '').toLowerCase().includes(searchTerm) ||
+                   (v.customer?.lastName || '').toLowerCase().includes(searchTerm);
+        });
+    }
+
+    const makeFilter = document.getElementById('soldMakeFilter')?.value;
+    if (makeFilter) {
+        filtered = filtered.filter(v => v.make === makeFilter);
+    }
+
+    if (filtered.length === 0) {
+        showNotification('No sold vehicles to export', 'warning');
+        return;
+    }
+
+    exportData.items = filtered;
+    exportData.type = 'sold';
+    exportData.selectedIds.clear();
+
+    openExportModal('Sold Vehicles');
+}
+
 function openExportModal(category) {
     const modal = document.getElementById('exportModal');
     const title = document.getElementById('exportModalTitle');
@@ -4093,7 +4199,8 @@ function exportSelected(format) {
 function exportToCSV(items) {
     let headers, rows, filename;
 
-    if (exportData.type === 'inventory') {
+    if (exportData.type === 'inventory' || exportData.type === 'in-transit' || exportData.type === 'pdi' ||
+        exportData.type === 'pending-pickup' || exportData.type === 'pickup-scheduled') {
         headers = ['Stock #', 'Year', 'Make', 'Model', 'Trim', 'VIN', 'Color', 'Fleet Company', 'Operation Company', 'Customer Name', 'Status', 'In Stock Date'];
 
         rows = items.map(v => {
@@ -4116,7 +4223,34 @@ function exportToCSV(items) {
             ].map(field => `"${field}"`).join(',');
         });
 
-        filename = `inventory-export-${new Date().toISOString().split('T')[0]}.csv`;
+        filename = `${exportData.type}-export-${new Date().toISOString().split('T')[0]}.csv`;
+    } else if (exportData.type === 'sold') {
+        headers = ['Stock #', 'Year', 'Make', 'Model', 'Trim', 'VIN', 'Color', 'Fleet Company', 'Operation Company', 'Customer Name', 'Sale Date', 'Sale Amount', 'Payment Method', 'Payment Reference'];
+
+        rows = items.map(v => {
+            const customerName = v.customer ? `${v.customer.firstName || ''} ${v.customer.lastName || ''}`.trim() : '';
+            const soldDate = v.customer?.saleDate ? new Date(v.customer.saleDate).toLocaleDateString() : '';
+            const saleAmount = v.customer?.saleAmount ? `$${v.customer.saleAmount.toFixed(2)}` : '';
+
+            return [
+                v.stockNumber,
+                v.year,
+                v.make,
+                v.model,
+                v.trim,
+                v.vin,
+                v.color,
+                v.fleetCompany || '',
+                v.operationCompany || '',
+                customerName,
+                soldDate,
+                saleAmount,
+                v.customer?.paymentMethod || '',
+                v.customer?.paymentReference || ''
+            ].map(field => `"${field}"`).join(',');
+        });
+
+        filename = `sold-vehicles-export-${new Date().toISOString().split('T')[0]}.csv`;
     } else if (exportData.type === 'tradeins') {
         headers = ['Stock #', 'Year', 'Make', 'Model', 'VIN', 'Color', 'Mileage', 'Condition', 'Picked Up', 'Pickup Date'];
 
@@ -4157,9 +4291,10 @@ function exportToCSV(items) {
 }
 
 function exportToExcel(items) {
-    let worksheetData, filename;
+    let worksheetData, filename, sheetName;
 
-    if (exportData.type === 'inventory') {
+    if (exportData.type === 'inventory' || exportData.type === 'in-transit' || exportData.type === 'pdi' ||
+        exportData.type === 'pending-pickup' || exportData.type === 'pickup-scheduled') {
         worksheetData = items.map(v => {
             const customerName = v.customer ? `${v.customer.firstName || ''} ${v.customer.lastName || ''}`.trim() : '';
             const inStockDate = v.inStockDate ? new Date(v.inStockDate).toLocaleDateString() : '';
@@ -4180,7 +4315,34 @@ function exportToExcel(items) {
             };
         });
 
-        filename = `inventory-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+        filename = `${exportData.type}-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+        sheetName = exportData.type.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    } else if (exportData.type === 'sold') {
+        worksheetData = items.map(v => {
+            const customerName = v.customer ? `${v.customer.firstName || ''} ${v.customer.lastName || ''}`.trim() : '';
+            const soldDate = v.customer?.saleDate ? new Date(v.customer.saleDate).toLocaleDateString() : '';
+            const saleAmount = v.customer?.saleAmount ? v.customer.saleAmount : '';
+
+            return {
+                'Stock #': v.stockNumber,
+                'Year': v.year,
+                'Make': v.make,
+                'Model': v.model,
+                'Trim': v.trim,
+                'VIN': v.vin,
+                'Color': v.color,
+                'Fleet Company': v.fleetCompany || '',
+                'Operation Company': v.operationCompany || '',
+                'Customer Name': customerName,
+                'Sale Date': soldDate,
+                'Sale Amount': saleAmount,
+                'Payment Method': v.customer?.paymentMethod || '',
+                'Payment Reference': v.customer?.paymentReference || ''
+            };
+        });
+
+        filename = `sold-vehicles-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+        sheetName = 'Sold Vehicles';
     } else if (exportData.type === 'tradeins') {
         worksheetData = items.map(t => {
             const pickupDate = t.pickupDate ? new Date(t.pickupDate).toLocaleDateString() : '';
@@ -4200,12 +4362,13 @@ function exportToExcel(items) {
         });
 
         filename = `tradeins-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+        sheetName = 'Trade-Ins';
     }
 
     // Create workbook and worksheet
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, exportData.type === 'inventory' ? 'Inventory' : 'Trade-Ins');
+    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
 
     // Auto-size columns
     const cols = [];

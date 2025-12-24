@@ -1450,9 +1450,14 @@
                             <div class="search-box">
                                 <input type="text" id="transitSearchInput" placeholder="Search..." oninput="renderCurrentPage()">
                             </div>
-                            <select id="transitMakeFilter" class="filter-select" onchange="renderCurrentPage()">
-                                <option value="">All Makes</option>
-                            </select>
+                            <div class="filter-group">
+                                <select id="transitMakeFilter" class="filter-select" onchange="renderCurrentPage()">
+                                    <option value="">All Makes</option>
+                                </select>
+                                <button class="btn btn-primary" onclick="exportInTransit()" style="white-space: nowrap; min-width: 100px;">
+                                    📥 Export
+                                </button>
+                            </div>
                         </div>
                         <div id="transitGrid"></div>
                     </div>
@@ -1469,9 +1474,14 @@
                             <div class="search-box">
                                 <input type="text" id="pdiSearchInput" placeholder="Search..." oninput="renderCurrentPage()">
                             </div>
-                            <select id="pdiMakeFilter" class="filter-select" onchange="renderCurrentPage()">
-                                <option value="">All Makes</option>
-                            </select>
+                            <div class="filter-group">
+                                <select id="pdiMakeFilter" class="filter-select" onchange="renderCurrentPage()">
+                                    <option value="">All Makes</option>
+                                </select>
+                                <button class="btn btn-primary" onclick="exportPDI()" style="white-space: nowrap; min-width: 100px;">
+                                    📥 Export
+                                </button>
+                            </div>
                         </div>
                         <div id="pdiGrid"></div>
                     </div>
@@ -1488,9 +1498,14 @@
                             <div class="search-box">
                                 <input type="text" id="pendingPickupSearchInput" placeholder="Search..." oninput="renderCurrentPage()">
                             </div>
-                            <select id="pendingPickupMakeFilter" class="filter-select" onchange="renderCurrentPage()">
-                                <option value="">All Makes</option>
-                            </select>
+                            <div class="filter-group">
+                                <select id="pendingPickupMakeFilter" class="filter-select" onchange="renderCurrentPage()">
+                                    <option value="">All Makes</option>
+                                </select>
+                                <button class="btn btn-primary" onclick="exportPendingPickup()" style="white-space: nowrap; min-width: 100px;">
+                                    📥 Export
+                                </button>
+                            </div>
                         </div>
                         <div id="pendingPickupGrid"></div>
                     </div>
@@ -1507,9 +1522,14 @@
                             <div class="search-box">
                                 <input type="text" id="pickupScheduledSearchInput" placeholder="Search..." oninput="renderCurrentPage()">
                             </div>
-                            <select id="pickupScheduledMakeFilter" class="filter-select" onchange="renderCurrentPage()">
-                                <option value="">All Makes</option>
-                            </select>
+                            <div class="filter-group">
+                                <select id="pickupScheduledMakeFilter" class="filter-select" onchange="renderCurrentPage()">
+                                    <option value="">All Makes</option>
+                                </select>
+                                <button class="btn btn-primary" onclick="exportPickupScheduled()" style="white-space: nowrap; min-width: 100px;">
+                                    📥 Export
+                                </button>
+                            </div>
                         </div>
                         <div id="pickupScheduledGrid"></div>
                     </div>
@@ -1548,7 +1568,7 @@
                                 <select id="soldMakeFilter" class="filter-select" onchange="renderCurrentPage()">
                                     <option value="">All Makes</option>
                                 </select>
-                                <button class="btn btn-primary" onclick="exportSoldVehicles()" style="white-space: nowrap; min-width: 100px;">
+                                <button class="btn btn-primary" onclick="exportSold()" style="white-space: nowrap; min-width: 100px;">
                                     📥 Export
                                 </button>
                             </div>
