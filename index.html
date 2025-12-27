@@ -1432,6 +1432,9 @@
                                 <button class="btn btn-primary" onclick="exportInventory()" style="white-space: nowrap; min-width: 100px;">
                                     📥 Export
                                 </button>
+                                <button class="btn btn-secondary" onclick="openRemoveDuplicatesModal()" style="white-space: nowrap;">
+                                    🔧 Remove Duplicates
+                                </button>
                             </div>
                         </div>
 
@@ -2146,6 +2149,41 @@
 
                 <div id="importResults" style="display: none; margin-top: 1rem;">
                     <!-- Import results will be shown here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Remove Duplicates Modal -->
+    <div id="removeDuplicatesModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>Remove Duplicate Vehicles</h2>
+                <button class="close-btn" onclick="closeRemoveDuplicatesModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="background: rgba(255, 159, 10, 0.1); border: 1px solid rgba(255, 159, 10, 0.3); border-radius: var(--joy-radius-sm); padding: 1rem; margin-bottom: 1.5rem;">
+                    <h4 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--joy-warning-500);">⚠️ Warning</h4>
+                    <p style="font-size: 0.8125rem; color: var(--joy-text-secondary);">
+                        This will scan your inventory and sold vehicles for duplicate VINs. When duplicates are found, only the most recent entry will be kept.
+                    </p>
+                </div>
+
+                <div id="duplicateScanResults" style="display: none; margin-bottom: 1.5rem;">
+                    <!-- Scan results will be shown here -->
+                </div>
+
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn btn-secondary" onclick="scanForDuplicates()" style="flex: 1;">
+                        🔍 Scan for Duplicates
+                    </button>
+                    <button id="removeDuplicatesBtn" class="btn btn-danger" onclick="confirmRemoveDuplicates()" style="flex: 1; display: none;">
+                        🗑️ Remove Duplicates
+                    </button>
+                </div>
+
+                <div id="duplicateRemovalResults" style="display: none; margin-top: 1rem;">
+                    <!-- Removal results will be shown here -->
                 </div>
             </div>
         </div>

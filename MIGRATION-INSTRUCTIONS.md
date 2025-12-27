@@ -2,28 +2,39 @@
 
 This migration adds the `inStockDate` column to both the `inventory` and `sold_vehicles` tables.
 
-## Instructions
+## Instructions (Docker Environment)
 
-### Step 1: Stop your server
-Make sure your Node.js server is stopped before running the migration.
-
-```bash
-# Press Ctrl+C in the terminal running your server
-```
-
-### Step 2: Run the migration
-From the project directory, run:
+### Step 1: Find your container name
+First, find the name of your running container:
 
 ```bash
-node migrate-add-inStockDate.js
+docker ps
 ```
 
-### Step 3: Verify the migration
+Look for the container running your fleet inventory app. The name might be something like `subarufleetinventory_app_1` or similar.
+
+### Step 2: Copy migration script to container
+Copy the migration script into your running container:
+
+```bash
+docker cp migrate-add-inStockDate.js <container_name>:/app/
+```
+
+Replace `<container_name>` with your actual container name from Step 1.
+
+### Step 3: Run the migration inside the container
+Execute the migration script inside the container:
+
+```bash
+docker exec <container_name> node migrate-add-inStockDate.js
+```
+
+### Step 4: Verify the migration
 You should see output like this:
 
 ```
 Starting database migration to add inStockDate column...
-Database path: /Users/zaidalia/Documents/GitHub/SubaruFleetInventory/fleet-inventory.db
+Database path: /app/fleet-inventory.db
 Connected to database successfully
 Adding inStockDate column to inventory table...
 ✓ Successfully added inStockDate to inventory table
@@ -36,11 +47,30 @@ Adding inStockDate column to sold_vehicles table...
 You can now restart your server.
 ```
 
-### Step 4: Restart your server
-Start your server again:
+### Step 5: Restart the container
+Restart your Docker container:
 
 ```bash
-node server.js
+docker restart <container_name>
+```
+
+## Alternative: Using docker-compose
+
+If you're using docker-compose, you can also do it this way:
+
+### Step 1: Copy the migration script
+```bash
+docker-compose cp migrate-add-inStockDate.js app:/app/
+```
+
+### Step 2: Run the migration
+```bash
+docker-compose exec app node migrate-add-inStockDate.js
+```
+
+### Step 3: Restart
+```bash
+docker-compose restart app
 ```
 
 ## What this migration does

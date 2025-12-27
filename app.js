@@ -3217,6 +3217,215 @@ function closeImportCSVModal() {
     document.getElementById('importResults').style.display = 'none';
 }
 
+// Remove Duplicates Modal Functions
+function openRemoveDuplicatesModal() {
+    document.getElementById('removeDuplicatesModal').classList.add('active');
+    document.getElementById('duplicateScanResults').style.display = 'none';
+    document.getElementById('duplicateRemovalResults').style.display = 'none';
+    document.getElementById('removeDuplicatesBtn').style.display = 'none';
+}
+
+function closeRemoveDuplicatesModal() {
+    document.getElementById('removeDuplicatesModal').classList.remove('active');
+    document.getElementById('duplicateScanResults').style.display = 'none';
+    document.getElementById('duplicateRemovalResults').style.display = 'none';
+    document.getElementById('removeDuplicatesBtn').style.display = 'none';
+}
+
+let foundDuplicates = [];
+
+async function scanForDuplicates() {
+    try {
+        // Fetch all vehicles
+        const [inventoryResponse, soldResponse] = await Promise.all([
+            fetch(`${API_BASE}/inventory`, { credentials: 'include' }),
+            fetch(`${API_BASE}/sold-vehicles`, { credentials: 'include' })
+        ]);
+
+        const inventory = inventoryResponse.ok ? await inventoryResponse.json() : [];
+        const soldVehicles = soldResponse.ok ? await soldResponse.json() : [];
+
+        // Combine all vehicles with source information
+        const allVehicles = [
+            ...inventory.map(v => ({ ...v, source: 'inventory' })),
+            ...soldVehicles.map(v => ({ ...v, source: 'sold' }))
+        ];
+
+        // Find duplicates by VIN
+        const vinMap = new Map();
+        foundDuplicates = [];
+
+        for (const vehicle of allVehicles) {
+            const vin = vehicle.vin?.toUpperCase();
+            if (!vin) continue;
+
+            if (vinMap.has(vin)) {
+                // We found a duplicate
+                const existing = vinMap.get(vin);
+                if (!existing.isDuplicate) {
+                    // First time finding this duplicate
+                    existing.isDuplicate = true;
+                    foundDuplicates.push({
+                        vin: vin,
+                        vehicles: [existing, vehicle]
+                    });
+                } else {
+                    // Add to existing duplicate group
+                    const dupGroup = foundDuplicates.find(d => d.vin === vin);
+                    if (dupGroup) {
+                        dupGroup.vehicles.push(vehicle);
+                    }
+                }
+            } else {
+                vinMap.set(vin, vehicle);
+            }
+        }
+
+        // Display results
+        const resultsDiv = document.getElementById('duplicateScanResults');
+        resultsDiv.style.display = 'block';
+
+        if (foundDuplicates.length === 0) {
+            resultsDiv.innerHTML = `
+                <div style="padding: 1rem; background: rgba(50, 215, 75, 0.1); border: 1px solid rgba(50, 215, 75, 0.3); border-radius: var(--joy-radius-sm);">
+                    <h4 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--joy-success-500);">✅ No Duplicates Found</h4>
+                    <p style="font-size: 0.8125rem; color: var(--joy-text-secondary);">Your inventory is clean!</p>
+                </div>
+            `;
+            document.getElementById('removeDuplicatesBtn').style.display = 'none';
+        } else {
+            const totalDuplicates = foundDuplicates.reduce((sum, group) => sum + (group.vehicles.length - 1), 0);
+
+            let duplicatesList = foundDuplicates.map(group => {
+                const sortedVehicles = group.vehicles.sort((a, b) => {
+                    const dateA = new Date(a.dateAdded || 0);
+                    const dateB = new Date(b.dateAdded || 0);
+                    return dateB - dateA; // Most recent first
+                });
+
+                return `
+                    <div style="margin-bottom: 1rem; padding: 0.75rem; background: rgba(0, 0, 0, 0.2); border-radius: var(--joy-radius-sm);">
+                        <div style="font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--joy-text-primary);">
+                            VIN: ${group.vin}
+                        </div>
+                        ${sortedVehicles.map((v, idx) => `
+                            <div style="font-size: 0.75rem; color: var(--joy-text-secondary); padding: 0.25rem 0; ${idx === 0 ? 'color: var(--joy-success-500); font-weight: 600;' : ''}">
+                                ${idx === 0 ? '✓ KEEP: ' : '✗ DELETE: '}
+                                ${v.year} ${v.make} ${v.model} - Stock: ${v.stockNumber}
+                                (${v.source === 'inventory' ? 'Inventory' : 'Sold'})
+                                ${v.dateAdded ? `- Added: ${new Date(v.dateAdded).toLocaleDateString()}` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }).join('');
+
+            resultsDiv.innerHTML = `
+                <div style="padding: 1rem; background: rgba(255, 159, 10, 0.1); border: 1px solid rgba(255, 159, 10, 0.3); border-radius: var(--joy-radius-sm);">
+                    <h4 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--joy-warning-500);">⚠️ ${foundDuplicates.length} Duplicate VIN${foundDuplicates.length > 1 ? 's' : ''} Found</h4>
+                    <p style="font-size: 0.8125rem; color: var(--joy-text-secondary); margin-bottom: 1rem;">
+                        ${totalDuplicates} duplicate vehicle${totalDuplicates > 1 ? 's' : ''} will be removed (keeping the most recent entry for each VIN)
+                    </p>
+                    <div style="max-height: 300px; overflow-y: auto;">
+                        ${duplicatesList}
+                    </div>
+                </div>
+            `;
+            document.getElementById('removeDuplicatesBtn').style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error scanning for duplicates:', error);
+        showNotification('Failed to scan for duplicates: ' + error.message, 'error');
+    }
+}
+
+async function confirmRemoveDuplicates() {
+    if (foundDuplicates.length === 0) return;
+
+    const totalToRemove = foundDuplicates.reduce((sum, group) => sum + (group.vehicles.length - 1), 0);
+
+    const confirmed = await showConfirmDialog(
+        `Remove ${totalToRemove} duplicate vehicle${totalToRemove > 1 ? 's' : ''}?`,
+        `This will permanently delete ${totalToRemove} duplicate entries. The most recent entry for each VIN will be kept.`
+    );
+
+    if (!confirmed) return;
+
+    await removeDuplicates();
+}
+
+async function removeDuplicates() {
+    try {
+        let removedCount = 0;
+        let failedCount = 0;
+
+        for (const group of foundDuplicates) {
+            // Sort by date (most recent first) and keep the first one
+            const sortedVehicles = group.vehicles.sort((a, b) => {
+                const dateA = new Date(a.dateAdded || 0);
+                const dateB = new Date(b.dateAdded || 0);
+                return dateB - dateA;
+            });
+
+            // Remove all except the first (most recent)
+            for (let i = 1; i < sortedVehicles.length; i++) {
+                const vehicle = sortedVehicles[i];
+                const endpoint = vehicle.source === 'inventory'
+                    ? `${API_BASE}/inventory/${vehicle.id}`
+                    : `${API_BASE}/sold-vehicles/${vehicle.id}`;
+
+                try {
+                    const response = await fetch(endpoint, {
+                        method: 'DELETE',
+                        credentials: 'include'
+                    });
+
+                    if (response.ok) {
+                        removedCount++;
+                        console.log('Removed duplicate:', vehicle.stockNumber, vehicle.vin);
+                    } else {
+                        failedCount++;
+                        console.error('Failed to remove:', vehicle.stockNumber);
+                    }
+                } catch (error) {
+                    failedCount++;
+                    console.error('Error removing vehicle:', error);
+                }
+            }
+        }
+
+        // Show results
+        const resultsDiv = document.getElementById('duplicateRemovalResults');
+        resultsDiv.style.display = 'block';
+        resultsDiv.innerHTML = `
+            <div style="padding: 1rem; background: rgba(50, 215, 75, 0.1); border: 1px solid rgba(50, 215, 75, 0.3); border-radius: var(--joy-radius-sm);">
+                <h4 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--joy-success-500);">✅ Duplicates Removed</h4>
+                <p style="font-size: 0.8125rem; color: var(--joy-text-secondary);">
+                    ${removedCount} duplicate${removedCount !== 1 ? 's' : ''} removed successfully
+                    ${failedCount > 0 ? `<br>${failedCount} failed to remove` : ''}
+                </p>
+            </div>
+        `;
+
+        await loadAllData();
+        renderCurrentPage();
+        showNotification(`Removed ${removedCount} duplicate vehicle${removedCount !== 1 ? 's' : ''}`, 'success');
+
+        // Reset scan results
+        document.getElementById('duplicateScanResults').style.display = 'none';
+        document.getElementById('removeDuplicatesBtn').style.display = 'none';
+        foundDuplicates = [];
+
+        setTimeout(() => {
+            closeRemoveDuplicatesModal();
+        }, 2000);
+
+    } catch (error) {
+        console.error('Error removing duplicates:', error);
+        showNotification('Failed to remove duplicates: ' + error.message, 'error');
+    }
+}
+
 function downloadExampleCSV() {
     const exampleData = [
         ['Stock Number', 'VIN', 'Year', 'Make', 'Model', 'Trim', 'Color', 'Fleet Company', 'Operation Company', 'Status', 'In Stock Date', 'Customer First Name', 'Customer Last Name', 'Customer Phone', 'Sale Date', 'Sale Amount', 'Payment Method', 'Payment Reference'],
@@ -3331,7 +3540,7 @@ async function handleCSVImport(event) {
                 operationCompany: values[8] || '',
                 status: values[9] || 'in-stock',
                 dateAdded: new Date().toISOString(),
-                inStockDate: hasValue(values[10]) ? new Date(values[10]).toISOString() : new Date().toISOString(),
+                inStockDate: hasValue(values[10]) ? new Date(values[10]).toISOString() : null,
                 customer: Object.keys(customerInfo).length > 0 ? customerInfo : undefined
             };
 
@@ -3385,12 +3594,36 @@ async function handleCSVImport(event) {
 
         // Import vehicles
         try {
+            // First, fetch all existing VINs to check for duplicates
+            const [inventoryResponse, soldResponse] = await Promise.all([
+                fetch(`${API_BASE}/inventory`, { credentials: 'include' }),
+                fetch(`${API_BASE}/sold-vehicles`, { credentials: 'include' })
+            ]);
+
+            const existingInventory = inventoryResponse.ok ? await inventoryResponse.json() : [];
+            const existingSold = soldResponse.ok ? await soldResponse.json() : [];
+
+            // Create a Set of existing VINs for fast lookup
+            const existingVINs = new Set([
+                ...existingInventory.map(v => v.vin?.toUpperCase()),
+                ...existingSold.map(v => v.vin?.toUpperCase())
+            ]);
+
             let successCount = 0;
             let failCount = 0;
             let soldCount = 0;
+            let duplicateCount = 0;
 
             for (const vehicle of vehicles) {
                 try {
+                    // Check for duplicate VIN
+                    if (existingVINs.has(vehicle.vin)) {
+                        duplicateCount++;
+                        errors.push(`${vehicle.stockNumber}: Duplicate VIN ${vehicle.vin} already exists`);
+                        console.warn('Skipping duplicate VIN:', vehicle.vin);
+                        continue;
+                    }
+
                     // Determine if vehicle should go to sold_vehicles or inventory
                     const hasSaleDate = vehicle.customer?.saleDate && vehicle.customer.saleDate.trim() !== '';
                     const isSold = hasSaleDate || vehicle.status === 'sold';
@@ -3413,6 +3646,8 @@ async function handleCSVImport(event) {
 
                     if (response.ok) {
                         successCount++;
+                        // Add to existing VINs set to prevent duplicates within the same import
+                        existingVINs.add(vehicle.vin);
                         console.log('Successfully imported:', vehicle.stockNumber);
                     } else {
                         failCount++;
@@ -3436,6 +3671,7 @@ async function handleCSVImport(event) {
                     <p style="font-size: 0.8125rem; color: var(--joy-text-secondary);">
                         ✅ ${successCount} vehicles imported successfully<br>
                         ${soldCount > 0 ? `💰 ${soldCount} imported as sold<br>` : ''}
+                        ${duplicateCount > 0 ? `⚠️ ${duplicateCount} duplicates skipped<br>` : ''}
                         ${failCount > 0 ? `❌ ${failCount} vehicles failed` : ''}
                     </p>
                 </div>
@@ -3959,6 +4195,82 @@ async function fixInTransitDates() {
 
 // Make function available globally for console access
 window.fixInTransitDates = fixInTransitDates;
+
+// Batch clear in-stock dates for recently added vehicles
+async function batchClearInStockDates() {
+    const count = prompt('How many recently added vehicles should have their in-stock dates cleared?');
+
+    if (!count || isNaN(count) || parseInt(count) <= 0) {
+        showNotification('Please enter a valid number', 'error');
+        return;
+    }
+
+    const numVehicles = parseInt(count);
+
+    const confirmed = await showConfirmation(
+        `This will clear the in-stock date for the last ${numVehicles} vehicle(s) added. Continue?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+        // Get the most recently added vehicles
+        const sortedVehicles = [...vehicles].sort((a, b) => {
+            return new Date(b.dateAdded) - new Date(a.dateAdded);
+        });
+
+        const vehiclesToUpdate = sortedVehicles.slice(0, numVehicles);
+
+        if (vehiclesToUpdate.length === 0) {
+            showNotification('No vehicles found to update', 'warning');
+            return;
+        }
+
+        let successCount = 0;
+        let errorCount = 0;
+
+        // Update each vehicle
+        for (const vehicle of vehiclesToUpdate) {
+            const updatedVehicle = { ...vehicle, inStockDate: null };
+
+            try {
+                const response = await fetch(`${API_BASE}/inventory/${vehicle.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(updatedVehicle)
+                });
+
+                if (response.ok) {
+                    successCount++;
+                } else {
+                    errorCount++;
+                }
+            } catch (error) {
+                console.error('Error updating vehicle:', vehicle.stockNumber, error);
+                errorCount++;
+            }
+        }
+
+        // Reload data
+        await loadAllData();
+        updateDashboard();
+        renderCurrentPage();
+
+        if (errorCount === 0) {
+            showNotification(`Successfully cleared in-stock dates for ${successCount} vehicle(s)`, 'success');
+        } else {
+            showNotification(`Updated ${successCount} vehicle(s), ${errorCount} error(s)`, 'warning');
+        }
+
+    } catch (error) {
+        console.error('Error in batch update:', error);
+        showNotification('Failed to clear in-stock dates: ' + error.message, 'error');
+    }
+}
+
+// Make function available globally for console access
+window.batchClearInStockDates = batchClearInStockDates;
 
 // ==================== EXPORT FUNCTIONS ====================
 
