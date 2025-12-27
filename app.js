@@ -2694,7 +2694,8 @@ function renderAgeChart(colors, textColor, gridColor) {
         return;
     }
 
-    const ageByMake = {};
+    // Group by month
+    const ageByMonth = {};
 
     soldVehiclesWithDates.forEach(v => {
         const saleDate = v.customer?.saleDate || v.saleDate;
@@ -2706,52 +2707,51 @@ function renderAgeChart(colors, textColor, gridColor) {
 
         // Only include positive day values (sold date should be after in stock date)
         if (daysInInventory >= 0) {
-            if (!ageByMake[v.make]) {
-                ageByMake[v.make] = { total: 0, count: 0 };
+            // Group by sale month
+            const monthKey = `${saleDateObj.toLocaleString('default', { month: 'short' })} ${saleDateObj.getFullYear()}`;
+
+            if (!ageByMonth[monthKey]) {
+                ageByMonth[monthKey] = { total: 0, count: 0, date: saleDateObj };
             }
-            ageByMake[v.make].total += daysInInventory;
-            ageByMake[v.make].count += 1;
+            ageByMonth[monthKey].total += daysInInventory;
+            ageByMonth[monthKey].count += 1;
         }
     });
 
-    const averages = Object.keys(ageByMake).map(make => ({
-        make,
-        avg: ageByMake[make].total / ageByMake[make].count
-    })).sort((a, b) => b.avg - a.avg);
+    // Calculate averages and sort by date
+    const averages = Object.keys(ageByMonth).map(month => ({
+        month,
+        avg: ageByMonth[month].total / ageByMonth[month].count,
+        date: ageByMonth[month].date
+    })).sort((a, b) => a.date - b.date);
 
     const canvas = document.getElementById('ageChart');
     if (canvas) {
         chartInstances.age = new Chart(canvas, {
-            type: 'bar',
+            type: 'line',
             data: {
-                labels: averages.map(a => a.make),
+                labels: averages.map(a => a.month),
                 datasets: [{
                     label: 'Average Days to Sale',
                     data: averages.map(a => a.avg),
-                    backgroundColor: averages.map((a, i) => {
-                        // Color gradient based on days - green for fast, yellow for medium, red for slow
-                        const days = a.avg;
-                        if (days < 30) return 'rgba(50, 215, 75, 0.8)'; // Green
-                        if (days < 60) return 'rgba(255, 159, 10, 0.8)'; // Orange
-                        return 'rgba(255, 69, 58, 0.8)'; // Red
-                    }),
-                    borderColor: averages.map((a, i) => {
-                        const days = a.avg;
-                        if (days < 30) return 'rgba(50, 215, 75, 1)';
-                        if (days < 60) return 'rgba(255, 159, 10, 1)';
-                        return 'rgba(255, 69, 58, 1)';
-                    }),
-                    borderWidth: 2,
-                    borderRadius: 6
+                    backgroundColor: 'rgba(10, 132, 255, 0.2)',
+                    borderColor: colors.primary,
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: colors.primary,
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
                 }]
             },
             options: {
-                indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        display: false
+                        labels: { color: textColor, font: { size: 12, weight: '600' } }
                     },
                     tooltip: {
                         backgroundColor: 'rgba(0, 0, 0, 0.9)',
@@ -2762,32 +2762,24 @@ function renderAgeChart(colors, textColor, gridColor) {
                         borderWidth: 1,
                         callbacks: {
                             label: (context) => {
-                                const days = Math.round(context.parsed.x);
+                                const days = Math.round(context.parsed.y);
                                 return `Average: ${days} day${days !== 1 ? 's' : ''} to sale`;
                             }
                         }
                     }
                 },
                 scales: {
-                    x: {
+                    y: {
                         beginAtZero: true,
                         ticks: {
                             color: textColor,
                             callback: (value) => Math.round(value) + ' days'
                         },
-                        grid: {
-                            color: gridColor,
-                            drawBorder: false
-                        }
+                        grid: { color: gridColor }
                     },
-                    y: {
-                        ticks: {
-                            color: textColor,
-                            font: { size: 13, weight: '600' }
-                        },
-                        grid: {
-                            display: false
-                        }
+                    x: {
+                        ticks: { color: textColor },
+                        grid: { color: gridColor }
                     }
                 }
             }
@@ -2853,17 +2845,39 @@ function renderStatusChart(colors, textColor) {
 }
 
 function renderMakeChart(colors, textColor, gridColor) {
+    // Define all Subaru models
+    const subaruModels = [
+        'Subaru Outback',
+        'Subaru Forester',
+        'Subaru Crosstrek',
+        'Subaru Ascent',
+        'Subaru Impreza',
+        'Subaru Legacy',
+        'Subaru WRX',
+        'Subaru BRZ',
+        'Subaru Solterra'
+    ];
+
+    // Initialize all models with 0
     const modelData = {};
-    // Exclude in-transit vehicles
-    vehicles.filter(v => v.status !== 'in-transit').forEach(v => {
-        const modelKey = `${v.make} ${v.model}`;
-        modelData[modelKey] = (modelData[modelKey] || 0) + 1;
+    subaruModels.forEach(model => {
+        modelData[model] = 0;
     });
 
-    // Sort by count and get top models
+    // Count vehicles by model (exclude in-transit vehicles)
+    vehicles.filter(v => v.status !== 'in-transit').forEach(v => {
+        const modelKey = `${v.make} ${v.model}`;
+        if (subaruModels.includes(modelKey)) {
+            modelData[modelKey] = (modelData[modelKey] || 0) + 1;
+        } else {
+            // For non-Subaru or non-standard models, still count them
+            modelData[modelKey] = (modelData[modelKey] || 0) + 1;
+        }
+    });
+
+    // Sort by count (highest first) but keep all Subaru models
     const sortedModels = Object.entries(modelData)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10);
+        .sort((a, b) => b[1] - a[1]);
 
     const canvas = document.getElementById('makeChart');
     if (canvas) {
@@ -2897,7 +2911,11 @@ function renderMakeChart(colors, textColor, gridColor) {
                         grid: { color: gridColor }
                     },
                     x: {
-                        ticks: { color: textColor },
+                        ticks: {
+                            color: textColor,
+                            maxRotation: 45,
+                            minRotation: 45
+                        },
                         grid: { color: gridColor }
                     }
                 }
