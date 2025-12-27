@@ -3344,9 +3344,8 @@ async function confirmRemoveDuplicates() {
 
     const totalToRemove = foundDuplicates.reduce((sum, group) => sum + (group.vehicles.length - 1), 0);
 
-    const confirmed = await showConfirmDialog(
-        `Remove ${totalToRemove} duplicate vehicle${totalToRemove > 1 ? 's' : ''}?`,
-        `This will permanently delete ${totalToRemove} duplicate entries. The most recent entry for each VIN will be kept.`
+    const confirmed = await showConfirmation(
+        `Remove ${totalToRemove} duplicate vehicle${totalToRemove > 1 ? 's' : ''}? This will permanently delete ${totalToRemove} duplicate entries. The most recent entry for each VIN will be kept.`
     );
 
     if (!confirmed) return;
