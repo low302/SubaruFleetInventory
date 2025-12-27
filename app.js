@@ -4110,6 +4110,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Payment Tracking Functions
 function renderPaymentsPage() {
+    // Render MoM and YoY analytics first
+    renderPaymentAnalytics();
+
     // Get all sold vehicles with payments
     let filtered = soldVehicles.filter(v =>
         v.customer &&
@@ -4245,6 +4248,166 @@ function updatePaymentYearFilter() {
     if (currentValue && sortedYears.includes(parseInt(currentValue))) {
         yearFilter.value = currentValue;
     }
+}
+
+function renderPaymentAnalytics() {
+    const container = document.getElementById('paymentAnalytics');
+    if (!container) return;
+
+    // Get all payments with sale data
+    const allPayments = soldVehicles.filter(v =>
+        v.customer?.saleDate && v.customer?.saleAmount
+    );
+
+    if (allPayments.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+
+    // Get current date info
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth(); // 0-indexed
+
+    // Calculate current month stats
+    const currentMonthPayments = allPayments.filter(v => {
+        const saleDate = new Date(v.customer.saleDate);
+        return saleDate.getFullYear() === currentYear && saleDate.getMonth() === currentMonth;
+    });
+    const currentMonthTotal = currentMonthPayments.reduce((sum, v) => sum + (parseFloat(v.customer.saleAmount) || 0), 0);
+    const currentMonthCount = currentMonthPayments.length;
+
+    // Calculate previous month stats
+    const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    const prevMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+    const prevMonthPayments = allPayments.filter(v => {
+        const saleDate = new Date(v.customer.saleDate);
+        return saleDate.getFullYear() === prevMonthYear && saleDate.getMonth() === prevMonth;
+    });
+    const prevMonthTotal = prevMonthPayments.reduce((sum, v) => sum + (parseFloat(v.customer.saleAmount) || 0), 0);
+    const prevMonthCount = prevMonthPayments.length;
+
+    // Calculate MoM percentage change
+    const momRevenue = prevMonthTotal > 0 ? ((currentMonthTotal - prevMonthTotal) / prevMonthTotal * 100) : 0;
+    const momCount = prevMonthCount > 0 ? ((currentMonthCount - prevMonthCount) / prevMonthCount * 100) : 0;
+
+    // Calculate current year stats
+    const currentYearPayments = allPayments.filter(v => {
+        const saleDate = new Date(v.customer.saleDate);
+        return saleDate.getFullYear() === currentYear;
+    });
+    const currentYearTotal = currentYearPayments.reduce((sum, v) => sum + (parseFloat(v.customer.saleAmount) || 0), 0);
+    const currentYearCount = currentYearPayments.length;
+
+    // Calculate previous year stats
+    const prevYearPayments = allPayments.filter(v => {
+        const saleDate = new Date(v.customer.saleDate);
+        return saleDate.getFullYear() === currentYear - 1;
+    });
+    const prevYearTotal = prevYearPayments.reduce((sum, v) => sum + (parseFloat(v.customer.saleAmount) || 0), 0);
+    const prevYearCount = prevYearPayments.length;
+
+    // Calculate YoY percentage change
+    const yoyRevenue = prevYearTotal > 0 ? ((currentYearTotal - prevYearTotal) / prevYearTotal * 100) : 0;
+    const yoyCount = prevYearCount > 0 ? ((currentYearCount - prevYearCount) / prevYearCount * 100) : 0;
+
+    // Month names
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    // Render analytics cards
+    container.innerHTML = `
+        <!-- Current Month Card -->
+        <div style="background: rgba(51, 65, 85, 0.6); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.5rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                <h3 style="font-size: 0.875rem; font-weight: 600; color: var(--joy-text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">
+                    ${monthNames[currentMonth]} ${currentYear}
+                </h3>
+                <span style="font-size: 1.5rem;">📅</span>
+            </div>
+            <div style="font-size: 2rem; font-weight: 700; color: var(--joy-text-primary); margin-bottom: 0.5rem; font-family: monospace;">
+                $${currentMonthTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+            </div>
+            <div style="font-size: 0.875rem; color: var(--joy-text-secondary); margin-bottom: 1rem;">
+                ${currentMonthCount} payment${currentMonthCount !== 1 ? 's' : ''}
+            </div>
+            <div style="display: flex; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--joy-divider);">
+                <div style="flex: 1;">
+                    <div style="font-size: 0.75rem; color: var(--joy-text-secondary); margin-bottom: 0.25rem;">MoM Revenue</div>
+                    <div style="font-size: 1.125rem; font-weight: 700; color: ${momRevenue >= 0 ? 'var(--joy-success-500)' : 'var(--joy-danger-500)'};">
+                        ${momRevenue >= 0 ? '↑' : '↓'} ${Math.abs(momRevenue).toFixed(1)}%
+                    </div>
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-size: 0.75rem; color: var(--joy-text-secondary); margin-bottom: 0.25rem;">MoM Count</div>
+                    <div style="font-size: 1.125rem; font-weight: 700; color: ${momCount >= 0 ? 'var(--joy-success-500)' : 'var(--joy-danger-500)'};">
+                        ${momCount >= 0 ? '↑' : '↓'} ${Math.abs(momCount).toFixed(1)}%
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Previous Month Card -->
+        <div style="background: rgba(51, 65, 85, 0.6); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.5rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                <h3 style="font-size: 0.875rem; font-weight: 600; color: var(--joy-text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">
+                    ${monthNames[prevMonth]} ${prevMonthYear}
+                </h3>
+                <span style="font-size: 1.5rem;">📆</span>
+            </div>
+            <div style="font-size: 2rem; font-weight: 700; color: var(--joy-text-primary); margin-bottom: 0.5rem; font-family: monospace;">
+                $${prevMonthTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+            </div>
+            <div style="font-size: 0.875rem; color: var(--joy-text-secondary);">
+                ${prevMonthCount} payment${prevMonthCount !== 1 ? 's' : ''}
+            </div>
+        </div>
+
+        <!-- Current Year Card -->
+        <div style="background: rgba(51, 65, 85, 0.6); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.5rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                <h3 style="font-size: 0.875rem; font-weight: 600; color: var(--joy-text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">
+                    ${currentYear} YTD
+                </h3>
+                <span style="font-size: 1.5rem;">📊</span>
+            </div>
+            <div style="font-size: 2rem; font-weight: 700; color: var(--joy-text-primary); margin-bottom: 0.5rem; font-family: monospace;">
+                $${currentYearTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+            </div>
+            <div style="font-size: 0.875rem; color: var(--joy-text-secondary); margin-bottom: 1rem;">
+                ${currentYearCount} payment${currentYearCount !== 1 ? 's' : ''}
+            </div>
+            <div style="display: flex; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--joy-divider);">
+                <div style="flex: 1;">
+                    <div style="font-size: 0.75rem; color: var(--joy-text-secondary); margin-bottom: 0.25rem;">YoY Revenue</div>
+                    <div style="font-size: 1.125rem; font-weight: 700; color: ${yoyRevenue >= 0 ? 'var(--joy-success-500)' : 'var(--joy-danger-500)'};">
+                        ${yoyRevenue >= 0 ? '↑' : '↓'} ${Math.abs(yoyRevenue).toFixed(1)}%
+                    </div>
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-size: 0.75rem; color: var(--joy-text-secondary); margin-bottom: 0.25rem;">YoY Count</div>
+                    <div style="font-size: 1.125rem; font-weight: 700; color: ${yoyCount >= 0 ? 'var(--joy-success-500)' : 'var(--joy-danger-500)'};">
+                        ${yoyCount >= 0 ? '↑' : '↓'} ${Math.abs(yoyCount).toFixed(1)}%
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Previous Year Card -->
+        <div style="background: rgba(51, 65, 85, 0.6); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.5rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                <h3 style="font-size: 0.875rem; font-weight: 600; color: var(--joy-text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">
+                    ${currentYear - 1} Total
+                </h3>
+                <span style="font-size: 1.5rem;">📈</span>
+            </div>
+            <div style="font-size: 2rem; font-weight: 700; color: var(--joy-text-primary); margin-bottom: 0.5rem; font-family: monospace;">
+                $${prevYearTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+            </div>
+            <div style="font-size: 0.875rem; color: var(--joy-text-secondary);">
+                ${prevYearCount} payment${prevYearCount !== 1 ? 's' : ''}
+            </div>
+        </div>
+    `;
 }
 
 function exportPayments() {
