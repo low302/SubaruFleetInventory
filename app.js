@@ -2003,6 +2003,13 @@ function renderSoldPage() {
         filtered = filtered.filter(v => v.make === makeFilter);
     }
 
+    // Sort by sale date - most recent first
+    filtered = filtered.sort((a, b) => {
+        const dateA = a.customer?.saleDate ? new Date(a.customer.saleDate) : new Date(0);
+        const dateB = b.customer?.saleDate ? new Date(b.customer.saleDate) : new Date(0);
+        return dateB - dateA; // Most recent first
+    });
+
     if (filtered.length === 0) {
         container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💰</div><p>No sold vehicles match your filters</p></div>';
     } else {
@@ -2094,6 +2101,13 @@ function exportSoldVehicles() {
     if (makeFilter) {
         filtered = filtered.filter(v => v.make === makeFilter);
     }
+
+    // Sort by sale date - most recent first (same as renderSoldPage)
+    filtered = filtered.sort((a, b) => {
+        const dateA = a.customer?.saleDate ? new Date(a.customer.saleDate) : new Date(0);
+        const dateB = b.customer?.saleDate ? new Date(b.customer.saleDate) : new Date(0);
+        return dateB - dateA; // Most recent first
+    });
 
     if (filtered.length === 0) {
         showNotification('No vehicles to export', 'error');
@@ -4420,6 +4434,13 @@ function exportSold() {
     if (makeFilter) {
         filtered = filtered.filter(v => v.make === makeFilter);
     }
+
+    // Sort by sale date - most recent first (same as renderSoldPage)
+    filtered = filtered.sort((a, b) => {
+        const dateA = a.customer?.saleDate ? new Date(a.customer.saleDate) : new Date(0);
+        const dateB = b.customer?.saleDate ? new Date(b.customer.saleDate) : new Date(0);
+        return dateB - dateA; // Most recent first
+    });
 
     if (filtered.length === 0) {
         showNotification('No sold vehicles to export', 'warning');
