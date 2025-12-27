@@ -4110,33 +4110,77 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Payment Tracking Functions
 function renderPaymentsPage() {
-    const soldVehiclesWithPayments = soldVehicles.filter(v => 
-        v.customer && 
-        v.customer.saleDate && 
+    // Get all sold vehicles with payments
+    let filtered = soldVehicles.filter(v =>
+        v.customer &&
+        v.customer.saleDate &&
         (v.customer.paymentMethod || v.customer.paymentReference || v.customer.saleAmount)
     );
-    
+
+    // Apply filters
+    const monthFilter = document.getElementById('paymentMonthFilter')?.value;
+    const yearFilter = document.getElementById('paymentYearFilter')?.value;
+    const methodFilter = document.getElementById('paymentMethodFilter')?.value;
+    const searchTerm = document.getElementById('paymentSearchInput')?.value.toLowerCase() || '';
+
+    // Filter by month/year
+    if (monthFilter || yearFilter) {
+        filtered = filtered.filter(v => {
+            const saleDate = new Date(v.customer.saleDate);
+            if (yearFilter && saleDate.getFullYear().toString() !== yearFilter) return false;
+            if (monthFilter && (saleDate.getMonth() + 1).toString() !== monthFilter) return false;
+            return true;
+        });
+    }
+
+    // Filter by payment method
+    if (methodFilter) {
+        filtered = filtered.filter(v => v.customer.paymentMethod === methodFilter);
+    }
+
+    // Filter by search term
+    if (searchTerm) {
+        filtered = filtered.filter(v => {
+            return v.stockNumber.toLowerCase().includes(searchTerm) ||
+                   v.vin.toLowerCase().includes(searchTerm) ||
+                   `${v.year} ${v.make} ${v.model}`.toLowerCase().includes(searchTerm) ||
+                   (v.customer?.firstName || '').toLowerCase().includes(searchTerm) ||
+                   (v.customer?.lastName || '').toLowerCase().includes(searchTerm) ||
+                   (v.customer?.paymentReference || '').toLowerCase().includes(searchTerm);
+        });
+    }
+
+    // Sort by sale date - newest first
+    filtered = filtered.sort((a, b) => {
+        const dateA = new Date(a.customer.saleDate);
+        const dateB = new Date(b.customer.saleDate);
+        return dateB - dateA; // Most recent first
+    });
+
+    // Update year filter options
+    updatePaymentYearFilter();
+
     const tbody = document.getElementById('paymentsTableBody');
     const tfoot = document.getElementById('paymentsTableFooter');
     if (!tbody || !tfoot) return;
-    
-    if (soldVehiclesWithPayments.length === 0) {
+
+    if (filtered.length === 0) {
         tbody.innerHTML = '<tr><td colspan="8" style="padding: 2rem; text-align: center; color: var(--text-secondary);">No payment records found</td></tr>';
         tfoot.innerHTML = '';
         return;
     }
-    
+
     let totalAmount = 0;
-    
-    tbody.innerHTML = soldVehiclesWithPayments.map(vehicle => {
+
+    tbody.innerHTML = filtered.map(vehicle => {
         const customerName = `${vehicle.customer.firstName || ''} ${vehicle.customer.lastName || ''}`.trim() || 'N/A';
         const saleDate = vehicle.customer.saleDate ? new Date(vehicle.customer.saleDate).toLocaleDateString() : 'N/A';
         const saleAmount = parseFloat(vehicle.customer.saleAmount) || 0;
         const paymentMethod = vehicle.customer.paymentMethod || 'N/A';
         const paymentRef = vehicle.customer.paymentReference || 'N/A';
-        
+
         totalAmount += saleAmount;
-        
+
         return `
             <tr style="border-bottom: 1px solid var(--border);">
                 <td style="padding: 1rem;">${vehicle.stockNumber}</td>
@@ -4149,6 +4193,8 @@ function renderPaymentsPage() {
                         paymentMethod === 'ACH' ? 'status-in-stock' :
                         paymentMethod === 'Check' ? 'status-pending-pickup' :
                         paymentMethod === 'Credit Card' ? 'status-pickup-scheduled' :
+                        paymentMethod === 'Wire Transfer' ? 'status-pdi' :
+                        paymentMethod === 'Cash' ? 'status-sold' :
                         'status-pdi'
                     }">${paymentMethod}</span>
                 </td>
@@ -4159,32 +4205,150 @@ function renderPaymentsPage() {
             </tr>
         `;
     }).join('');
-    
-    // Add total row
+
+    // Add total row with count
     tfoot.innerHTML = `
         <tr>
-            <td colspan="4" style="padding: 1rem; text-align: right; font-weight: 700; font-size: 1.1rem;">Total:</td>
+            <td colspan="4" style="padding: 1rem; text-align: right; font-weight: 700; font-size: 1.1rem;">
+                Total (${filtered.length} payment${filtered.length !== 1 ? 's' : ''}):
+            </td>
             <td style="padding: 1rem; text-align: right; font-weight: 700; font-size: 1.1rem; font-family: monospace; color: var(--accent);">$${totalAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
             <td colspan="3"></td>
         </tr>
     `;
 }
 
-function filterPayments() {
-    const searchTerm = document.getElementById('paymentSearchInput')?.value.toLowerCase() || '';
-    const methodFilter = document.getElementById('paymentMethodFilter')?.value || '';
-    
-    const rows = document.querySelectorAll('#paymentsTableBody tr');
-    
-    rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        const methodCell = row.cells[5]?.textContent.trim() || ''; // Updated index for payment method column
-        
-        const matchesSearch = text.includes(searchTerm);
-        const matchesMethod = !methodFilter || methodCell.includes(methodFilter);
-        
-        row.style.display = (matchesSearch && matchesMethod) ? '' : 'none';
+function updatePaymentYearFilter() {
+    const yearFilter = document.getElementById('paymentYearFilter');
+    if (!yearFilter) return;
+
+    // Get unique years from payment dates
+    const years = new Set();
+    soldVehicles.forEach(v => {
+        if (v.customer?.saleDate) {
+            const year = new Date(v.customer.saleDate).getFullYear();
+            years.add(year);
+        }
     });
+
+    // Sort years in descending order
+    const sortedYears = Array.from(years).sort((a, b) => b - a);
+
+    // Keep the current selection
+    const currentValue = yearFilter.value;
+
+    // Populate the filter
+    yearFilter.innerHTML = '<option value="">All Years</option>' +
+        sortedYears.map(year => `<option value="${year}">${year}</option>`).join('');
+
+    // Restore selection if it still exists
+    if (currentValue && sortedYears.includes(parseInt(currentValue))) {
+        yearFilter.value = currentValue;
+    }
+}
+
+function exportPayments() {
+    // Get the currently filtered payments
+    let filtered = soldVehicles.filter(v =>
+        v.customer &&
+        v.customer.saleDate &&
+        (v.customer.paymentMethod || v.customer.paymentReference || v.customer.saleAmount)
+    );
+
+    // Apply same filters as renderPaymentsPage
+    const monthFilter = document.getElementById('paymentMonthFilter')?.value;
+    const yearFilter = document.getElementById('paymentYearFilter')?.value;
+    const methodFilter = document.getElementById('paymentMethodFilter')?.value;
+    const searchTerm = document.getElementById('paymentSearchInput')?.value.toLowerCase() || '';
+
+    // Filter by month/year
+    if (monthFilter || yearFilter) {
+        filtered = filtered.filter(v => {
+            const saleDate = new Date(v.customer.saleDate);
+            if (yearFilter && saleDate.getFullYear().toString() !== yearFilter) return false;
+            if (monthFilter && (saleDate.getMonth() + 1).toString() !== monthFilter) return false;
+            return true;
+        });
+    }
+
+    // Filter by payment method
+    if (methodFilter) {
+        filtered = filtered.filter(v => v.customer.paymentMethod === methodFilter);
+    }
+
+    // Filter by search term
+    if (searchTerm) {
+        filtered = filtered.filter(v => {
+            return v.stockNumber.toLowerCase().includes(searchTerm) ||
+                   v.vin.toLowerCase().includes(searchTerm) ||
+                   `${v.year} ${v.make} ${v.model}`.toLowerCase().includes(searchTerm) ||
+                   (v.customer?.firstName || '').toLowerCase().includes(searchTerm) ||
+                   (v.customer?.lastName || '').toLowerCase().includes(searchTerm) ||
+                   (v.customer?.paymentReference || '').toLowerCase().includes(searchTerm);
+        });
+    }
+
+    // Sort by sale date - newest first
+    filtered = filtered.sort((a, b) => {
+        const dateA = new Date(a.customer.saleDate);
+        const dateB = new Date(b.customer.saleDate);
+        return dateB - dateA;
+    });
+
+    if (filtered.length === 0) {
+        showNotification('No payments to export', 'warning');
+        return;
+    }
+
+    // Create CSV content
+    const headers = ['Stock #', 'Year', 'Make', 'Model', 'VIN', 'Customer Name', 'Sale Date', 'Sale Amount', 'Payment Method', 'Payment Reference'];
+
+    const rows = filtered.map(v => {
+        const customerName = `${v.customer.firstName || ''} ${v.customer.lastName || ''}`.trim();
+        const saleDate = v.customer.saleDate ? new Date(v.customer.saleDate).toLocaleDateString() : '';
+        const saleAmount = v.customer.saleAmount ? `$${parseFloat(v.customer.saleAmount).toFixed(2)}` : '';
+
+        return [
+            v.stockNumber,
+            v.year,
+            v.make,
+            v.model,
+            v.vin,
+            customerName,
+            saleDate,
+            saleAmount,
+            v.customer.paymentMethod || '',
+            v.customer.paymentReference || ''
+        ].map(field => `"${field}"`).join(',');
+    });
+
+    const csv = [headers.join(','), ...rows].join('\n');
+
+    // Create filename with filter info
+    let filename = 'payments';
+    if (yearFilter && monthFilter) {
+        const monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        filename += `-${monthNames[parseInt(monthFilter)]}-${yearFilter}`;
+    } else if (yearFilter) {
+        filename += `-${yearFilter}`;
+    } else if (monthFilter) {
+        const monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        filename += `-${monthNames[parseInt(monthFilter)]}`;
+    }
+    filename += '.csv';
+
+    // Download the file
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+
+    showNotification(`Exported ${filtered.length} payment${filtered.length !== 1 ? 's' : ''}`, 'success');
 }
 
 // ==================== UTILITY FUNCTIONS ====================
