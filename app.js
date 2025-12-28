@@ -1863,48 +1863,27 @@ function updateDashboard() {
     // Inventory Overview Section
     const inventoryContainer = document.getElementById('inventoryOverview');
     if (inventoryContainer) {
-        const allInventoryVehicles = [...vehicles];
+        // Only show in-stock vehicles
+        const inStockVehicles = vehicles.filter(v => v.status === 'in-stock');
 
-        if (allInventoryVehicles.length === 0) {
-            inventoryContainer.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--joy-text-tertiary); font-size: 0.875rem;">No vehicles in inventory</div>';
+        if (inStockVehicles.length === 0) {
+            inventoryContainer.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--joy-text-tertiary); font-size: 0.875rem;">No vehicles in stock</div>';
         } else {
-            // Group vehicles by status
-            const byStatus = {
-                'in-stock': vehicles.filter(v => v.status === 'in-stock'),
-                'in-transit': vehicles.filter(v => v.status === 'in-transit'),
-                'pdi': vehicles.filter(v => v.status === 'pdi'),
-                'pending-pickup': vehicles.filter(v => v.status === 'pending-pickup'),
-                'pickup-scheduled': vehicles.filter(v => v.status === 'pickup-scheduled')
-            };
-
-            // Calculate stats
-            const totalCount = allInventoryVehicles.length;
-            const statusCounts = Object.entries(byStatus).map(([status, vehs]) => ({
-                status,
-                count: vehs.length,
-                label: status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-            }));
+            const totalCount = inStockVehicles.length;
 
             inventoryContainer.innerHTML = `
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-                    ${statusCounts.map(s => `
-                        <div style="background: rgba(0, 0, 0, 0.2); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-sm); padding: 0.75rem;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <div style="font-size: 0.75rem; color: var(--joy-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">
-                                        ${s.label}
-                                    </div>
-                                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--joy-text-primary);">
-                                        ${s.count}
-                                    </div>
-                                </div>
-                                <span class="status-badge status-${s.status}" style="padding: 0.25rem 0.5rem; font-size: 0.6875rem;"></span>
-                            </div>
+                <!-- In-Stock Summary -->
+                <div style="background: rgba(50, 215, 75, 0.1); border: 1px solid rgba(50, 215, 75, 0.3); border-radius: var(--joy-radius-sm); padding: 1rem; margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 0.875rem; color: var(--joy-text-secondary); margin-bottom: 0.25rem;">Total In Stock</div>
+                            <div style="font-size: 2rem; font-weight: 700; color: var(--joy-success-500);">${totalCount}</div>
                         </div>
-                    `).join('')}
+                        <span style="font-size: 3rem;">📦</span>
+                    </div>
                 </div>
 
-                <!-- Recent Inventory Table -->
+                <!-- In-Stock Inventory Table -->
                 <div style="overflow-x: auto;">
                     <table style="width: 100%; font-size: 0.8125rem;">
                         <thead>
@@ -1913,17 +1892,14 @@ function updateDashboard() {
                                 <th style="padding: 0.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--joy-text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Vehicle</th>
                                 <th style="padding: 0.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--joy-text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">VIN</th>
                                 <th style="padding: 0.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--joy-text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Color</th>
-                                <th style="padding: 0.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--joy-text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Status</th>
                                 <th style="padding: 0.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--joy-text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Days</th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${allInventoryVehicles.slice(0, 10).map(v => {
+                            ${inStockVehicles.slice(0, 10).map(v => {
                                 const stockDate = new Date(v.inStockDate || v.dateAdded);
                                 const daysOld = Math.floor((new Date() - stockDate) / (1000 * 60 * 60 * 24));
                                 const ageColor = getAgeColor(daysOld);
-                                const statusClass = `status-${v.status}`;
-                                const statusText = v.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
                                 return `
                                     <tr style="border-bottom: 1px solid var(--joy-divider); cursor: pointer; transition: background 0.2s;"
@@ -1934,9 +1910,6 @@ function updateDashboard() {
                                         <td style="padding: 0.5rem;">${v.year} ${v.make} ${v.model}</td>
                                         <td style="padding: 0.5rem; font-family: monospace; font-size: 0.75rem;">${v.vin}</td>
                                         <td style="padding: 0.5rem;">${v.color}</td>
-                                        <td style="padding: 0.5rem;">
-                                            <span class="status-badge ${statusClass}" style="font-size: 0.6875rem; padding: 0.125rem 0.375rem;">${statusText}</span>
-                                        </td>
                                         <td style="padding: 0.5rem; font-weight: 600; color: ${ageColor};">
                                             ${daysOld}
                                         </td>
@@ -1947,7 +1920,7 @@ function updateDashboard() {
                     </table>
                 </div>
 
-                ${allInventoryVehicles.length > 10 ? `
+                ${inStockVehicles.length > 10 ? `
                     <div style="text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--joy-divider);">
                         <span style="font-size: 0.875rem; color: var(--joy-text-secondary);">
                             Showing 10 of ${totalCount} vehicles
@@ -3656,6 +3629,8 @@ async function handleCSVImport(event) {
                 customerInfo.paymentReference = values[17] || '';
             }
 
+            const vehicleStatus = values[9] || 'in-stock';
+
             const vehicle = {
                 id: Date.now() + i,
                 stockNumber: values[0],
@@ -3667,9 +3642,10 @@ async function handleCSVImport(event) {
                 color: values[6],
                 fleetCompany: values[7] || '',
                 operationCompany: values[8] || '',
-                status: values[9] || 'in-stock',
+                status: vehicleStatus,
                 dateAdded: new Date().toISOString(),
-                inStockDate: hasValue(values[10]) ? new Date(values[10]).toISOString() : null,
+                // Only set inStockDate if not in-transit
+                inStockDate: vehicleStatus === 'in-transit' ? null : (hasValue(values[10]) ? new Date(values[10]).toISOString() : null),
                 customer: Object.keys(customerInfo).length > 0 ? customerInfo : undefined
             };
 
