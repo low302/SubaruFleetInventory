@@ -914,15 +914,20 @@ function completePickup(vehicleId) {
 }
 
 function generateLabelById(vehicleId) {
+    console.log('generateLabelById called with ID:', vehicleId);
     const vehicle = currentInventory.find(v => v.id === vehicleId) ||
                     soldVehicles.find(v => v.id === vehicleId) ||
                     tradeIns.find(t => t.id === vehicleId);
+    console.log('Found vehicle:', vehicle);
     if (vehicle) {
         generateLabel(vehicle);
+    } else {
+        console.error('Vehicle not found with ID:', vehicleId);
     }
 }
 
 function generateLabel(vehicle) {
+    console.log('generateLabel called with vehicle:', vehicle);
     currentVehicle = vehicle;
 
     // Set stock number
@@ -972,7 +977,9 @@ function generateLabel(vehicle) {
     document.getElementById('keyLabelFleet').textContent = `Fleet: ${vehicle.fleetCompany || 'N/A'}`;
     document.getElementById('keyLabelOperation').textContent = `Op Co: ${vehicle.operationCompany || 'N/A'}`;
 
+    console.log('About to open label type modal');
     openLabelTypeModal();
+    console.log('Label type modal should be open now');
 }
 
 // Global variable to store selected label position
