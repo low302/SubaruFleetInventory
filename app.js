@@ -415,7 +415,6 @@ async function deleteVehicle(vehicleId) {
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Failed to delete sold vehicle');
             }
-            console.log('Deleted vehicle from sold_vehicles table');
         } else {
             // Delete from inventory table
             const response = await fetch(`${API_BASE}/inventory/${vehicleId}`, {
@@ -426,7 +425,6 @@ async function deleteVehicle(vehicleId) {
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Failed to delete vehicle');
             }
-            console.log('Deleted vehicle from inventory table');
         }
         
         // Reload all data
@@ -553,9 +551,6 @@ async function saveVehicleEdit(event) {
         inStockDate: inStockDate
     };
 
-    console.log('Saving vehicle with inStockDate:', inStockDate);
-    console.log('Updated vehicle object:', updatedVehicle);
-
     try {
         const isInSold = soldVehicles.some(v => v.id === currentVehicle.id);
         const endpoint = isInSold ? 'sold-vehicles' : 'inventory';
@@ -567,19 +562,14 @@ async function saveVehicleEdit(event) {
             body: JSON.stringify(updatedVehicle)
         });
 
-        console.log('Server response status:', response.status);
-        
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error || 'Failed to save vehicle changes');
         }
-        
+
         await loadAllData();
 
-        // Check what was loaded from database
         const reloadedVehicle = vehicles.find(v => v.id === updatedVehicle.id) || soldVehicles.find(v => v.id === updatedVehicle.id);
-        console.log('Vehicle reloaded from database:', reloadedVehicle);
-        console.log('Reloaded inStockDate:', reloadedVehicle?.inStockDate);
 
         window.currentlyEditingVehicle = null;
         currentVehicle = reloadedVehicle || updatedVehicle;
@@ -914,20 +904,15 @@ function completePickup(vehicleId) {
 }
 
 function generateLabelById(vehicleId) {
-    console.log('generateLabelById called with ID:', vehicleId);
     const vehicle = currentInventory.find(v => v.id === vehicleId) ||
                     soldVehicles.find(v => v.id === vehicleId) ||
                     tradeIns.find(t => t.id === vehicleId);
-    console.log('Found vehicle:', vehicle);
     if (vehicle) {
         generateLabel(vehicle);
-    } else {
-        console.error('Vehicle not found with ID:', vehicleId);
     }
 }
 
 function generateLabel(vehicle) {
-    console.log('generateLabel called with vehicle:', vehicle);
     currentVehicle = vehicle;
 
     // Set stock number
@@ -977,9 +962,10 @@ function generateLabel(vehicle) {
     document.getElementById('keyLabelFleet').textContent = `Fleet: ${vehicle.fleetCompany || 'N/A'}`;
     document.getElementById('keyLabelOperation').textContent = `Op Co: ${vehicle.operationCompany || 'N/A'}`;
 
-    console.log('About to open label type modal');
+    // Close the vehicle detail modal first
+    document.getElementById('detailModal').classList.remove('active');
+
     openLabelTypeModal();
-    console.log('Label type modal should be open now');
 }
 
 // Global variable to store selected label position
@@ -1134,9 +1120,6 @@ function printSelectedPosition() {
     label.style.setProperty('--print-left', position.left);
     label.classList.add('printing');
 
-    // Debug log
-    console.log('Print position:', selectedLabelPosition, 'Position:', position);
-
     // Close modal
     closeLabelPositionModal();
 
@@ -1185,8 +1168,6 @@ function printSelectedKeyPosition() {
         document.body.appendChild(clone);
         clones.push(clone);
     });
-
-    console.log('Print key positions:', selectedKeyLabelPositions, 'Positions:', positions);
 
     closeKeyLabelPositionModal();
 
@@ -3569,14 +3550,11 @@ async function removeDuplicates() {
 
                     if (response.ok) {
                         removedCount++;
-                        console.log('Removed duplicate:', vehicle.stockNumber, vehicle.vin);
                     } else {
                         failedCount++;
-                        console.error('Failed to remove:', vehicle.stockNumber);
                     }
                 } catch (error) {
                     failedCount++;
-                    console.error('Error removing vehicle:', error);
                 }
             }
         }
@@ -3810,7 +3788,6 @@ async function handleCSVImport(event) {
                     if (existingVINs.has(vehicle.vin)) {
                         duplicateCount++;
                         errors.push(`${vehicle.stockNumber}: Duplicate VIN ${vehicle.vin} already exists`);
-                        console.warn('Skipping duplicate VIN:', vehicle.vin);
                         continue;
                     }
 
@@ -3825,8 +3802,6 @@ async function handleCSVImport(event) {
                         soldCount++;
                     }
 
-                    console.log('Importing vehicle:', vehicle.stockNumber, 'to', endpoint, 'isSold:', isSold);
-
                     const response = await fetch(endpoint, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -3838,16 +3813,13 @@ async function handleCSVImport(event) {
                         successCount++;
                         // Add to existing VINs set to prevent duplicates within the same import
                         existingVINs.add(vehicle.vin);
-                        console.log('Successfully imported:', vehicle.stockNumber);
                     } else {
                         failCount++;
                         const errorData = await response.json();
-                        console.error('Failed to import:', vehicle.stockNumber, errorData);
                         errors.push(`${vehicle.stockNumber}: ${errorData.error || 'Failed to import'}`);
                     }
                 } catch (error) {
                     failCount++;
-                    console.error('Import error for', vehicle.stockNumber, ':', error);
                     errors.push(`${vehicle.stockNumber}: ${error.message}`);
                 }
             }
@@ -4039,11 +4011,8 @@ function toggleTradeInSection() {
 }
 
 async function handleSoldSubmit(event) {
-    console.log('handleSoldSubmit called', event);
     event.preventDefault();
-    console.log('currentVehicle:', currentVehicle);
     if (!currentVehicle) {
-        console.error('No currentVehicle found!');
         showNotification('Error: No vehicle selected', 'error');
         return;
     }
@@ -4703,7 +4672,6 @@ async function fixInTransitDates() {
         updateDashboard();
         renderCurrentPage();
 
-        console.log('Fixed in-transit dates:', result);
     } catch (error) {
         console.error('Error fixing in-transit dates:', error);
         showNotification('Failed to fix in-transit dates: ' + error.message, 'error');
