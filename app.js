@@ -1661,189 +1661,25 @@ async function saveVehicleDetailPDF() {
 
 // Generate Keytag Label for Trade-In Vehicles
 function generateTradeInKeytag(tradeIn) {
-    try {
-        // Open print window
-        const printWindow = window.open('', '_blank', 'width=800,height=600');
+    // Store the trade-in as current vehicle for label generation
+    currentTradeInForLabel = tradeIn;
 
-        if (!printWindow) {
-            showNotification('Please allow popups to generate keytag label', 'error');
-            return;
-        }
+    // Populate the key tag preview with trade-in data
+    const vinLast8 = tradeIn.vin ? tradeIn.vin.slice(-8) : '';
 
-        const vinLast8 = tradeIn.vin ? tradeIn.vin.slice(-8) : '';
+    document.getElementById('keyLabelStock').textContent = tradeIn.stockNumber || 'N/A';
+    document.getElementById('keyLabelVehicle').textContent = `${tradeIn.year} ${tradeIn.make} ${tradeIn.model}`;
+    document.getElementById('keyLabelVin').textContent = `VIN: ${vinLast8}`;
+    document.getElementById('keyLabelColor').textContent = `Color: ${tradeIn.color || 'N/A'}`;
+    document.getElementById('keyLabelFleet').textContent = tradeIn.mileage ? `Miles: ${tradeIn.mileage.toLocaleString()}` : 'TRADE-IN';
+    document.getElementById('keyLabelOperation').textContent = 'TRADE-IN';
 
-        printWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Trade-In Keytag - ${tradeIn.stockNumber || tradeIn.vin}</title>
-                <style>
-                    @page {
-                        size: 2.125in 3.375in;
-                        margin: 0;
-                    }
-
-                    body {
-                        margin: 0;
-                        padding: 0;
-                        font-family: Arial, sans-serif;
-                        width: 2.125in;
-                        height: 3.375in;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                    }
-
-                    .keytag {
-                        width: 100%;
-                        height: 100%;
-                        padding: 0.25in;
-                        box-sizing: border-box;
-                        display: flex;
-                        flex-direction: column;
-                        background: white;
-                        border: 2px solid #000;
-                    }
-
-                    .header {
-                        text-align: center;
-                        border-bottom: 2px solid #000;
-                        padding-bottom: 0.1in;
-                        margin-bottom: 0.15in;
-                    }
-
-                    .title {
-                        font-size: 16pt;
-                        font-weight: bold;
-                        margin: 0;
-                        color: #000;
-                    }
-
-                    .subtitle {
-                        font-size: 10pt;
-                        margin: 2px 0 0 0;
-                        color: #666;
-                    }
-
-                    .content {
-                        flex: 1;
-                        display: flex;
-                        flex-direction: column;
-                        gap: 0.08in;
-                    }
-
-                    .field {
-                        display: flex;
-                        flex-direction: column;
-                        border-bottom: 1px solid #ddd;
-                        padding-bottom: 0.05in;
-                    }
-
-                    .field-label {
-                        font-size: 7pt;
-                        color: #666;
-                        text-transform: uppercase;
-                        letter-spacing: 0.5px;
-                        margin-bottom: 1px;
-                    }
-
-                    .field-value {
-                        font-size: 11pt;
-                        font-weight: bold;
-                        color: #000;
-                    }
-
-                    .stock-number {
-                        font-size: 14pt;
-                        text-align: center;
-                        font-weight: bold;
-                        background: #f0f0f0;
-                        padding: 0.08in;
-                        border-radius: 4px;
-                        margin-bottom: 0.1in;
-                    }
-
-                    .trade-in-badge {
-                        background: #ff4444;
-                        color: white;
-                        font-size: 9pt;
-                        font-weight: bold;
-                        text-align: center;
-                        padding: 0.05in;
-                        margin-top: auto;
-                        border-radius: 3px;
-                    }
-
-                    @media print {
-                        body {
-                            background: white;
-                        }
-                        .keytag {
-                            border: 2px solid #000;
-                        }
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="keytag">
-                    <div class="header">
-                        <div class="title">TRADE-IN</div>
-                        <div class="subtitle">Key Tag</div>
-                    </div>
-
-                    ${tradeIn.stockNumber ? `
-                        <div class="stock-number">
-                            Stock: ${tradeIn.stockNumber}
-                        </div>
-                    ` : ''}
-
-                    <div class="content">
-                        <div class="field">
-                            <div class="field-label">Vehicle</div>
-                            <div class="field-value">${tradeIn.year} ${tradeIn.make} ${tradeIn.model}</div>
-                        </div>
-
-                        <div class="field">
-                            <div class="field-label">VIN (Last 8)</div>
-                            <div class="field-value" style="font-family: monospace;">${vinLast8}</div>
-                        </div>
-
-                        <div class="field">
-                            <div class="field-label">Color</div>
-                            <div class="field-value">${tradeIn.color || 'N/A'}</div>
-                        </div>
-
-                        ${tradeIn.mileage ? `
-                            <div class="field">
-                                <div class="field-label">Mileage</div>
-                                <div class="field-value">${tradeIn.mileage.toLocaleString()} mi</div>
-                            </div>
-                        ` : ''}
-                    </div>
-
-                    <div class="trade-in-badge">
-                        TRADE-IN VEHICLE
-                    </div>
-                </div>
-            </body>
-            </html>
-        `);
-
-        printWindow.document.close();
-
-        // Wait for content to load then trigger print
-        printWindow.onload = function() {
-            setTimeout(() => {
-                printWindow.print();
-            }, 250);
-        };
-
-        showNotification('Keytag label ready to print', 'success');
-    } catch (error) {
-        console.error('Error generating trade-in keytag:', error);
-        showNotification('Failed to generate keytag. Please try again.', 'error');
-    }
+    // Open the key label modal and position selector
+    openKeyLabelModal();
 }
+
+// Store current trade-in for label printing
+let currentTradeInForLabel = null;
 
 function updateDashboard() {
     // Update stat cards
