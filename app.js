@@ -797,6 +797,7 @@ function renderTradeInDetailModal(tradeIn) {
                 </label>
             </div>
             <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                <button class="btn btn-secondary" onclick='generateTradeInKeytag(${JSON.stringify(tradeIn).replace(/'/g, "&#39;")})' style="flex: 1;">🏷️ Generate Keytag</button>
                 <button class="btn" onclick="enableTradeInEditMode(${tradeIn.id})" style="flex: 1;">✏️ Edit Trade-In</button>
             </div>
         `;
@@ -1658,6 +1659,192 @@ async function saveVehicleDetailPDF() {
     }
 }
 
+// Generate Keytag Label for Trade-In Vehicles
+function generateTradeInKeytag(tradeIn) {
+    try {
+        // Open print window
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
+
+        if (!printWindow) {
+            showNotification('Please allow popups to generate keytag label', 'error');
+            return;
+        }
+
+        const vinLast8 = tradeIn.vin ? tradeIn.vin.slice(-8) : '';
+
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Trade-In Keytag - ${tradeIn.stockNumber || tradeIn.vin}</title>
+                <style>
+                    @page {
+                        size: 2.125in 3.375in;
+                        margin: 0;
+                    }
+
+                    body {
+                        margin: 0;
+                        padding: 0;
+                        font-family: Arial, sans-serif;
+                        width: 2.125in;
+                        height: 3.375in;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+
+                    .keytag {
+                        width: 100%;
+                        height: 100%;
+                        padding: 0.25in;
+                        box-sizing: border-box;
+                        display: flex;
+                        flex-direction: column;
+                        background: white;
+                        border: 2px solid #000;
+                    }
+
+                    .header {
+                        text-align: center;
+                        border-bottom: 2px solid #000;
+                        padding-bottom: 0.1in;
+                        margin-bottom: 0.15in;
+                    }
+
+                    .title {
+                        font-size: 16pt;
+                        font-weight: bold;
+                        margin: 0;
+                        color: #000;
+                    }
+
+                    .subtitle {
+                        font-size: 10pt;
+                        margin: 2px 0 0 0;
+                        color: #666;
+                    }
+
+                    .content {
+                        flex: 1;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 0.08in;
+                    }
+
+                    .field {
+                        display: flex;
+                        flex-direction: column;
+                        border-bottom: 1px solid #ddd;
+                        padding-bottom: 0.05in;
+                    }
+
+                    .field-label {
+                        font-size: 7pt;
+                        color: #666;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                        margin-bottom: 1px;
+                    }
+
+                    .field-value {
+                        font-size: 11pt;
+                        font-weight: bold;
+                        color: #000;
+                    }
+
+                    .stock-number {
+                        font-size: 14pt;
+                        text-align: center;
+                        font-weight: bold;
+                        background: #f0f0f0;
+                        padding: 0.08in;
+                        border-radius: 4px;
+                        margin-bottom: 0.1in;
+                    }
+
+                    .trade-in-badge {
+                        background: #ff4444;
+                        color: white;
+                        font-size: 9pt;
+                        font-weight: bold;
+                        text-align: center;
+                        padding: 0.05in;
+                        margin-top: auto;
+                        border-radius: 3px;
+                    }
+
+                    @media print {
+                        body {
+                            background: white;
+                        }
+                        .keytag {
+                            border: 2px solid #000;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="keytag">
+                    <div class="header">
+                        <div class="title">TRADE-IN</div>
+                        <div class="subtitle">Key Tag</div>
+                    </div>
+
+                    ${tradeIn.stockNumber ? `
+                        <div class="stock-number">
+                            Stock: ${tradeIn.stockNumber}
+                        </div>
+                    ` : ''}
+
+                    <div class="content">
+                        <div class="field">
+                            <div class="field-label">Vehicle</div>
+                            <div class="field-value">${tradeIn.year} ${tradeIn.make} ${tradeIn.model}</div>
+                        </div>
+
+                        <div class="field">
+                            <div class="field-label">VIN (Last 8)</div>
+                            <div class="field-value" style="font-family: monospace;">${vinLast8}</div>
+                        </div>
+
+                        <div class="field">
+                            <div class="field-label">Color</div>
+                            <div class="field-value">${tradeIn.color || 'N/A'}</div>
+                        </div>
+
+                        ${tradeIn.mileage ? `
+                            <div class="field">
+                                <div class="field-label">Mileage</div>
+                                <div class="field-value">${tradeIn.mileage.toLocaleString()} mi</div>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="trade-in-badge">
+                        TRADE-IN VEHICLE
+                    </div>
+                </div>
+            </body>
+            </html>
+        `);
+
+        printWindow.document.close();
+
+        // Wait for content to load then trigger print
+        printWindow.onload = function() {
+            setTimeout(() => {
+                printWindow.print();
+            }, 250);
+        };
+
+        showNotification('Keytag label ready to print', 'success');
+    } catch (error) {
+        console.error('Error generating trade-in keytag:', error);
+        showNotification('Failed to generate keytag. Please try again.', 'error');
+    }
+}
+
 function updateDashboard() {
     // Update stat cards
     const totalVehicles = document.getElementById('totalVehicles');
@@ -1691,11 +1878,19 @@ function updateDashboard() {
         return 'var(--joy-danger-500)'; // Red
     }
 
+    // Helper function to calculate days in stock (returns null if no inStockDate)
+    function getDaysInStock(vehicle) {
+        if (!vehicle.inStockDate) return null;
+        const stockDate = new Date(vehicle.inStockDate);
+        return Math.floor((new Date() - stockDate) / (1000 * 60 * 60 * 24));
+    }
+
     // Oldest Units Section
     const oldestVehicles = [...vehicles]
+        .filter(v => v.inStockDate) // Only include vehicles with in-stock date
         .sort((a, b) => {
-            const dateA = new Date(a.inStockDate || a.dateAdded);
-            const dateB = new Date(b.inStockDate || b.dateAdded);
+            const dateA = new Date(a.inStockDate);
+            const dateB = new Date(b.inStockDate);
             return dateA - dateB;
         })
         .slice(0, 5);
@@ -1706,8 +1901,7 @@ function updateDashboard() {
             oldestContainer.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--joy-text-tertiary); font-size: 0.875rem;">No vehicles in inventory</div>';
         } else {
             oldestContainer.innerHTML = oldestVehicles.map(v => {
-                const stockDate = new Date(v.inStockDate || v.dateAdded);
-                const daysOld = Math.floor((new Date() - stockDate) / (1000 * 60 * 60 * 24));
+                const daysOld = getDaysInStock(v);
                 const ageColor = getAgeColor(daysOld);
                 const statusClass = `status-${v.status}`;
                 const statusText = v.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
@@ -1738,12 +1932,12 @@ function updateDashboard() {
         }
     }
 
-    // Newest Units Section (exclude in-transit)
+    // Newest Units Section (exclude in-transit and vehicles without in-stock date)
     const newestVehicles = [...vehicles]
-        .filter(v => v.status !== 'in-transit')
+        .filter(v => v.inStockDate) // Only include vehicles with in-stock date
         .sort((a, b) => {
-            const dateA = new Date(a.inStockDate || a.dateAdded);
-            const dateB = new Date(b.inStockDate || b.dateAdded);
+            const dateA = new Date(a.inStockDate);
+            const dateB = new Date(b.inStockDate);
             return dateB - dateA;
         })
         .slice(0, 5);
@@ -1754,8 +1948,7 @@ function updateDashboard() {
             newestContainer.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--joy-text-tertiary); font-size: 0.875rem;">No vehicles in inventory</div>';
         } else {
             newestContainer.innerHTML = newestVehicles.map(v => {
-                const stockDate = new Date(v.inStockDate || v.dateAdded);
-                const daysOld = Math.floor((new Date() - stockDate) / (1000 * 60 * 60 * 24));
+                const daysOld = getDaysInStock(v);
                 const ageColor = getAgeColor(daysOld);
                 const statusClass = `status-${v.status}`;
                 const statusText = v.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
@@ -1863,27 +2056,62 @@ function updateDashboard() {
     // Inventory Overview Section
     const inventoryContainer = document.getElementById('inventoryOverview');
     if (inventoryContainer) {
-        // Only show in-stock vehicles
+        // Filter vehicles by different statuses
         const inStockVehicles = vehicles.filter(v => v.status === 'in-stock');
+        const pdiVehicles = vehicles.filter(v => v.status === 'pdi');
+        const pendingPickupVehicles = vehicles.filter(v => v.status === 'pending-pickup');
+        const pickupScheduledVehicles = vehicles.filter(v => v.status === 'pickup-scheduled');
 
-        if (inStockVehicles.length === 0) {
-            inventoryContainer.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--joy-text-tertiary); font-size: 0.875rem;">No vehicles in stock</div>';
+        const allSelectedVehicles = [...inStockVehicles, ...pdiVehicles, ...pendingPickupVehicles, ...pickupScheduledVehicles];
+
+        if (allSelectedVehicles.length === 0) {
+            inventoryContainer.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--joy-text-tertiary); font-size: 0.875rem;">No vehicles in these statuses</div>';
         } else {
-            const totalCount = inStockVehicles.length;
-
             inventoryContainer.innerHTML = `
-                <!-- In-Stock Summary -->
-                <div style="background: rgba(50, 215, 75, 0.1); border: 1px solid rgba(50, 215, 75, 0.3); border-radius: var(--joy-radius-sm); padding: 1rem; margin-bottom: 1rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <div style="font-size: 0.875rem; color: var(--joy-text-secondary); margin-bottom: 0.25rem;">Total In Stock</div>
-                            <div style="font-size: 2rem; font-weight: 700; color: var(--joy-success-500);">${totalCount}</div>
+                <!-- Status Summary Cards -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                    <div style="background: rgba(50, 215, 75, 0.1); border: 1px solid rgba(50, 215, 75, 0.3); border-radius: var(--joy-radius-sm); padding: 0.75rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 0.75rem; color: var(--joy-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">In Stock</div>
+                                <div style="font-size: 1.75rem; font-weight: 700; color: var(--joy-success-500);">${inStockVehicles.length}</div>
+                            </div>
+                            <span style="font-size: 2rem;">📦</span>
                         </div>
-                        <span style="font-size: 3rem;">📦</span>
+                    </div>
+
+                    <div style="background: rgba(255, 159, 10, 0.1); border: 1px solid rgba(255, 159, 10, 0.3); border-radius: var(--joy-radius-sm); padding: 0.75rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 0.75rem; color: var(--joy-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">PDI</div>
+                                <div style="font-size: 1.75rem; font-weight: 700; color: var(--joy-warning-500);">${pdiVehicles.length}</div>
+                            </div>
+                            <span style="font-size: 2rem;">🔧</span>
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(10, 132, 255, 0.1); border: 1px solid rgba(10, 132, 255, 0.3); border-radius: var(--joy-radius-sm); padding: 0.75rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 0.75rem; color: var(--joy-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Pending Pickup</div>
+                                <div style="font-size: 1.75rem; font-weight: 700; color: var(--joy-primary-500);">${pendingPickupVehicles.length}</div>
+                            </div>
+                            <span style="font-size: 2rem;">⏳</span>
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(191, 90, 242, 0.1); border: 1px solid rgba(191, 90, 242, 0.3); border-radius: var(--joy-radius-sm); padding: 0.75rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 0.75rem; color: var(--joy-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Pickup Scheduled</div>
+                                <div style="font-size: 1.75rem; font-weight: 700; color: rgb(191, 90, 242);">${pickupScheduledVehicles.length}</div>
+                            </div>
+                            <span style="font-size: 2rem;">📅</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- In-Stock Inventory Table -->
+                <!-- Combined Inventory Table -->
                 <div style="overflow-x: auto;">
                     <table style="width: 100%; font-size: 0.8125rem;">
                         <thead>
@@ -1892,14 +2120,16 @@ function updateDashboard() {
                                 <th style="padding: 0.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--joy-text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Vehicle</th>
                                 <th style="padding: 0.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--joy-text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">VIN</th>
                                 <th style="padding: 0.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--joy-text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Color</th>
+                                <th style="padding: 0.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--joy-text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Status</th>
                                 <th style="padding: 0.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--joy-text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Days</th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${inStockVehicles.slice(0, 10).map(v => {
-                                const stockDate = new Date(v.inStockDate || v.dateAdded);
-                                const daysOld = Math.floor((new Date() - stockDate) / (1000 * 60 * 60 * 24));
-                                const ageColor = getAgeColor(daysOld);
+                            ${allSelectedVehicles.slice(0, 10).map(v => {
+                                const daysOld = getDaysInStock(v);
+                                const ageColor = daysOld !== null ? getAgeColor(daysOld) : 'var(--joy-text-tertiary)';
+                                const statusClass = `status-${v.status}`;
+                                const statusText = v.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
                                 return `
                                     <tr style="border-bottom: 1px solid var(--joy-divider); cursor: pointer; transition: background 0.2s;"
@@ -1910,8 +2140,11 @@ function updateDashboard() {
                                         <td style="padding: 0.5rem;">${v.year} ${v.make} ${v.model}</td>
                                         <td style="padding: 0.5rem; font-family: monospace; font-size: 0.75rem;">${v.vin}</td>
                                         <td style="padding: 0.5rem;">${v.color}</td>
+                                        <td style="padding: 0.5rem;">
+                                            <span class="status-badge ${statusClass}" style="font-size: 0.6875rem; padding: 0.125rem 0.375rem;">${statusText}</span>
+                                        </td>
                                         <td style="padding: 0.5rem; font-weight: 600; color: ${ageColor};">
-                                            ${daysOld}
+                                            ${daysOld !== null ? daysOld : '-'}
                                         </td>
                                     </tr>
                                 `;
@@ -1920,10 +2153,10 @@ function updateDashboard() {
                     </table>
                 </div>
 
-                ${inStockVehicles.length > 10 ? `
+                ${allSelectedVehicles.length > 10 ? `
                     <div style="text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--joy-divider);">
                         <span style="font-size: 0.875rem; color: var(--joy-text-secondary);">
-                            Showing 10 of ${totalCount} vehicles
+                            Showing 10 of ${allSelectedVehicles.length} vehicles
                         </span>
                     </div>
                 ` : ''}
@@ -2504,7 +2737,8 @@ function renderDetailModal(vehicle) {
                 <div class="info-item"><div class="info-label">Operation Company</div><div class="info-value">${vehicle.operationCompany || 'N/A'}</div></div>
                 <div class="info-item"><div class="info-label">In Stock Date</div><div class="info-value">${vehicle.inStockDate ? new Date(vehicle.inStockDate).toLocaleDateString() : 'N/A'}</div></div>
                 <div class="info-item"><div class="info-label">Days in Stock</div><div class="info-value">${(() => {
-                    const inStockDate = new Date(vehicle.inStockDate || vehicle.dateAdded);
+                    if (!vehicle.inStockDate) return 'N/A';
+                    const inStockDate = new Date(vehicle.inStockDate);
                     const isSold = vehicle.status === 'sold' || soldVehicles.some(v => v.id === vehicle.id);
                     const endDate = isSold && vehicle.customer?.saleDate ? new Date(vehicle.customer.saleDate) : new Date();
                     const days = Math.floor((endDate - inStockDate) / (1000 * 60 * 60 * 24));
