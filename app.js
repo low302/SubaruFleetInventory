@@ -913,6 +913,15 @@ function completePickup(vehicleId) {
     openSoldModal();
 }
 
+function generateLabelById(vehicleId) {
+    const vehicle = currentInventory.find(v => v.id === vehicleId) ||
+                    soldVehicles.find(v => v.id === vehicleId) ||
+                    tradeIns.find(t => t.id === vehicleId);
+    if (vehicle) {
+        generateLabel(vehicle);
+    }
+}
+
 function generateLabel(vehicle) {
     currentVehicle = vehicle;
 
@@ -2553,9 +2562,8 @@ function createTradeInRow(tradeIn) {
 function renderDetailModal(vehicle) {
     const isFromSold = soldVehicles.some(v => v.id === vehicle.id);
     const isFromTradeIn = tradeIns.some(t => t.id === vehicle.id);
-    const vehicleJson = JSON.stringify(vehicle).replace(/"/g, '&quot;');
     const content = document.getElementById('detailContent');
-    
+
     const isEditing = window.currentlyEditingVehicle === vehicle.id;
     
     if (!isEditing) {
@@ -2582,7 +2590,7 @@ function renderDetailModal(vehicle) {
                 })()}</div></div>
             </div>
             <div style="margin-top: 2rem; display: flex; gap: 1rem;">
-                <button class="btn btn-secondary" onclick='generateLabel(${vehicleJson})' style="flex: 1;">🏷️ Generate Label</button>
+                <button class="btn btn-secondary" onclick="generateLabelById(${vehicle.id})" style="flex: 1;">🏷️ Generate Label</button>
                 ${!isFromTradeIn ? `<button class="btn" onclick="enableEditMode(${vehicle.id})" style="flex: 1;">✏️ Edit Vehicle</button>` : ''}
             </div>
         `;
