@@ -268,7 +268,13 @@ async function addVehicle(event) {
     // Get in stock date - only set if user manually provides it
     const inStockDateInput = document.getElementById('inStockDate').value;
     const vehicleStatus = document.getElementById('status').value;
-    const inStockDate = inStockDateInput ? inStockDateInput + 'T00:00:00.000Z' : null;
+    let inStockDate = null;
+    if (inStockDateInput) {
+        // Create date in local timezone, then convert to ISO string
+        const [year, month, day] = inStockDateInput.split('-');
+        const localDate = new Date(year, month - 1, day);
+        inStockDate = localDate.toISOString();
+    }
 
     const vehicle = {
         id: Date.now(),
@@ -534,7 +540,13 @@ async function saveVehicleEdit(event) {
 
     // Get in stock date - allow it to be cleared (null)
     const inStockDateInput = document.getElementById('editInStockDate').value;
-    const inStockDate = inStockDateInput ? inStockDateInput + 'T00:00:00.000Z' : null;
+    let inStockDate = null;
+    if (inStockDateInput) {
+        // Create date in local timezone, then convert to ISO string
+        const [year, month, day] = inStockDateInput.split('-');
+        const localDate = new Date(year, month - 1, day);
+        inStockDate = localDate.toISOString();
+    }
 
     // Update only the edited fields, preserve everything else
     const updatedVehicle = {
@@ -1721,7 +1733,13 @@ function updateDashboard() {
     function getDaysInStock(vehicle) {
         if (!vehicle.inStockDate) return null;
         const stockDate = new Date(vehicle.inStockDate);
-        return Math.floor((new Date() - stockDate) / (1000 * 60 * 60 * 24));
+        const today = new Date();
+
+        // Set both dates to midnight local time for accurate day calculation
+        stockDate.setHours(0, 0, 0, 0);
+        today.setHours(0, 0, 0, 0);
+
+        return Math.floor((today - stockDate) / (1000 * 60 * 60 * 24));
     }
 
     // Oldest Units Section
@@ -2732,7 +2750,13 @@ function renderDetailModal(vehicle) {
                 </div>
                 <div class="form-group">
                     <label for="editInStockDate">In Stock Date</label>
-                    <input type="date" id="editInStockDate" value="${vehicle.inStockDate ? new Date(vehicle.inStockDate).toISOString().split('T')[0] : ''}">
+                    <input type="date" id="editInStockDate" value="${vehicle.inStockDate ? (() => {
+                        const date = new Date(vehicle.inStockDate);
+                        const year = date.getFullYear();
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const day = String(date.getDate()).padStart(2, '0');
+                        return `${year}-${month}-${day}`;
+                    })() : ''}">
                 </div>
                 <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
                     <button type="submit" class="btn" style="flex: 1;">💾 Save Changes</button>
