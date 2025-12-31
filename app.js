@@ -2693,6 +2693,11 @@ function renderDetailModal(vehicle) {
                     const inStockDate = new Date(vehicle.inStockDate);
                     const isSold = vehicle.status === 'sold' || soldVehicles.some(v => v.id === vehicle.id);
                     const endDate = isSold && vehicle.customer?.saleDate ? new Date(vehicle.customer.saleDate) : new Date();
+
+                    // Normalize both dates to midnight local time for accurate day calculation
+                    inStockDate.setHours(0, 0, 0, 0);
+                    endDate.setHours(0, 0, 0, 0);
+
                     const days = Math.floor((endDate - inStockDate) / (1000 * 60 * 60 * 24));
                     return days >= 0 ? days + ' days' : 'N/A';
                 })()}</div></div>
