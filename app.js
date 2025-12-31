@@ -2002,6 +2002,102 @@ function updateDashboard() {
             `;
         }
     }
+
+    // Weekly Sales Section
+    const weeklySalesContainer = document.getElementById('weeklySales');
+    const weeklySalesDateRange = document.getElementById('weeklySalesDateRange');
+
+    if (weeklySalesContainer && weeklySalesDateRange) {
+        // Get current week (Monday to Saturday)
+        const today = new Date();
+        const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+
+        // Calculate Monday of current week
+        const daysFromMonday = currentDay === 0 ? 6 : currentDay - 1; // If Sunday, go back 6 days
+        const monday = new Date(today);
+        monday.setDate(today.getDate() - daysFromMonday);
+        monday.setHours(0, 0, 0, 0);
+
+        // Calculate Saturday of current week
+        const saturday = new Date(monday);
+        saturday.setDate(monday.getDate() + 5); // Monday + 5 = Saturday
+        saturday.setHours(23, 59, 59, 999);
+
+        // Set date range header
+        const dateOptions = { month: 'short', day: 'numeric', year: 'numeric' };
+        weeklySalesDateRange.textContent = `${monday.toLocaleDateString('en-US', dateOptions)} - ${saturday.toLocaleDateString('en-US', dateOptions)}`;
+
+        // Filter sold vehicles for current week
+        const weeklySales = soldVehicles.filter(v => {
+            if (!v.customer || !v.customer.saleDate) return false;
+            const saleDate = new Date(v.customer.saleDate);
+            return saleDate >= monday && saleDate <= saturday;
+        }).sort((a, b) => {
+            // Sort by sale date - newest first
+            const dateA = new Date(a.customer.saleDate);
+            const dateB = new Date(b.customer.saleDate);
+            return dateB - dateA;
+        });
+
+        if (weeklySales.length === 0) {
+            weeklySalesContainer.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--joy-text-tertiary); font-size: 0.875rem;">No vehicles sold this week</div>';
+        } else {
+            weeklySalesContainer.innerHTML = `
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--joy-divider);">
+                                <th style="padding: 0.75rem 0.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--joy-text-secondary); text-transform: uppercase;">Stock #</th>
+                                <th style="padding: 0.75rem 0.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--joy-text-secondary); text-transform: uppercase;">Vehicle</th>
+                                <th style="padding: 0.75rem 0.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--joy-text-secondary); text-transform: uppercase;">Customer Name</th>
+                                <th style="padding: 0.75rem 0.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--joy-text-secondary); text-transform: uppercase;">Operation Company</th>
+                                <th style="padding: 0.75rem 0.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--joy-text-secondary); text-transform: uppercase;">Fleet Company</th>
+                                <th style="padding: 0.75rem 0.5rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--joy-text-secondary); text-transform: uppercase;">Date Sold</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${weeklySales.map(v => {
+                                const customerName = v.customer ? `${v.customer.firstName || ''} ${v.customer.lastName || ''}`.trim() : 'N/A';
+                                const saleDate = v.customer && v.customer.saleDate ? new Date(v.customer.saleDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
+
+                                return `
+                                    <tr style="border-bottom: 1px solid var(--joy-divider); cursor: pointer; transition: background 0.2s;"
+                                        onclick="openVehicleDetail(${v.id})"
+                                        onmouseover="this.style.background='var(--joy-bg-level1)'"
+                                        onmouseout="this.style.background='transparent'">
+                                        <td style="padding: 0.75rem 0.5rem;">
+                                            <span style="font-weight: 600; color: var(--joy-primary-500);">${v.stockNumber}</span>
+                                        </td>
+                                        <td style="padding: 0.75rem 0.5rem;">
+                                            <div style="font-weight: 600; font-size: 0.875rem;">${v.year} ${v.make} ${v.model}</div>
+                                            <div style="font-size: 0.75rem; color: var(--joy-text-tertiary);">${v.trim}</div>
+                                        </td>
+                                        <td style="padding: 0.75rem 0.5rem;">${customerName}</td>
+                                        <td style="padding: 0.75rem 0.5rem;">${v.operationCompany || 'N/A'}</td>
+                                        <td style="padding: 0.75rem 0.5rem;">${v.fleetCompany || 'N/A'}</td>
+                                        <td style="padding: 0.75rem 0.5rem;">
+                                            <span style="font-weight: 500;">${saleDate}</span>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+
+                ${weeklySales.length > 0 ? `
+                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--joy-divider); display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.875rem; color: var(--joy-text-secondary);">
+                            Total: ${weeklySales.length} vehicle${weeklySales.length !== 1 ? 's' : ''} sold this week
+                        </span>
+                        <span style="font-size: 0.875rem; font-weight: 600; color: var(--joy-success-500);">
+                            $${weeklySales.reduce((sum, v) => sum + (parseFloat(v.customer?.saleAmount) || 0), 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                    </div>
+                ` : ''}
+            `;
+        }
+    }
 }
 
 function renderCurrentPage() {
