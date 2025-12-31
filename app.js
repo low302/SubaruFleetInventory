@@ -962,8 +962,7 @@ function generateLabel(vehicle) {
     document.getElementById('keyLabelFleet').textContent = `Fleet: ${vehicle.fleetCompany || 'N/A'}`;
     document.getElementById('keyLabelOperation').textContent = `Op Co: ${vehicle.operationCompany || 'N/A'}`;
 
-    // Close the vehicle detail modal (without resetting currentVehicle) and open label modal
-    document.getElementById('detailModal').classList.remove('active');
+    // Open label type modal (it will appear on top with higher z-index)
     openLabelTypeModal();
 }
 
@@ -1009,15 +1008,23 @@ function printKeyLabel() {
 }
 
 function openLabelTypeModal() {
-    document.getElementById('labelTypeModal').classList.add('active');
+    const modal = document.getElementById('labelTypeModal');
+    modal.classList.add('active');
+    modal.style.zIndex = '2001'; // Ensure it's above the detail modal
 }
 
 function closeLabelTypeModal() {
-    document.getElementById('labelTypeModal').classList.remove('active');
+    const modal = document.getElementById('labelTypeModal');
+    modal.classList.remove('active');
+    modal.style.zIndex = ''; // Reset z-index
+    // Also close the detail modal when label type is closed without selection
 }
 
 function chooseLabelType(type) {
     closeLabelTypeModal();
+    // Close detail modal when choosing a label type
+    closeDetailModal();
+
     if (type === 'folder') {
         openLabelModal();
     } else {
