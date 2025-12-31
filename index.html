@@ -1310,11 +1310,17 @@
             </div>
 
             <div class="user-section">
-                <div class="user-info">
+                <div class="user-info" id="userInfoClick" style="cursor: pointer; position: relative;">
                     <div class="user-avatar" id="userAvatar">F</div>
                     <div class="user-details">
                         <div class="user-name" id="userName">Fleet User</div>
                         <div class="user-role">Administrator</div>
+                    </div>
+                    <!-- User Dropdown Menu -->
+                    <div id="userDropdown" style="display: none; position: absolute; bottom: 100%; left: 0; right: 0; background: var(--joy-surface); border: 1px solid var(--joy-border); border-radius: var(--joy-radius-sm); margin-bottom: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000;">
+                        <button onclick="openAdminPanel()" onmouseover="this.style.background='var(--joy-background-level1)'" onmouseout="this.style.background='transparent'" style="width: 100%; padding: 0.75rem; background: transparent; border: none; color: var(--joy-text-primary); text-align: left; cursor: pointer; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; transition: background 0.2s;">
+                            <span style="font-size: 1rem;">⚙️</span> System Settings
+                        </button>
                     </div>
                 </div>
                 <button id="logoutBtn" class="btn btn-secondary" style="width: 100%;">
@@ -1441,9 +1447,6 @@
                                 <button class="btn btn-primary" onclick="exportInventory()" style="white-space: nowrap; min-width: 100px;">
                                     📥 Export
                                 </button>
-                                <button class="btn btn-secondary" onclick="openRemoveDuplicatesModal()" style="white-space: nowrap;">
-                                    🔧 Remove Duplicates
-                                </button>
                             </div>
                         </div>
 
@@ -1468,9 +1471,6 @@
                                 </select>
                                 <button class="btn btn-primary" onclick="exportInTransit()" style="white-space: nowrap; min-width: 100px;">
                                     📥 Export
-                                </button>
-                                <button class="btn btn-secondary" onclick="fixInTransitDates()" style="white-space: nowrap;" title="Clear in-stock dates from all in-transit vehicles">
-                                    🔧 Fix Dates
                                 </button>
                             </div>
                         </div>
@@ -2624,6 +2624,58 @@
                     <button class="btn btn-danger" onclick="deleteTradeIn(window.currentTradeInId)" style="width: 100%;">
                         Delete Trade-In
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel Modal -->
+    <div id="adminPanelModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2>⚙️ System Settings</h2>
+                <button class="close-btn" onclick="closeAdminPanel()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: grid; gap: 2rem;">
+                    <!-- Data Management Section -->
+                    <div>
+                        <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary); border-bottom: 2px solid var(--joy-divider); padding-bottom: 0.5rem;">
+                            Data Management
+                        </h3>
+
+                        <!-- Fix In-Transit Dates -->
+                        <div style="background: var(--joy-background-level1); padding: 1.5rem; border-radius: var(--joy-radius-md); margin-bottom: 1rem; border: 1px solid var(--joy-border);">
+                            <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                                <div style="font-size: 2rem;">🔧</div>
+                                <div style="flex: 1;">
+                                    <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">Fix In-Transit Dates</h4>
+                                    <p style="font-size: 0.875rem; color: var(--joy-text-tertiary); margin-bottom: 1rem;">
+                                        Remove in-stock dates from all vehicles currently marked as "In-Transit". This ensures accurate inventory tracking.
+                                    </p>
+                                    <button class="btn btn-secondary" onclick="fixInTransitDates()" style="width: 100%;">
+                                        Run Fix
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Remove Duplicates -->
+                        <div style="background: var(--joy-background-level1); padding: 1.5rem; border-radius: var(--joy-radius-md); border: 1px solid var(--joy-border);">
+                            <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                                <div style="font-size: 2rem;">🔍</div>
+                                <div style="flex: 1;">
+                                    <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">Remove Duplicate Vehicles</h4>
+                                    <p style="font-size: 0.875rem; color: var(--joy-text-tertiary); margin-bottom: 1rem;">
+                                        Scan for and remove duplicate vehicles based on VIN numbers. Older entries will be kept.
+                                    </p>
+                                    <button class="btn btn-secondary" onclick="openRemoveDuplicatesModal()" style="width: 100%;">
+                                        Scan & Remove Duplicates
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

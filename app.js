@@ -3329,6 +3329,17 @@ function openLabelModal() { document.getElementById('labelModal').classList.add(
 function closeLabelModal() { document.getElementById('labelModal').classList.remove('active'); }
 function openKeyLabelModal() { document.getElementById('keyLabelModal').classList.add('active'); }
 function closeKeyLabelModal() { document.getElementById('keyLabelModal').classList.remove('active'); }
+function toggleUserDropdown() {
+    const dropdown = document.getElementById('userDropdown');
+    if (dropdown) {
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    }
+}
+function openAdminPanel() {
+    document.getElementById('adminPanelModal').classList.add('active');
+    toggleUserDropdown(); // Close the dropdown
+}
+function closeAdminPanel() { document.getElementById('adminPanelModal').classList.remove('active'); }
 function openTradeInModal() {
     document.getElementById('tradeInModal').classList.add('active');
 }
@@ -4198,7 +4209,25 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) logoutBtn.addEventListener('click', logout);
-    
+
+    // User dropdown toggle
+    const userInfoClick = document.getElementById('userInfoClick');
+    if (userInfoClick) {
+        userInfoClick.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleUserDropdown();
+        });
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        const userDropdown = document.getElementById('userDropdown');
+        const userInfoClick = document.getElementById('userInfoClick');
+        if (userDropdown && userInfoClick && !userInfoClick.contains(e.target)) {
+            userDropdown.style.display = 'none';
+        }
+    });
+
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', function(e) { 
             e.preventDefault(); 
