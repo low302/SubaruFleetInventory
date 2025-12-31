@@ -965,7 +965,10 @@ function generateLabel(vehicle) {
     // Close the vehicle detail modal first
     document.getElementById('detailModal').classList.remove('active');
 
-    openLabelTypeModal();
+    // Small delay to ensure detail modal closes before label modal opens
+    setTimeout(() => {
+        openLabelTypeModal();
+    }, 100);
 }
 
 // Global variable to store selected label position
