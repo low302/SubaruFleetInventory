@@ -963,7 +963,7 @@ function generateLabel(vehicle) {
     document.getElementById('keyLabelOperation').textContent = `Op Co: ${vehicle.operationCompany || 'N/A'}`;
 
     // Close the vehicle detail modal first
-    document.getElementById('detailModal').classList.remove('active');
+    closeDetailModal();
 
     // Small delay to ensure detail modal closes before label modal opens
     setTimeout(() => {
