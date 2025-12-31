@@ -962,13 +962,9 @@ function generateLabel(vehicle) {
     document.getElementById('keyLabelFleet').textContent = `Fleet: ${vehicle.fleetCompany || 'N/A'}`;
     document.getElementById('keyLabelOperation').textContent = `Op Co: ${vehicle.operationCompany || 'N/A'}`;
 
-    // Close the vehicle detail modal first
-    closeDetailModal();
-
-    // Small delay to ensure detail modal closes before label modal opens
-    setTimeout(() => {
-        openLabelTypeModal();
-    }, 100);
+    // Close the vehicle detail modal (without resetting currentVehicle) and open label modal
+    document.getElementById('detailModal').classList.remove('active');
+    openLabelTypeModal();
 }
 
 // Global variable to store selected label position
