@@ -904,7 +904,7 @@ function completePickup(vehicleId) {
 }
 
 function generateLabelById(vehicleId) {
-    const vehicle = currentInventory.find(v => v.id === vehicleId) ||
+    const vehicle = vehicles.find(v => v.id === vehicleId) ||
                     soldVehicles.find(v => v.id === vehicleId) ||
                     tradeIns.find(t => t.id === vehicleId);
     if (vehicle) {
