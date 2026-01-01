@@ -938,6 +938,7 @@ function generateLabel(vehicle) {
     labelInfo.innerHTML = `
         <div><strong>VIN:</strong> ${vehicle.vin}</div>
         <div><strong>Trim:</strong> ${vehicle.trim} • <strong>Color:</strong> ${vehicle.color}</div>
+        <div><strong>Op Co:</strong> ${vehicle.operationCompany || 'N/A'} • <strong>Fleet:</strong> ${vehicle.fleetCompany || 'N/A'}</div>
     `;
 
     // Generate QR code with VIN only
