@@ -1477,197 +1477,185 @@ async function saveVehicleDetailPDF() {
 
         const pageWidth = doc.internal.pageSize.width;
         const pageHeight = doc.internal.pageSize.height;
-        const margin = 20;
+        const margin = 15;
+        const contentWidth = pageWidth - margin * 2;
 
-        // Add Brandon Tomes Subaru Logo (if you have it as base64 or URL)
-        // For now, we'll create a text-based header
-
-        // Header - Logo Area
-        doc.setFillColor(41, 98, 255);
-        doc.rect(0, 0, pageWidth, 40, 'F');
-
-        // Company Name (in place of logo)
-        doc.setFontSize(24);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(255, 255, 255);
-        doc.text('BRANDON TOMES', pageWidth / 2, 18, { align: 'center' });
-
-        doc.setFontSize(20);
-        doc.text('SUBARU', pageWidth / 2, 30, { align: 'center' });
-
-        // Fleet Department title
-        doc.setFontSize(16);
+        // ============ HEADER SECTION ============
+        // Title: "Vehicle Pickup Acknowledgement"
+        doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(0, 0, 0);
-        doc.text('Fleet Department', pageWidth / 2, 55, { align: 'center' });
+        doc.text('Vehicle Pickup Acknowledgement', pageWidth / 2, 20, { align: 'center' });
 
-        let yPos = 70;
+        // Subtitle: "Brandon Tomes Subaru Fleet Department"
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(80, 80, 80);
+        doc.text('Brandon Tomes Subaru Fleet Department', pageWidth / 2, 28, { align: 'center' });
 
-        // Helper function to create section with table
-        const createSection = (title, fields, startY) => {
-            let y = startY;
+        // Horizontal divider line
+        doc.setDrawColor(0, 0, 0);
+        doc.setLineWidth(0.5);
+        doc.line(margin, 34, pageWidth - margin, 34);
 
-            // Section title
-            doc.setFontSize(12);
+        let yPos = 44;
+
+        // ============ VEHICLE INFORMATION SECTION ============
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text('Vehicle Information', margin, yPos);
+        yPos += 6;
+
+        // Table settings for 2-column layout
+        const rowHeight = 10;
+        const col1LabelWidth = 30;
+        const col1ValueWidth = 50;
+        const col2LabelWidth = 30;
+        const col2ValueWidth = contentWidth - col1LabelWidth - col1ValueWidth - col2LabelWidth;
+        const col2Start = margin + col1LabelWidth + col1ValueWidth;
+
+        // Helper function to draw a 2-column row
+        const draw2ColRow = (label1, value1, label2, value2, y) => {
+            doc.setDrawColor(150, 150, 150);
+            doc.setLineWidth(0.3);
+
+            // Column 1 - Label
+            doc.setFillColor(240, 240, 240);
+            doc.rect(margin, y, col1LabelWidth, rowHeight, 'FD');
+            doc.setFontSize(9);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(0, 0, 0);
-            doc.text(title, margin, y);
-            y += 5;
+            doc.text(label1, margin + 2, y + 6.5);
 
-            // Table settings
-            const rowHeight = 10;
-            const labelColWidth = 60;
-            const valueColWidth = pageWidth - margin * 2 - labelColWidth;
+            // Column 1 - Value
+            doc.setFillColor(255, 255, 255);
+            doc.rect(margin + col1LabelWidth, y, col1ValueWidth, rowHeight, 'FD');
+            doc.setFont('helvetica', 'normal');
+            doc.text(value1 || '', margin + col1LabelWidth + 2, y + 6.5);
 
-            fields.forEach((field, index) => {
-                const rowY = y;
+            // Column 2 - Label
+            doc.setFillColor(240, 240, 240);
+            doc.rect(col2Start, y, col2LabelWidth, rowHeight, 'FD');
+            doc.setFont('helvetica', 'bold');
+            doc.text(label2, col2Start + 2, y + 6.5);
 
-                // Draw cell borders
-                doc.setDrawColor(180, 180, 180);
-                doc.setLineWidth(0.3);
+            // Column 2 - Value
+            doc.setFillColor(255, 255, 255);
+            doc.rect(col2Start + col2LabelWidth, y, col2ValueWidth, rowHeight, 'FD');
+            doc.setFont('helvetica', 'normal');
+            doc.text(value2 || '', col2Start + col2LabelWidth + 2, y + 6.5);
 
-                // Label cell
-                doc.setFillColor(245, 245, 245);
-                doc.rect(margin, rowY, labelColWidth, rowHeight, 'FD');
-
-                // Value cell
-                doc.setFillColor(255, 255, 255);
-                doc.rect(margin + labelColWidth, rowY, valueColWidth, rowHeight, 'FD');
-
-                // Label text
-                doc.setFontSize(10);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(0, 0, 0);
-                doc.text(field.label, margin + 3, rowY + 6.5);
-
-                // Value text
-                doc.setFont('helvetica', 'normal');
-                const valueText = field.value || '';
-                const splitValue = doc.splitTextToSize(valueText, valueColWidth - 6);
-                doc.text(splitValue, margin + labelColWidth + 3, rowY + 6.5);
-
-                y += rowHeight;
-            });
-
-            return y + 8;
+            return y + rowHeight;
         };
 
-        // Vehicle Details Section
-        const vehicleFields = [
-            { label: 'Stock #', value: currentVehicle.stockNumber },
-            { label: 'Year', value: currentVehicle.year.toString() },
-            { label: 'Make', value: currentVehicle.make },
-            { label: 'Model', value: currentVehicle.model },
-            { label: 'Trim', value: currentVehicle.trim },
-            { label: 'Color', value: currentVehicle.color },
-            { label: 'VIN', value: currentVehicle.vin }
-        ];
-        yPos = createSection('Vehicle Details', vehicleFields, yPos);
+        // Helper function to draw a full-width row
+        const drawFullWidthRow = (label, value, y) => {
+            const labelWidth = 30;
+            const valueWidth = contentWidth - labelWidth;
 
-        // Pickup Information Section
-        const pickupFields = [
-            {
-                label: 'Current Status',
-                value: currentVehicle.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-            }
-        ];
+            doc.setDrawColor(150, 150, 150);
+            doc.setLineWidth(0.3);
 
-        if (currentVehicle.pickupDate) {
-            pickupFields.push({
-                label: 'Pickup Date',
-                value: new Date(currentVehicle.pickupDate).toLocaleDateString()
-            });
-        }
+            // Label
+            doc.setFillColor(240, 240, 240);
+            doc.rect(margin, y, labelWidth, rowHeight, 'FD');
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text(label, margin + 2, y + 6.5);
 
-        if (currentVehicle.pickupTime) {
-            pickupFields.push({
-                label: 'Pickup Time',
-                value: currentVehicle.pickupTime
-            });
-        }
+            // Value
+            doc.setFillColor(255, 255, 255);
+            doc.rect(margin + labelWidth, y, valueWidth, rowHeight, 'FD');
+            doc.setFont('helvetica', 'normal');
+            doc.text(value || '', margin + labelWidth + 2, y + 6.5);
 
-        yPos = createSection('Pickup Information', pickupFields, yPos);
+            return y + rowHeight;
+        };
 
-        // Customer / Fleet Information Section
-        const customerFields = [];
+        // Row 1: Stock Number | VIN
+        yPos = draw2ColRow('Stock #:', currentVehicle.stockNumber || '', 'VIN:', currentVehicle.vin || '', yPos);
 
-        // Customer Name
-        if (currentVehicle.customer && (currentVehicle.customer.firstName || currentVehicle.customer.lastName)) {
-            const fullName = `${currentVehicle.customer.firstName || ''} ${currentVehicle.customer.lastName || ''}`.trim();
-            customerFields.push({ label: 'Customer Name', value: fullName });
-        } else {
-            customerFields.push({ label: 'Customer Name', value: '' });
-        }
+        // Row 2: Year | Make
+        yPos = draw2ColRow('Year:', currentVehicle.year?.toString() || '', 'Make:', currentVehicle.make || '', yPos);
 
-        // Phone
-        customerFields.push({
-            label: 'Phone',
-            value: currentVehicle.customer?.phone || ''
-        });
+        // Row 3: Model | Trim
+        yPos = draw2ColRow('Model:', currentVehicle.model || '', 'Trim:', currentVehicle.trim || '', yPos);
 
-        // Fleet Company
-        customerFields.push({
-            label: 'Fleet Company',
-            value: currentVehicle.fleetCompany || ''
-        });
+        // Row 4: Color (full width)
+        yPos = drawFullWidthRow('Color:', currentVehicle.color || '', yPos);
 
-        // Operating Company
-        customerFields.push({
-            label: 'Operating Company',
-            value: currentVehicle.operationCompany || ''
-        });
+        yPos += 10;
 
-        yPos = createSection('Customer / Fleet Information', customerFields, yPos);
-
-        // Notes Section
-        let notesText = '';
-
-        // Combine all notes
-        if (currentVehicle.customer?.notes) {
-            notesText += currentVehicle.customer.notes;
-        }
-
-        if (currentVehicle.pickupNotes) {
-            if (notesText) notesText += '\n\n';
-            notesText += 'Pickup Notes: ' + currentVehicle.pickupNotes;
-        }
-
-        const notesFields = [
-            { label: 'Additional Notes', value: notesText }
-        ];
-
-        // Create notes section with larger height if needed
-        doc.setFontSize(12);
+        // ============ COMPANY & CUSTOMER INFORMATION SECTION ============
+        doc.setFontSize(11);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(0, 0, 0);
-        doc.text('Notes', margin, yPos);
-        yPos += 5;
+        doc.text('Company & Customer Information', margin, yPos);
+        yPos += 6;
 
-        // Draw notes box
-        const notesHeight = Math.max(20, Math.min(60, notesText.length / 4));
-        doc.setDrawColor(180, 180, 180);
-        doc.setLineWidth(0.3);
-        doc.setFillColor(255, 255, 255);
-        doc.rect(margin, yPos, pageWidth - margin * 2, notesHeight, 'FD');
+        // Fleet Company
+        yPos = drawFullWidthRow('Fleet Company:', currentVehicle.fleetCompany || '', yPos);
 
-        // Add notes text
-        if (notesText) {
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            const splitNotes = doc.splitTextToSize(notesText, pageWidth - margin * 2 - 6);
-            doc.text(splitNotes, margin + 3, yPos + 6);
-        }
+        // Operation Company
+        yPos = drawFullWidthRow('Operation Co.:', currentVehicle.operationCompany || '', yPos);
 
-        // Footer
-        doc.setFontSize(8);
-        doc.setTextColor(120, 120, 120);
+        // Customer Name
+        const customerName = currentVehicle.customer 
+            ? `${currentVehicle.customer.firstName || ''} ${currentVehicle.customer.lastName || ''}`.trim() 
+            : '';
+        yPos = drawFullWidthRow('Customer:', customerName, yPos);
+
+        // Customer Phone
+        yPos = drawFullWidthRow('Phone:', currentVehicle.customer?.phone || '', yPos);
+
+        yPos += 15;
+
+        // ============ ACKNOWLEDGEMENT & TERMS SECTION ============
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text('Acknowledgement & Terms of Vehicle Pickup', margin, yPos);
+        yPos += 8;
+
+        // Legal text
+        const acknowledgementText = 'By signing below, the undersigned acknowledges receipt and acceptance of the vehicle described above. The vehicle has been inspected and is accepted in its present condition unless otherwise documented at time of delivery. Responsibility for the vehicle, including risk of loss or damage, transfers to the receiving party upon possession. Brandon Tomes Subaru Fleet Department is not responsible for personal property left in the vehicle after delivery.';
+
+        doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
+        doc.setTextColor(60, 60, 60);
+        const splitAcknowledgement = doc.splitTextToSize(acknowledgementText, contentWidth);
+        doc.text(splitAcknowledgement, margin, yPos);
+        yPos += splitAcknowledgement.length * 4.5 + 20;
+
+        // ============ SIGNATURE SECTION ============
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(0, 0, 0);
+
+        // Customer Signature line
+        doc.text('Customer Signature:', margin, yPos);
+        doc.setDrawColor(0, 0, 0);
+        doc.setLineWidth(0.5);
+        doc.line(margin + 40, yPos, pageWidth - 80, yPos);
+
+        // Date line
+        doc.text('Date:', pageWidth - 70, yPos);
+        doc.line(pageWidth - 55, yPos, pageWidth - margin, yPos);
+
+        // ============ FOOTER ============
+        doc.setFontSize(7);
+        doc.setTextColor(150, 150, 150);
+        doc.setFont('helvetica', 'italic');
         const footerText = `Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`;
-        doc.text(footerText, pageWidth / 2, pageHeight - 15, { align: 'center' });
+        doc.text(footerText, pageWidth / 2, pageHeight - 10, { align: 'center' });
 
         // Save the PDF
-        const fileName = `Fleet_Vehicle_${currentVehicle.stockNumber}_${currentVehicle.year}_${currentVehicle.make}_${currentVehicle.model}.pdf`.replace(/\s+/g, '_');
+        const fileName = `Vehicle_Pickup_Acknowledgement_${currentVehicle.stockNumber}_${currentVehicle.year}_${currentVehicle.make}_${currentVehicle.model}.pdf`.replace(/\s+/g, '_');
         doc.save(fileName);
+
+        showNotification('Vehicle Pickup Acknowledgement PDF generated successfully!', 'success');
 
     } catch (error) {
         console.error('Error generating PDF:', error);

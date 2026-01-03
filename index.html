@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="format-detection" content="telephone=no">
@@ -17,8 +19,8 @@
             /* Softer slate-based dark palette - easier on the eyes */
             --joy-bg-surface: #1e293b;
             --joy-bg-gradient: radial-gradient(ellipse at top, rgba(99, 102, 241, 0.08) 0%, transparent 60%),
-                               radial-gradient(ellipse at bottom right, rgba(236, 72, 153, 0.05) 0%, transparent 50%),
-                               linear-gradient(to bottom, #1e293b 0%, #0f172a 100%);
+                radial-gradient(ellipse at bottom right, rgba(236, 72, 153, 0.05) 0%, transparent 50%),
+                linear-gradient(to bottom, #1e293b 0%, #0f172a 100%);
             --joy-bg-level1: rgba(51, 65, 85, 0.6);
             --joy-bg-level2: rgba(71, 85, 105, 0.7);
             --joy-divider: rgba(226, 232, 240, 0.12);
@@ -49,6 +51,10 @@
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--joy-bg-gradient);
@@ -57,6 +63,16 @@
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            scroll-behavior: smooth;
+        }
+
+        /* Smooth scrolling for all scrollable containers */
+        .main-content,
+        .modal-body,
+        .page-container,
+        [style*="overflow"] {
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
         }
 
         /* Login Screen */
@@ -181,10 +197,12 @@
             z-index: 999;
             opacity: 0;
             transition: opacity 0.3s ease;
+            pointer-events: none;
         }
 
         .sidebar-overlay.active {
             opacity: 1;
+            pointer-events: auto;
         }
 
         /* Sidebar */
@@ -741,8 +759,13 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         @keyframes slideUp {
@@ -750,6 +773,7 @@
                 opacity: 0;
                 transform: translateY(20px) scale(0.95);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0) scale(1);
@@ -761,6 +785,7 @@
                 opacity: 0;
                 transform: translateY(-20px) scale(0.95);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0) scale(1);
@@ -808,19 +833,23 @@
             scrollbar-width: thin;
             scrollbar-color: rgba(148, 163, 184, 0.6) rgba(30, 41, 59, 0.6);
         }
+
         *::-webkit-scrollbar {
             width: 10px;
             height: 10px;
         }
+
         *::-webkit-scrollbar-track {
             background: rgba(30, 41, 59, 0.6);
             border-radius: 999px;
         }
+
         *::-webkit-scrollbar-thumb {
             background: linear-gradient(180deg, rgba(148, 163, 184, 0.8), rgba(100, 116, 139, 0.9));
             border-radius: 999px;
             border: 2px solid rgba(30, 41, 59, 0.6);
         }
+
         *::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(180deg, rgba(148, 163, 184, 1), rgba(100, 116, 139, 1));
         }
@@ -1035,12 +1064,12 @@
             background: rgba(71, 85, 105, 0.6);
         }
 
-        .custom-checkbox input[type="checkbox"]:checked + .checkbox-label .checkbox-box {
+        .custom-checkbox input[type="checkbox"]:checked+.checkbox-label .checkbox-box {
             background: var(--joy-success-500);
             border-color: var(--joy-success-500);
         }
 
-        .custom-checkbox input[type="checkbox"]:checked + .checkbox-label .checkbox-box::after {
+        .custom-checkbox input[type="checkbox"]:checked+.checkbox-label .checkbox-box::after {
             content: '✓';
             color: white;
             font-size: 14px;
@@ -1052,7 +1081,7 @@
             transform: scale(1.05);
         }
 
-        .custom-checkbox input[type="checkbox"]:checked:hover + .checkbox-label .checkbox-box {
+        .custom-checkbox input[type="checkbox"]:checked:hover+.checkbox-label .checkbox-box {
             background: var(--joy-success-700);
             border-color: var(--joy-success-700);
         }
@@ -1097,10 +1126,43 @@
             .main-content {
                 margin-left: 0;
                 padding: 1rem;
+                padding-top: 4rem;
             }
 
             .page-header {
-                padding-top: 4rem;
+                padding-top: 0.5rem;
+                padding-left: 3.5rem;
+            }
+
+            .page-header h1 {
+                font-size: 1.375rem;
+            }
+
+            .page-container {
+                padding: 1.5rem;
+                padding-left: 1rem;
+            }
+
+            /* Improve search filter bar on tablet */
+            .search-filter-bar {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .search-box {
+                min-width: 100%;
+            }
+
+            .filter-group {
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
+
+        /* Tablet - 2 column optimization */
+        @media (min-width: 481px) and (max-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
@@ -1115,6 +1177,7 @@
 
             .stats-grid {
                 grid-template-columns: 1fr;
+                gap: 0.75rem;
             }
 
             .modern-table {
@@ -1127,14 +1190,26 @@
             }
 
             /* Dashboard sections stack on mobile */
-            #dashboard .page-container > div[style*="grid-template-columns: 1fr 1fr"] {
+            #dashboard .page-container>div[style*="grid-template-columns: 1fr 1fr"] {
                 grid-template-columns: 1fr !important;
             }
 
             .btn {
-                padding: 0.625rem 1rem;
-                font-size: 0.875rem;
-                min-height: 44px;
+                padding: 0.5rem 0.75rem;
+                font-size: 0.8125rem;
+                min-height: 40px;
+            }
+
+            /* Compact buttons on mobile - hide text labels for action buttons */
+            .filter-group .btn {
+                padding: 0.5rem 0.625rem;
+                min-width: auto;
+            }
+
+            /* Add Vehicle button - more compact */
+            .filter-group .btn[onclick*="openAddModal"] {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.8125rem;
             }
 
             .search-box input {
@@ -1142,7 +1217,67 @@
             }
 
             .filter-select {
-                min-height: 44px;
+                min-height: 40px;
+                min-width: 120px;
+                font-size: 0.8125rem;
+            }
+
+            .page-header {
+                padding-top: 3rem;
+            }
+
+            .page-header h1 {
+                font-size: 1.25rem;
+            }
+
+            .page-header p {
+                font-size: 0.75rem;
+            }
+        }
+
+        /* Small mobile - even more compact */
+        @media (max-width: 480px) {
+            .page-header {
+                padding-top: 3.5rem;
+            }
+
+            .page-container {
+                padding: 1rem;
+            }
+
+            .stats-grid {
+                gap: 0.5rem;
+            }
+
+            .stat-card {
+                padding: 0.875rem;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .stat-label {
+                font-size: 0.75rem;
+            }
+
+            /* Buttons become icon-like on very small screens */
+            .filter-group .btn {
+                padding: 0.5rem;
+                gap: 0.25rem;
+            }
+
+            .search-filter-bar {
+                gap: 0.5rem;
+            }
+
+            .filter-group {
+                gap: 0.5rem;
+            }
+
+            .filter-select {
+                min-width: 100px;
+                padding: 0.5rem;
             }
         }
 
@@ -1166,6 +1301,7 @@
 
         /* Touch-friendly adjustments */
         @media (hover: none) and (pointer: coarse) {
+
             .nav-link,
             .btn,
             input,
@@ -1191,6 +1327,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
@@ -1230,7 +1367,7 @@
             <div class="sidebar-brand">
                 <h1>Fleet Inventory</h1>
             </div>
-            
+
             <div class="nav-section">
                 <div class="nav-section-title">Main</div>
                 <ul style="list-style: none; padding: 0;">
@@ -1317,8 +1454,12 @@
                         <div class="user-role">Administrator</div>
                     </div>
                     <!-- User Dropdown Menu -->
-                    <div id="userDropdown" style="display: none; position: absolute; bottom: 100%; left: 0; right: 0; background: var(--joy-surface); border: 1px solid var(--joy-border); border-radius: var(--joy-radius-sm); margin-bottom: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000;">
-                        <button onclick="openAdminPanel()" onmouseover="this.style.background='var(--joy-background-level1)'" onmouseout="this.style.background='transparent'" style="width: 100%; padding: 0.75rem; background: transparent; border: none; color: var(--joy-text-primary); text-align: left; cursor: pointer; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; transition: background 0.2s;">
+                    <div id="userDropdown"
+                        style="display: none; position: absolute; bottom: 100%; left: 0; right: 0; background: var(--joy-surface); border: 1px solid var(--joy-border); border-radius: var(--joy-radius-sm); margin-bottom: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000;">
+                        <button onclick="openAdminPanel()"
+                            onmouseover="this.style.background='var(--joy-background-level1)'"
+                            onmouseout="this.style.background='transparent'"
+                            style="width: 100%; padding: 0.75rem; background: transparent; border: none; color: var(--joy-text-primary); text-align: left; cursor: pointer; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; transition: background 0.2s;">
                             <span style="font-size: 1rem;">⚙️</span> System Settings
                         </button>
                     </div>
@@ -1394,34 +1535,50 @@
                         <!-- Dashboard Sections Grid -->
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
                             <!-- Pending Pickups (Top Left) -->
-                            <div style="background: rgba(51, 65, 85, 0.6); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
-                                <h2 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--joy-text-primary);">⏳ Pending Pickup</h2>
+                            <div
+                                style="background: rgba(51, 65, 85, 0.6); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
+                                <h2
+                                    style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--joy-text-primary);">
+                                    ⏳ Pending Pickup</h2>
                                 <div id="pendingPickups"></div>
                             </div>
 
                             <!-- Scheduled Pickups (Top Right) -->
-                            <div style="background: rgba(51, 65, 85, 0.6); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
-                                <h2 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--joy-text-primary);">📅 Scheduled Pickups</h2>
+                            <div
+                                style="background: rgba(51, 65, 85, 0.6); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
+                                <h2
+                                    style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--joy-text-primary);">
+                                    📅 Scheduled Pickups</h2>
                                 <div id="scheduledPickups"></div>
                             </div>
 
                             <!-- Inventory Overview (Bottom - Full Width) -->
-                            <div style="grid-column: 1 / -1; background: rgba(51, 65, 85, 0.6); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                                    <h2 style="font-size: 1rem; font-weight: 600; color: var(--joy-text-primary);">🚗 Inventory Overview</h2>
-                                    <button class="btn btn-small btn-secondary" onclick="navigateTo('inventory')" style="font-size: 0.8125rem;">View All →</button>
+                            <div
+                                style="grid-column: 1 / -1; background: rgba(51, 65, 85, 0.6); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                    <h2 style="font-size: 1rem; font-weight: 600; color: var(--joy-text-primary);">🚗
+                                        Inventory Overview</h2>
+                                    <button class="btn btn-small btn-secondary" onclick="navigateTo('inventory')"
+                                        style="font-size: 0.8125rem;">View All →</button>
                                 </div>
                                 <div id="inventoryOverview"></div>
                             </div>
 
                             <!-- Weekly Sales (Full Width) -->
-                            <div style="grid-column: 1 / -1; background: rgba(51, 65, 85, 0.6); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                            <div
+                                style="grid-column: 1 / -1; background: rgba(51, 65, 85, 0.6); backdrop-filter: blur(30px) saturate(200%); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 1.25rem; box-shadow: var(--joy-shadow-sm);">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
                                     <div>
-                                        <h2 style="font-size: 1rem; font-weight: 600; color: var(--joy-text-primary); margin-bottom: 0.25rem;">📊 Weekly Sales</h2>
-                                        <p id="weeklySalesDateRange" style="font-size: 0.75rem; color: var(--joy-text-tertiary); margin: 0;"></p>
+                                        <h2
+                                            style="font-size: 1rem; font-weight: 600; color: var(--joy-text-primary); margin-bottom: 0.25rem;">
+                                            📊 Weekly Sales</h2>
+                                        <p id="weeklySalesDateRange"
+                                            style="font-size: 0.75rem; color: var(--joy-text-tertiary); margin: 0;"></p>
                                     </div>
-                                    <button class="btn btn-small btn-secondary" onclick="navigateTo('sold')" style="font-size: 0.8125rem;">View All →</button>
+                                    <button class="btn btn-small btn-secondary" onclick="navigateTo('sold')"
+                                        style="font-size: 0.8125rem;">View All →</button>
                                 </div>
                                 <div id="weeklySales"></div>
                             </div>
@@ -1439,7 +1596,8 @@
 
                         <div class="search-filter-bar">
                             <div class="search-box">
-                                <input type="text" id="searchInput" placeholder="Search by stock #, VIN, make, model..." oninput="renderCurrentPage()">
+                                <input type="text" id="searchInput" placeholder="Search by stock #, VIN, make, model..."
+                                    oninput="renderCurrentPage()">
                             </div>
                             <div class="filter-group">
                                 <select id="makeFilter" class="filter-select">
@@ -1453,10 +1611,12 @@
                                     <option value="pending-pickup">Pending Pickup</option>
                                     <option value="pickup-scheduled">Pickup Scheduled</option>
                                 </select>
-                                <button class="btn btn-primary" onclick="openImportCSVModal()" style="white-space: nowrap;">
+                                <button class="btn btn-primary" onclick="openImportCSVModal()"
+                                    style="white-space: nowrap;">
                                     📂 Import CSV
                                 </button>
-                                <button class="btn btn-primary" onclick="exportInventory()" style="white-space: nowrap; min-width: 100px;">
+                                <button class="btn btn-primary" onclick="exportInventory()"
+                                    style="white-space: nowrap; min-width: 100px;">
                                     📥 Export
                                 </button>
                             </div>
@@ -1475,13 +1635,15 @@
                         </div>
                         <div class="search-filter-bar">
                             <div class="search-box">
-                                <input type="text" id="transitSearchInput" placeholder="Search..." oninput="renderCurrentPage()">
+                                <input type="text" id="transitSearchInput" placeholder="Search..."
+                                    oninput="renderCurrentPage()">
                             </div>
                             <div class="filter-group">
                                 <select id="transitMakeFilter" class="filter-select" onchange="renderCurrentPage()">
                                     <option value="">All Makes</option>
                                 </select>
-                                <button class="btn btn-primary" onclick="exportInTransit()" style="white-space: nowrap; min-width: 100px;">
+                                <button class="btn btn-primary" onclick="exportInTransit()"
+                                    style="white-space: nowrap; min-width: 100px;">
                                     📥 Export
                                 </button>
                             </div>
@@ -1499,13 +1661,15 @@
                         </div>
                         <div class="search-filter-bar">
                             <div class="search-box">
-                                <input type="text" id="pdiSearchInput" placeholder="Search..." oninput="renderCurrentPage()">
+                                <input type="text" id="pdiSearchInput" placeholder="Search..."
+                                    oninput="renderCurrentPage()">
                             </div>
                             <div class="filter-group">
                                 <select id="pdiMakeFilter" class="filter-select" onchange="renderCurrentPage()">
                                     <option value="">All Makes</option>
                                 </select>
-                                <button class="btn btn-primary" onclick="exportPDI()" style="white-space: nowrap; min-width: 100px;">
+                                <button class="btn btn-primary" onclick="exportPDI()"
+                                    style="white-space: nowrap; min-width: 100px;">
                                     📥 Export
                                 </button>
                             </div>
@@ -1523,13 +1687,16 @@
                         </div>
                         <div class="search-filter-bar">
                             <div class="search-box">
-                                <input type="text" id="pendingPickupSearchInput" placeholder="Search..." oninput="renderCurrentPage()">
+                                <input type="text" id="pendingPickupSearchInput" placeholder="Search..."
+                                    oninput="renderCurrentPage()">
                             </div>
                             <div class="filter-group">
-                                <select id="pendingPickupMakeFilter" class="filter-select" onchange="renderCurrentPage()">
+                                <select id="pendingPickupMakeFilter" class="filter-select"
+                                    onchange="renderCurrentPage()">
                                     <option value="">All Makes</option>
                                 </select>
-                                <button class="btn btn-primary" onclick="exportPendingPickup()" style="white-space: nowrap; min-width: 100px;">
+                                <button class="btn btn-primary" onclick="exportPendingPickup()"
+                                    style="white-space: nowrap; min-width: 100px;">
                                     📥 Export
                                 </button>
                             </div>
@@ -1547,13 +1714,16 @@
                         </div>
                         <div class="search-filter-bar">
                             <div class="search-box">
-                                <input type="text" id="pickupScheduledSearchInput" placeholder="Search..." oninput="renderCurrentPage()">
+                                <input type="text" id="pickupScheduledSearchInput" placeholder="Search..."
+                                    oninput="renderCurrentPage()">
                             </div>
                             <div class="filter-group">
-                                <select id="pickupScheduledMakeFilter" class="filter-select" onchange="renderCurrentPage()">
+                                <select id="pickupScheduledMakeFilter" class="filter-select"
+                                    onchange="renderCurrentPage()">
                                     <option value="">All Makes</option>
                                 </select>
-                                <button class="btn btn-primary" onclick="exportPickupScheduled()" style="white-space: nowrap; min-width: 100px;">
+                                <button class="btn btn-primary" onclick="exportPickupScheduled()"
+                                    style="white-space: nowrap; min-width: 100px;">
                                     📥 Export
                                 </button>
                             </div>
@@ -1571,18 +1741,25 @@
                         </div>
                         <div class="search-filter-bar">
                             <div class="search-box">
-                                <input type="text" id="soldSearchInput" placeholder="Search..." oninput="renderCurrentPage()">
+                                <input type="text" id="soldSearchInput" placeholder="Search..."
+                                    oninput="renderCurrentPage()">
                             </div>
-                            <div class="filter-group" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                            <div class="filter-group"
+                                style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
                                 <div style="display: flex; align-items: center; gap: 0.25rem;">
-                                    <label style="font-size: 0.75rem; color: var(--joy-text-secondary); white-space: nowrap;">From:</label>
-                                    <input type="date" id="soldStartDateFilter" class="filter-select" style="min-width: 130px;" onchange="handleSoldDateRangeChange()">
+                                    <label
+                                        style="font-size: 0.75rem; color: var(--joy-text-secondary); white-space: nowrap;">From:</label>
+                                    <input type="date" id="soldStartDateFilter" class="filter-select"
+                                        style="min-width: 130px;" onchange="handleSoldDateRangeChange()">
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 0.25rem;">
-                                    <label style="font-size: 0.75rem; color: var(--joy-text-secondary); white-space: nowrap;">To:</label>
-                                    <input type="date" id="soldEndDateFilter" class="filter-select" style="min-width: 130px;" onchange="handleSoldDateRangeChange()">
+                                    <label
+                                        style="font-size: 0.75rem; color: var(--joy-text-secondary); white-space: nowrap;">To:</label>
+                                    <input type="date" id="soldEndDateFilter" class="filter-select"
+                                        style="min-width: 130px;" onchange="handleSoldDateRangeChange()">
                                 </div>
-                                <select id="soldMonthFilter" class="filter-select" onchange="handleSoldMonthYearChange()">
+                                <select id="soldMonthFilter" class="filter-select"
+                                    onchange="handleSoldMonthYearChange()">
                                     <option value="">All Months</option>
                                     <option value="1">January</option>
                                     <option value="2">February</option>
@@ -1597,16 +1774,19 @@
                                     <option value="11">November</option>
                                     <option value="12">December</option>
                                 </select>
-                                <select id="soldYearFilter" class="filter-select" onchange="handleSoldMonthYearChange()">
+                                <select id="soldYearFilter" class="filter-select"
+                                    onchange="handleSoldMonthYearChange()">
                                     <option value="">All Years</option>
                                 </select>
                                 <select id="soldMakeFilter" class="filter-select" onchange="renderCurrentPage()">
                                     <option value="">All Makes</option>
                                 </select>
-                                <button class="btn btn-secondary" onclick="clearSoldFilters()" style="white-space: nowrap; padding: 0.5rem 0.75rem;" title="Clear all filters">
+                                <button class="btn btn-secondary" onclick="clearSoldFilters()"
+                                    style="white-space: nowrap; padding: 0.5rem 0.75rem;" title="Clear all filters">
                                     ✕ Clear
                                 </button>
-                                <button class="btn btn-primary" onclick="exportSold()" style="white-space: nowrap; min-width: 100px;">
+                                <button class="btn btn-primary" onclick="exportSold()"
+                                    style="white-space: nowrap; min-width: 100px;">
                                     📥 Export
                                 </button>
                             </div>
@@ -1624,7 +1804,8 @@
                         </div>
                         <div class="search-filter-bar">
                             <div class="search-box">
-                                <input type="text" id="tradeInSearchInput" placeholder="Search trade-ins..." oninput="renderCurrentPage()">
+                                <input type="text" id="tradeInSearchInput" placeholder="Search trade-ins..."
+                                    oninput="renderCurrentPage()">
                             </div>
                             <div class="filter-group">
                                 <select id="tradeInMakeFilter" class="filter-select" onchange="renderCurrentPage()">
@@ -1633,7 +1814,8 @@
                                 <button class="btn btn-primary" onclick="openManualTradeInModal()">
                                     + Add Trade-In
                                 </button>
-                                <button class="btn btn-primary" onclick="exportTradeIns()" style="white-space: nowrap; min-width: 100px;">
+                                <button class="btn btn-primary" onclick="exportTradeIns()"
+                                    style="white-space: nowrap; min-width: 100px;">
                                     📥 Export
                                 </button>
                             </div>
@@ -1651,15 +1833,18 @@
                         </div>
 
                         <!-- MoM and YoY Analytics Cards -->
-                        <div id="paymentAnalytics" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                        <div id="paymentAnalytics"
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
                             <!-- Cards will be populated by JavaScript -->
                         </div>
 
                         <div class="search-filter-bar">
                             <div class="search-box">
-                                <input type="text" id="paymentSearchInput" placeholder="Search payments..." oninput="renderPaymentsPage()">
+                                <input type="text" id="paymentSearchInput" placeholder="Search payments..."
+                                    oninput="renderPaymentsPage()">
                             </div>
-                            <div class="filter-group" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                            <div class="filter-group"
+                                style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
                                 <select id="paymentMonthFilter" class="filter-select" onchange="renderPaymentsPage()">
                                     <option value="">All Months</option>
                                     <option value="1">January</option>
@@ -1686,7 +1871,8 @@
                                     <option value="Wire Transfer">Wire Transfer</option>
                                     <option value="Cash">Cash</option>
                                 </select>
-                                <button class="btn btn-primary" onclick="exportPayments()" style="white-space: nowrap; min-width: 100px;">
+                                <button class="btn btn-primary" onclick="exportPayments()"
+                                    style="white-space: nowrap; min-width: 100px;">
                                     📥 Export
                                 </button>
                             </div>
@@ -1722,8 +1908,11 @@
 
                         <!-- Time Period Selector -->
                         <div style="margin-bottom: 1.5rem; display: flex; gap: 0.75rem; align-items: center;">
-                            <label style="font-size: 0.875rem; color: var(--joy-text-secondary); font-weight: 600;">Revenue Period:</label>
-                            <select id="revenuePeriodFilter" class="filter-select" onchange="renderAnalytics()" style="min-width: 150px;">
+                            <label
+                                style="font-size: 0.875rem; color: var(--joy-text-secondary); font-weight: 600;">Revenue
+                                Period:</label>
+                            <select id="revenuePeriodFilter" class="filter-select" onchange="renderAnalytics()"
+                                style="min-width: 150px;">
                                 <option value="weekly">Weekly</option>
                                 <option value="monthly" selected>Monthly</option>
                                 <option value="yearly">Yearly</option>
@@ -1731,22 +1920,31 @@
                         </div>
 
                         <!-- Revenue Tracker Chart -->
-                        <div style="background: rgba(51, 65, 85, 0.6); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 2rem; margin-bottom: 2rem;">
-                            <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary);">💰 Revenue Tracker</h2>
+                        <div
+                            style="background: rgba(51, 65, 85, 0.6); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 2rem; margin-bottom: 2rem;">
+                            <h2
+                                style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary);">
+                                💰 Revenue Tracker</h2>
                             <canvas id="revenueChart" style="max-height: 400px;"></canvas>
                         </div>
 
                         <!-- Two Column Grid for Medium Charts -->
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
                             <!-- Average Age Before Sale Chart -->
-                            <div style="background: rgba(51, 65, 85, 0.6); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 2rem;">
-                                <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary);">⏱️ Avg Days to Sale</h2>
+                            <div
+                                style="background: rgba(51, 65, 85, 0.6); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 2rem;">
+                                <h2
+                                    style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary);">
+                                    ⏱️ Avg Days to Sale</h2>
                                 <canvas id="ageChart" style="max-height: 300px;"></canvas>
                             </div>
 
                             <!-- Inventory Status Distribution -->
-                            <div style="background: rgba(51, 65, 85, 0.6); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 2rem;">
-                                <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary);">📊 Inventory Status</h2>
+                            <div
+                                style="background: rgba(51, 65, 85, 0.6); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 2rem;">
+                                <h2
+                                    style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary);">
+                                    📊 Inventory Status</h2>
                                 <canvas id="statusChart" style="max-height: 300px;"></canvas>
                             </div>
                         </div>
@@ -1754,14 +1952,20 @@
                         <!-- Two Column Grid for Additional Charts -->
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
                             <!-- Vehicles by Model Chart -->
-                            <div style="background: rgba(51, 65, 85, 0.6); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 2rem;">
-                                <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary);">🚗 Vehicles on Lot by Model</h2>
+                            <div
+                                style="background: rgba(51, 65, 85, 0.6); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 2rem;">
+                                <h2
+                                    style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary);">
+                                    🚗 Vehicles on Lot by Model</h2>
                                 <canvas id="makeChart" style="max-height: 300px;"></canvas>
                             </div>
 
                             <!-- Payment Method Distribution -->
-                            <div style="background: rgba(51, 65, 85, 0.6); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 2rem;">
-                                <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary);">💳 Payment Methods</h2>
+                            <div
+                                style="background: rgba(51, 65, 85, 0.6); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 2rem;">
+                                <h2
+                                    style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary);">
+                                    💳 Payment Methods</h2>
                                 <canvas id="paymentChart" style="max-height: 300px;"></canvas>
                             </div>
                         </div>
@@ -1769,14 +1973,20 @@
                         <!-- Two Column Grid for Bottom Charts -->
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
                             <!-- Top Models Chart -->
-                            <div style="background: rgba(51, 65, 85, 0.6); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 2rem;">
-                                <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary);">🏆 Top Selling Models</h2>
+                            <div
+                                style="background: rgba(51, 65, 85, 0.6); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 2rem;">
+                                <h2
+                                    style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary);">
+                                    🏆 Top Selling Models</h2>
                                 <canvas id="modelsChart" style="max-height: 350px;"></canvas>
                             </div>
 
                             <!-- Fleet Company Distribution Chart -->
-                            <div style="background: rgba(51, 65, 85, 0.6); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 2rem;">
-                                <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary);">🏢 Fleet Companies on Lot</h2>
+                            <div
+                                style="background: rgba(51, 65, 85, 0.6); border: 1px solid var(--joy-divider); border-radius: var(--joy-radius-md); padding: 2rem;">
+                                <h2
+                                    style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary);">
+                                    🏢 Fleet Companies on Lot</h2>
                                 <canvas id="fleetCompanyChart" style="max-height: 350px;"></canvas>
                             </div>
                         </div>
@@ -1797,16 +2007,22 @@
                 <form id="vehicleForm" onsubmit="addVehicle(event)">
                     <div class="form-group">
                         <label for="vin">VIN</label>
-                        <input type="text" id="vin" maxlength="17" minlength="17" pattern="[A-HJ-NPR-Z0-9]{17}" title="VIN must be exactly 17 characters (letters and numbers, excluding I, O, Q)" required style="text-transform: uppercase;" oninput="autoGenerateStockNumber()">
+                        <input type="text" id="vin" maxlength="17" minlength="17" pattern="[A-HJ-NPR-Z0-9]{17}"
+                            title="VIN must be exactly 17 characters (letters and numbers, excluding I, O, Q)" required
+                            style="text-transform: uppercase;" oninput="autoGenerateStockNumber()">
                     </div>
                     <div class="form-group">
-                        <label for="stockNumber">Stock # <span style="font-size: 0.75rem; color: var(--joy-text-tertiary); font-weight: normal;">(Auto-generated from VIN)</span></label>
-                        <input type="text" id="stockNumber" required readonly style="background: rgba(71, 85, 105, 0.4); cursor: not-allowed;">
+                        <label for="stockNumber">Stock # <span
+                                style="font-size: 0.75rem; color: var(--joy-text-tertiary); font-weight: normal;">(Auto-generated
+                                from VIN)</span></label>
+                        <input type="text" id="stockNumber" required readonly
+                            style="background: rgba(71, 85, 105, 0.4); cursor: not-allowed;">
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="year">Year</label>
-                            <input type="number" id="year" min="2000" max="2030" required title="Vehicle year must be between 2000 and 2030">
+                            <input type="number" id="year" min="2000" max="2030" required
+                                title="Vehicle year must be between 2000 and 2030">
                         </div>
                         <div class="form-group">
                             <label for="make">Make</label>
@@ -1889,7 +2105,8 @@
                         </div>
                         <div class="form-group">
                             <label for="customerPhone">Phone Number</label>
-                            <input type="tel" id="customerPhone" pattern="[0-9]{3}-?[0-9]{3}-?[0-9]{4}" title="Phone format: 123-456-7890 or 1234567890" placeholder="123-456-7890">
+                            <input type="tel" id="customerPhone" pattern="[0-9]{3}-?[0-9]{3}-?[0-9]{4}"
+                                title="Phone format: 123-456-7890 or 1234567890" placeholder="123-456-7890">
                         </div>
                         <div class="form-group">
                             <label for="notes">Notes</label>
@@ -1926,8 +2143,10 @@
 
                     <!-- Upload Document -->
                     <div style="margin-bottom: 1rem;">
-                        <input type="file" id="pdfUploadInput" accept=".pdf" style="display: none;" onchange="handlePDFUpload(event)">
-                        <button class="btn btn-secondary" onclick="document.getElementById('pdfUploadInput').click()" style="width: 100%;">
+                        <input type="file" id="pdfUploadInput" accept=".pdf" style="display: none;"
+                            onchange="handlePDFUpload(event)">
+                        <button class="btn btn-secondary" onclick="document.getElementById('pdfUploadInput').click()"
+                            style="width: 100%;">
                             📎 Upload PDF Document
                         </button>
                     </div>
@@ -1939,7 +2158,8 @@
                 </div>
 
                 <!-- Payment Information Section (Only visible when car is sold) -->
-                <div id="paymentInfoSection" style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--joy-divider); display: none;">
+                <div id="paymentInfoSection"
+                    style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--joy-divider); display: none;">
                     <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Payment Information</h3>
                     <form id="paymentForm" onsubmit="savePaymentInfo(event)">
                         <div class="form-row">
@@ -1974,10 +2194,15 @@
                 </div>
 
                 <!-- Delete Vehicle Section -->
-                <div id="detailDeleteSection" style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--joy-divider);">
-                    <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--joy-danger-500);">Delete Vehicle</h3>
-                    <p style="font-size: 0.875rem; color: var(--joy-text-tertiary); margin-bottom: 1rem;">Once you delete a vehicle, there is no going back. Please be certain.</p>
-                    <button class="btn btn-danger" onclick="deleteVehicle(window.currentVehicleId)" style="width: 100%;">
+                <div id="detailDeleteSection"
+                    style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--joy-divider);">
+                    <h3
+                        style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--joy-danger-500);">
+                        Delete Vehicle</h3>
+                    <p style="font-size: 0.875rem; color: var(--joy-text-tertiary); margin-bottom: 1rem;">Once you
+                        delete a vehicle, there is no going back. Please be certain.</p>
+                    <button class="btn btn-danger" onclick="deleteVehicle(window.currentVehicleId)"
+                        style="width: 100%;">
                         Delete Vehicle
                     </button>
                 </div>
@@ -1985,7 +2210,7 @@
                 <!-- Export Options -->
                 <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--joy-divider);">
                     <button class="btn btn-primary" onclick="saveVehicleDetailPDF()" style="width: 100%;">
-                        📄 Save as PDF
+                        📄 Generate Pickup Form
                     </button>
                 </div>
             </div>
@@ -2042,18 +2267,25 @@
                         </div>
 
                         <!-- Trade-In Details (hidden by default) -->
-                        <div id="tradeInSection" style="display: none; margin-top: 1rem; padding: 1rem; background: rgba(0, 122, 255, 0.05); border-radius: var(--joy-radius-sm); border: 1px solid rgba(0, 122, 255, 0.2);">
-                            <h4 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary);">Trade-In Vehicle Details</h4>
+                        <div id="tradeInSection"
+                            style="display: none; margin-top: 1rem; padding: 1rem; background: rgba(0, 122, 255, 0.05); border-radius: var(--joy-radius-sm); border: 1px solid rgba(0, 122, 255, 0.2);">
+                            <h4
+                                style="font-size: 0.875rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary);">
+                                Trade-In Vehicle Details</h4>
 
                             <div class="form-group">
                                 <label for="tradeInVin">VIN *</label>
-                                <input type="text" id="tradeInVin" maxlength="17" minlength="17" pattern="[A-HJ-NPR-Z0-9]{17}" title="VIN must be exactly 17 characters (letters and numbers, excluding I, O, Q)" style="text-transform: uppercase;">
+                                <input type="text" id="tradeInVin" maxlength="17" minlength="17"
+                                    pattern="[A-HJ-NPR-Z0-9]{17}"
+                                    title="VIN must be exactly 17 characters (letters and numbers, excluding I, O, Q)"
+                                    style="text-transform: uppercase;">
                             </div>
 
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="tradeInYear">Year *</label>
-                                    <input type="number" id="tradeInYear" min="1980" max="2030" title="Vehicle year must be between 1980 and 2030">
+                                    <input type="number" id="tradeInYear" min="1980" max="2030"
+                                        title="Vehicle year must be between 1980 and 2030">
                                 </div>
                                 <div class="form-group">
                                     <label for="tradeInMake">Make *</label>
@@ -2074,7 +2306,9 @@
 
                             <div class="form-group">
                                 <label>Auto-Generated Stock Number</label>
-                                <input type="text" id="tradeInStockNumber" readonly style="background: rgba(200, 200, 200, 0.3); cursor: not-allowed;" placeholder="Will be auto-generated">
+                                <input type="text" id="tradeInStockNumber" readonly
+                                    style="background: rgba(200, 200, 200, 0.3); cursor: not-allowed;"
+                                    placeholder="Will be auto-generated">
                             </div>
                         </div>
                     </div>
@@ -2155,13 +2389,20 @@
                 <button class="close-btn" onclick="closeImportCSVModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <div style="background: rgba(10, 132, 255, 0.1); border: 1px solid rgba(10, 132, 255, 0.3); border-radius: var(--joy-radius-sm); padding: 1rem; margin-bottom: 1.5rem;">
-                    <h4 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--joy-text-primary);">📋 CSV Format Requirements</h4>
-                    <p style="font-size: 0.8125rem; color: var(--joy-text-secondary); margin-bottom: 0.5rem;">Your CSV file must include these columns in order:</p>
+                <div
+                    style="background: rgba(10, 132, 255, 0.1); border: 1px solid rgba(10, 132, 255, 0.3); border-radius: var(--joy-radius-sm); padding: 1rem; margin-bottom: 1.5rem;">
+                    <h4
+                        style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--joy-text-primary);">
+                        📋 CSV Format Requirements</h4>
+                    <p style="font-size: 0.8125rem; color: var(--joy-text-secondary); margin-bottom: 0.5rem;">Your CSV
+                        file must include these columns in order:</p>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
                         <div>
-                            <p style="font-size: 0.75rem; font-weight: 600; color: var(--joy-text-primary); margin-bottom: 0.25rem;">Required:</p>
-                            <ul style="font-size: 0.75rem; color: var(--joy-text-secondary); margin-left: 1rem; line-height: 1.5;">
+                            <p
+                                style="font-size: 0.75rem; font-weight: 600; color: var(--joy-text-primary); margin-bottom: 0.25rem;">
+                                Required:</p>
+                            <ul
+                                style="font-size: 0.75rem; color: var(--joy-text-secondary); margin-left: 1rem; line-height: 1.5;">
                                 <li>Stock Number</li>
                                 <li>VIN (17 chars)</li>
                                 <li>Year</li>
@@ -2172,8 +2413,11 @@
                             </ul>
                         </div>
                         <div>
-                            <p style="font-size: 0.75rem; font-weight: 600; color: var(--joy-text-primary); margin-bottom: 0.25rem;">Optional:</p>
-                            <ul style="font-size: 0.75rem; color: var(--joy-text-secondary); margin-left: 1rem; line-height: 1.5;">
+                            <p
+                                style="font-size: 0.75rem; font-weight: 600; color: var(--joy-text-primary); margin-bottom: 0.25rem;">
+                                Optional:</p>
+                            <ul
+                                style="font-size: 0.75rem; color: var(--joy-text-secondary); margin-left: 1rem; line-height: 1.5;">
                                 <li>Fleet Company</li>
                                 <li>Operation Company</li>
                                 <li>Status</li>
@@ -2188,7 +2432,8 @@
                             </ul>
                         </div>
                     </div>
-                    <p style="font-size: 0.75rem; color: var(--joy-warning-500); margin-top: 0.5rem;">💡 If Sale Date is provided, vehicle will be imported as sold.</p>
+                    <p style="font-size: 0.75rem; color: var(--joy-warning-500); margin-top: 0.5rem;">💡 If Sale Date is
+                        provided, vehicle will be imported as sold.</p>
                 </div>
 
                 <div style="margin-bottom: 1.5rem;">
@@ -2200,10 +2445,12 @@
                 <form id="importCSVForm" onsubmit="handleCSVImport(event)">
                     <div class="form-group">
                         <label for="csvFileInput">Select CSV File</label>
-                        <input type="file" id="csvFileInput" accept=".csv" required style="width: 100%; padding: 0.5rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--joy-radius-sm); color: var(--text);">
+                        <input type="file" id="csvFileInput" accept=".csv" required
+                            style="width: 100%; padding: 0.5rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--joy-radius-sm); color: var(--text);">
                     </div>
 
-                    <div id="importPreview" style="display: none; margin-top: 1rem; padding: 1rem; background: rgba(0, 0, 0, 0.2); border-radius: var(--joy-radius-sm); max-height: 300px; overflow-y: auto;">
+                    <div id="importPreview"
+                        style="display: none; margin-top: 1rem; padding: 1rem; background: rgba(0, 0, 0, 0.2); border-radius: var(--joy-radius-sm); max-height: 300px; overflow-y: auto;">
                         <h4 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem;">Preview</h4>
                         <div id="importPreviewContent"></div>
                     </div>
@@ -2228,10 +2475,14 @@
                 <button class="close-btn" onclick="closeRemoveDuplicatesModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <div style="background: rgba(255, 159, 10, 0.1); border: 1px solid rgba(255, 159, 10, 0.3); border-radius: var(--joy-radius-sm); padding: 1rem; margin-bottom: 1.5rem;">
-                    <h4 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--joy-warning-500);">⚠️ Warning</h4>
+                <div
+                    style="background: rgba(255, 159, 10, 0.1); border: 1px solid rgba(255, 159, 10, 0.3); border-radius: var(--joy-radius-sm); padding: 1rem; margin-bottom: 1.5rem;">
+                    <h4
+                        style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--joy-warning-500);">
+                        ⚠️ Warning</h4>
                     <p style="font-size: 0.8125rem; color: var(--joy-text-secondary);">
-                        This will scan your inventory and sold vehicles for duplicate VINs. When duplicates are found, only the most recent entry will be kept.
+                        This will scan your inventory and sold vehicles for duplicate VINs. When duplicates are found,
+                        only the most recent entry will be kept.
                     </p>
                 </div>
 
@@ -2243,7 +2494,8 @@
                     <button class="btn btn-secondary" onclick="scanForDuplicates()" style="flex: 1;">
                         🔍 Scan for Duplicates
                     </button>
-                    <button id="removeDuplicatesBtn" class="btn btn-danger" onclick="confirmRemoveDuplicates()" style="flex: 1; display: none;">
+                    <button id="removeDuplicatesBtn" class="btn btn-danger" onclick="confirmRemoveDuplicates()"
+                        style="flex: 1; display: none;">
                         🗑️ Remove Duplicates
                     </button>
                 </div>
@@ -2263,19 +2515,22 @@
                 <button class="close-btn" onclick="closeLabelTypeModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <p style="margin-bottom: 1rem; color: var(--joy-text-secondary); font-size: 0.95rem;">Choose which label you want to generate for this vehicle.</p>
+                <p style="margin-bottom: 1rem; color: var(--joy-text-secondary); font-size: 0.95rem;">Choose which label
+                    you want to generate for this vehicle.</p>
                 <div style="display: grid; gap: 1rem;">
                     <button class="btn btn-secondary label-type-option" onclick="chooseLabelType('folder')">
                         <div style="text-align: left;">
                             <div style="font-weight: 700; font-size: 1rem;">Folder Tag</div>
-                            <div style="font-size: 0.9rem; color: var(--joy-text-secondary);">OL125 • 2" × 4" • For vehicle folders</div>
+                            <div style="font-size: 0.9rem; color: var(--joy-text-secondary);">OL125 • 2" × 4" • For
+                                vehicle folders</div>
                         </div>
                         <span style="font-weight: 700; font-size: 1.25rem;">→</span>
                     </button>
                     <button class="btn btn-secondary label-type-option" onclick="chooseLabelType('key')">
                         <div style="text-align: left;">
                             <div style="font-weight: 700; font-size: 1rem;">Key Tag</div>
-                            <div style="font-size: 0.9rem; color: var(--joy-text-secondary);">OL875 • 1" × 2.5935" • For key rings</div>
+                            <div style="font-size: 0.9rem; color: var(--joy-text-secondary);">OL875 • 1" × 2.5935" • For
+                                key rings</div>
                         </div>
                         <span style="font-weight: 700; font-size: 1.25rem;">→</span>
                     </button>
@@ -2317,9 +2572,12 @@
 
                     <!-- Right Side - Vehicle Info -->
                     <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0;">
-                        <div style="font-size: 18px; font-weight: 700; color: #1d1d1f; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="labelStockNumber"></div>
-                        <div style="font-size: 14px; font-weight: 600; color: #424245; margin-bottom: 8px; line-height: 1.2;" id="labelVehicle"></div>
-                        <div style="font-size: 11px; color: #86868b; line-height: 1.4; word-wrap: break-word;" id="labelInfo"></div>
+                        <div style="font-size: 18px; font-weight: 700; color: #1d1d1f; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                            id="labelStockNumber"></div>
+                        <div style="font-size: 14px; font-weight: 600; color: #424245; margin-bottom: 8px; line-height: 1.2;"
+                            id="labelVehicle"></div>
+                        <div style="font-size: 11px; color: #86868b; line-height: 1.4; word-wrap: break-word;"
+                            id="labelInfo"></div>
                     </div>
                 </div>
 
@@ -2344,7 +2602,8 @@
             </div>
             <div class="modal-body">
                 <div style="text-align: center; margin-bottom: 1.25rem;">
-                    <p style="font-size: 0.875rem; color: var(--joy-text-tertiary);">Preview - OL875 (1" × 2.5935" Label)</p>
+                    <p style="font-size: 0.875rem; color: var(--joy-text-tertiary);">Preview - OL875 (1" × 2.5935"
+                        Label)</p>
                 </div>
                 <div id="keyLabel" class="printable-label key-label" style="
                     width: 260px;
@@ -2374,15 +2633,29 @@
                         line-height: 1.05;
                         box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
                     ">
-                        <div style="font-size: 9px; font-weight: 600; color: #334155; letter-spacing: 0.02em;">Stock #</div>
-                        <div id="keyLabelStock" style="font-size: 15px; font-weight: 800; color: #0f172a; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
+                        <div style="font-size: 9px; font-weight: 600; color: #334155; letter-spacing: 0.02em;">Stock #
+                        </div>
+                        <div id="keyLabelStock"
+                            style="font-size: 15px; font-weight: 800; color: #0f172a; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        </div>
                     </div>
-                    <div style="flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; justify-content: center; line-height: 1.1;">
-                        <div id="keyLabelVehicle" style="font-size: 11px; font-weight: 700; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
-                        <div id="keyLabelVin" style="font-size: 9px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
-                        <div id="keyLabelColor" style="font-size: 9px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
-                        <div id="keyLabelFleet" style="font-size: 9px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
-                        <div id="keyLabelOperation" style="font-size: 9px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
+                    <div
+                        style="flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; justify-content: center; line-height: 1.1;">
+                        <div id="keyLabelVehicle"
+                            style="font-size: 11px; font-weight: 700; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        </div>
+                        <div id="keyLabelVin"
+                            style="font-size: 9px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        </div>
+                        <div id="keyLabelColor"
+                            style="font-size: 9px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        </div>
+                        <div id="keyLabelFleet"
+                            style="font-size: 9px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        </div>
+                        <div id="keyLabelOperation"
+                            style="font-size: 9px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        </div>
                     </div>
                 </div>
                 <div style="display: flex; gap: 1rem; margin-top: 1.25rem;">
@@ -2517,7 +2790,8 @@
                 margin: 0;
             }
 
-            html, body {
+            html,
+            body {
                 width: 8.5in !important;
                 height: 11in !important;
                 margin: 0 !important;
@@ -2526,7 +2800,7 @@
             }
 
             /* Hide everything except the active printing label */
-            body > *:not(.printing) {
+            body>*:not(.printing) {
                 display: none !important;
             }
 
@@ -2581,17 +2855,22 @@
             <div class="modal-body">
                 <form id="tradeInForm">
                     <div class="form-group">
-                        <label for="tradeStockNumber">Stock # <span id="tradeStockNumberHint" style="display: none; font-size: 0.75rem; color: var(--joy-text-tertiary); font-weight: normal;">(Optional - leave blank for auto-generated)</span></label>
+                        <label for="tradeStockNumber">Stock # <span id="tradeStockNumberHint"
+                                style="display: none; font-size: 0.75rem; color: var(--joy-text-tertiary); font-weight: normal;">(Optional
+                                - leave blank for auto-generated)</span></label>
                         <input type="text" id="tradeStockNumber">
                     </div>
                     <div class="form-group">
                         <label for="tradeVin">VIN</label>
-                        <input type="text" id="tradeVin" maxlength="17" minlength="17" pattern="[A-HJ-NPR-Z0-9]{17}" title="VIN must be exactly 17 characters (letters and numbers, excluding I, O, Q)" required style="text-transform: uppercase;">
+                        <input type="text" id="tradeVin" maxlength="17" minlength="17" pattern="[A-HJ-NPR-Z0-9]{17}"
+                            title="VIN must be exactly 17 characters (letters and numbers, excluding I, O, Q)" required
+                            style="text-transform: uppercase;">
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="tradeYear">Year</label>
-                            <input type="number" id="tradeYear" min="1980" max="2030" required title="Vehicle year must be between 1980 and 2030">
+                            <input type="number" id="tradeYear" min="1980" max="2030" required
+                                title="Vehicle year must be between 1980 and 2030">
                         </div>
                         <div class="form-group">
                             <label for="tradeMake">Make</label>
@@ -2642,9 +2921,13 @@
 
                 <!-- Delete Trade-In Section -->
                 <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--joy-divider);">
-                    <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--joy-danger-500);">Delete Trade-In</h3>
-                    <p style="font-size: 0.875rem; color: var(--joy-text-tertiary); margin-bottom: 1rem;">Once you delete this trade-in, there is no going back. Please be certain.</p>
-                    <button class="btn btn-danger" onclick="deleteTradeIn(window.currentTradeInId)" style="width: 100%;">
+                    <h3
+                        style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--joy-danger-500);">
+                        Delete Trade-In</h3>
+                    <p style="font-size: 0.875rem; color: var(--joy-text-tertiary); margin-bottom: 1rem;">Once you
+                        delete this trade-in, there is no going back. Please be certain.</p>
+                    <button class="btn btn-danger" onclick="deleteTradeIn(window.currentTradeInId)"
+                        style="width: 100%;">
                         Delete Trade-In
                     </button>
                 </div>
@@ -2663,20 +2946,26 @@
                 <div style="display: grid; gap: 2rem;">
                     <!-- Data Management Section -->
                     <div>
-                        <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary); border-bottom: 2px solid var(--joy-divider); padding-bottom: 0.5rem;">
+                        <h3
+                            style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary); border-bottom: 2px solid var(--joy-divider); padding-bottom: 0.5rem;">
                             Data Management
                         </h3>
 
                         <!-- Fix In-Transit Dates -->
-                        <div style="background: var(--joy-background-level1); padding: 1.5rem; border-radius: var(--joy-radius-md); margin-bottom: 1rem; border: 1px solid var(--joy-border);">
+                        <div
+                            style="background: var(--joy-background-level1); padding: 1.5rem; border-radius: var(--joy-radius-md); margin-bottom: 1rem; border: 1px solid var(--joy-border);">
                             <div style="display: flex; align-items: flex-start; gap: 1rem;">
                                 <div style="font-size: 2rem;">🔧</div>
                                 <div style="flex: 1;">
-                                    <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">Fix In-Transit Dates</h4>
-                                    <p style="font-size: 0.875rem; color: var(--joy-text-tertiary); margin-bottom: 1rem;">
-                                        Remove in-stock dates from all vehicles currently marked as "In-Transit". This ensures accurate inventory tracking.
+                                    <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">Fix In-Transit
+                                        Dates</h4>
+                                    <p
+                                        style="font-size: 0.875rem; color: var(--joy-text-tertiary); margin-bottom: 1rem;">
+                                        Remove in-stock dates from all vehicles currently marked as "In-Transit". This
+                                        ensures accurate inventory tracking.
                                     </p>
-                                    <button class="btn btn-secondary" onclick="fixInTransitDates()" style="width: 100%;">
+                                    <button class="btn btn-secondary" onclick="fixInTransitDates()"
+                                        style="width: 100%;">
                                         Run Fix
                                     </button>
                                 </div>
@@ -2684,15 +2973,20 @@
                         </div>
 
                         <!-- Remove Duplicates -->
-                        <div style="background: var(--joy-background-level1); padding: 1.5rem; border-radius: var(--joy-radius-md); border: 1px solid var(--joy-border);">
+                        <div
+                            style="background: var(--joy-background-level1); padding: 1.5rem; border-radius: var(--joy-radius-md); border: 1px solid var(--joy-border);">
                             <div style="display: flex; align-items: flex-start; gap: 1rem;">
                                 <div style="font-size: 2rem;">🔍</div>
                                 <div style="flex: 1;">
-                                    <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">Remove Duplicate Vehicles</h4>
-                                    <p style="font-size: 0.875rem; color: var(--joy-text-tertiary); margin-bottom: 1rem;">
-                                        Scan for and remove duplicate vehicles based on VIN numbers. Older entries will be kept.
+                                    <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">Remove
+                                        Duplicate Vehicles</h4>
+                                    <p
+                                        style="font-size: 0.875rem; color: var(--joy-text-tertiary); margin-bottom: 1rem;">
+                                        Scan for and remove duplicate vehicles based on VIN numbers. Older entries will
+                                        be kept.
                                     </p>
-                                    <button class="btn btn-secondary" onclick="openRemoveDuplicatesModal()" style="width: 100%;">
+                                    <button class="btn btn-secondary" onclick="openRemoveDuplicatesModal()"
+                                        style="width: 100%;">
                                         Scan & Remove Duplicates
                                     </button>
                                 </div>
@@ -2712,7 +3006,8 @@
         <div class="modal-content" style="max-width: 400px; animation: slideDown 0.3s ease-out;">
             <div class="modal-body" style="text-align: center; padding: 2rem;">
                 <div id="notificationIcon" style="font-size: 3rem; margin-bottom: 1rem;"></div>
-                <div id="notificationMessage" style="font-size: 1rem; color: var(--joy-text-primary); margin-bottom: 1.5rem;"></div>
+                <div id="notificationMessage"
+                    style="font-size: 1rem; color: var(--joy-text-primary); margin-bottom: 1.5rem;"></div>
                 <button id="notificationOkBtn" class="btn btn-primary" style="width: 100%;">OK</button>
             </div>
         </div>
@@ -2743,21 +3038,26 @@
             </div>
             <div class="modal-body">
                 <div style="margin-bottom: 1rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                         <label style="font-weight: 600; color: var(--joy-text-primary);">
-                            <input type="checkbox" id="selectAllExport" onchange="toggleSelectAllExport()" style="margin-right: 0.5rem;">
+                            <input type="checkbox" id="selectAllExport" onchange="toggleSelectAllExport()"
+                                style="margin-right: 0.5rem;">
                             Select All (<span id="exportItemCount">0</span> items)
                         </label>
                         <div style="display: flex; gap: 0.5rem;">
-                            <button class="btn btn-sm btn-secondary" onclick="exportSelected('csv')" style="padding: 0.4rem 0.8rem; font-size: 0.875rem;">
+                            <button class="btn btn-sm btn-secondary" onclick="exportSelected('csv')"
+                                style="padding: 0.4rem 0.8rem; font-size: 0.875rem;">
                                 📄 Export CSV
                             </button>
-                            <button class="btn btn-sm btn-primary" onclick="exportSelected('xlsx')" style="padding: 0.4rem 0.8rem; font-size: 0.875rem;">
+                            <button class="btn btn-sm btn-primary" onclick="exportSelected('xlsx')"
+                                style="padding: 0.4rem 0.8rem; font-size: 0.875rem;">
                                 📊 Export Excel
                             </button>
                         </div>
                     </div>
-                    <div id="exportItemsList" style="max-height: 400px; overflow-y: auto; background: rgba(30, 41, 59, 0.5); border-radius: var(--joy-radius-sm); padding: 0.75rem;">
+                    <div id="exportItemsList"
+                        style="max-height: 400px; overflow-y: auto; background: rgba(30, 41, 59, 0.5); border-radius: var(--joy-radius-sm); padding: 0.75rem;">
                         <!-- Items will be populated here -->
                     </div>
                 </div>
@@ -2772,4 +3072,5 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="app.js"></script>
 </body>
+
 </html>
