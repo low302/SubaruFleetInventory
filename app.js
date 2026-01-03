@@ -137,7 +137,7 @@ async function checkAuth() {
         if (data.authenticated) {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
-            
+
             // Update user display
             const userName = document.getElementById('userName');
             const userAvatar = document.getElementById('userAvatar');
@@ -147,7 +147,7 @@ async function checkAuth() {
             if (userAvatar && data.username) {
                 userAvatar.textContent = data.username.charAt(0).toUpperCase();
             }
-            
+
             await loadAllData();
         } else {
             document.getElementById('loginScreen').style.display = 'flex';
@@ -293,7 +293,7 @@ async function addVehicle(event) {
         customer: null,
         documents: []
     };
-    
+
     try {
         const response = await fetch(`${API_BASE}/inventory`, {
             method: 'POST',
@@ -301,19 +301,19 @@ async function addVehicle(event) {
             credentials: 'include',
             body: JSON.stringify(vehicle)
         });
-        
+
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error || 'Failed to add vehicle');
         }
-        
+
         await loadInventory();
         closeAddModal();
         updateDashboard();
         renderCurrentPage();
         document.getElementById('vehicleForm').reset();
         showNotification('Vehicle added successfully!', 'success');
-        
+
     } catch (error) {
         console.error('Error adding vehicle:', error);
         showNotification('Failed to add vehicle: ' + error.message, 'error');
@@ -337,7 +337,7 @@ async function updateVehicleStatus() {
         currentVehicle = vehicleToSell; // Restore the vehicle reference
         openSoldModal();
         return;
-    } 
+    }
     // Moving FROM sold back to inventory
     else if (newStatus !== 'sold' && currentlyInSold) {
         const inventoryVehicle = { ...currentVehicle, status: newStatus };
@@ -349,28 +349,28 @@ async function updateVehicleStatus() {
                 credentials: 'include',
                 body: JSON.stringify(inventoryVehicle)
             });
-            
+
             if (!inventoryResponse.ok) {
                 const errorData = await inventoryResponse.json();
                 throw new Error(errorData.error || 'Failed to add to inventory');
             }
-            
+
             // Then delete from sold vehicles
             const deleteResponse = await fetch(`${API_BASE}/sold-vehicles/${currentVehicle.id}`, {
                 method: 'DELETE',
                 credentials: 'include'
             });
-            
+
             if (!deleteResponse.ok) {
                 throw new Error('Failed to remove from sold vehicles');
             }
-            
+
             await loadAllData();
             closeDetailModal();
             updateDashboard();
             renderCurrentPage();
             showNotification('Vehicle moved back to inventory successfully!', 'success');
-            
+
         } catch (error) {
             console.error('Error moving vehicle from sold:', error);
             showNotification('Failed to update vehicle status: ' + error.message, 'error');
@@ -379,7 +379,7 @@ async function updateVehicleStatus() {
     // Pickup scheduled (requires additional info)
     else if (newStatus === 'pickup-scheduled') {
         openPickupScheduleModal();
-    } 
+    }
     // Regular status update within inventory
     else {
         currentVehicle.status = newStatus;
@@ -410,7 +410,7 @@ async function deleteVehicle(vehicleId) {
     try {
         // Check if vehicle is in sold vehicles
         const isInSold = soldVehicles.some(v => v.id === vehicleId);
-        
+
         if (isInSold) {
             // Delete from sold vehicles table
             const response = await fetch(`${API_BASE}/sold-vehicles/${vehicleId}`, {
@@ -432,14 +432,14 @@ async function deleteVehicle(vehicleId) {
                 throw new Error(errorData.error || 'Failed to delete vehicle');
             }
         }
-        
+
         // Reload all data
         await loadAllData();
         closeDetailModal();
         updateDashboard();
         renderCurrentPage();
         showNotification('Vehicle deleted successfully!', 'success');
-        
+
     } catch (error) {
         console.error('Error deleting vehicle:', error);
         showNotification('Failed to delete vehicle: ' + error.message, 'error');
@@ -589,7 +589,7 @@ async function saveVehicleEdit(event) {
         updateDashboard();
         renderCurrentPage();
         showNotification('Vehicle updated successfully!', 'success');
-        
+
     } catch (error) {
         console.error('Error saving vehicle:', error);
         showNotification('Failed to save vehicle changes: ' + error.message, 'error');
@@ -907,18 +907,18 @@ async function schedulePickup(event) {
 function completePickup(vehicleId) {
     const vehicle = vehicles.find(v => v.id === vehicleId);
     if (!vehicle) return;
-    
+
     // Set the current vehicle
     currentVehicle = vehicle;
-    
+
     // Open the sold modal to complete the sale
     openSoldModal();
 }
 
 function generateLabelById(vehicleId) {
     const vehicle = vehicles.find(v => v.id === vehicleId) ||
-                    soldVehicles.find(v => v.id === vehicleId) ||
-                    tradeIns.find(t => t.id === vehicleId);
+        soldVehicles.find(v => v.id === vehicleId) ||
+        tradeIns.find(t => t.id === vehicleId);
     if (vehicle) {
         generateLabel(vehicle);
     }
@@ -1478,80 +1478,80 @@ async function saveVehicleDetailPDF() {
         const pageWidth = doc.internal.pageSize.width;
         const pageHeight = doc.internal.pageSize.height;
         const margin = 20;
-        
+
         // Add Brandon Tomes Subaru Logo (if you have it as base64 or URL)
         // For now, we'll create a text-based header
-        
+
         // Header - Logo Area
         doc.setFillColor(41, 98, 255);
         doc.rect(0, 0, pageWidth, 40, 'F');
-        
+
         // Company Name (in place of logo)
         doc.setFontSize(24);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(255, 255, 255);
         doc.text('BRANDON TOMES', pageWidth / 2, 18, { align: 'center' });
-        
+
         doc.setFontSize(20);
         doc.text('SUBARU', pageWidth / 2, 30, { align: 'center' });
-        
+
         // Fleet Department title
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(0, 0, 0);
         doc.text('Fleet Department', pageWidth / 2, 55, { align: 'center' });
-        
+
         let yPos = 70;
-        
+
         // Helper function to create section with table
         const createSection = (title, fields, startY) => {
             let y = startY;
-            
+
             // Section title
             doc.setFontSize(12);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(0, 0, 0);
             doc.text(title, margin, y);
             y += 5;
-            
+
             // Table settings
             const rowHeight = 10;
             const labelColWidth = 60;
             const valueColWidth = pageWidth - margin * 2 - labelColWidth;
-            
+
             fields.forEach((field, index) => {
                 const rowY = y;
-                
+
                 // Draw cell borders
                 doc.setDrawColor(180, 180, 180);
                 doc.setLineWidth(0.3);
-                
+
                 // Label cell
                 doc.setFillColor(245, 245, 245);
                 doc.rect(margin, rowY, labelColWidth, rowHeight, 'FD');
-                
+
                 // Value cell
                 doc.setFillColor(255, 255, 255);
                 doc.rect(margin + labelColWidth, rowY, valueColWidth, rowHeight, 'FD');
-                
+
                 // Label text
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'bold');
                 doc.setTextColor(0, 0, 0);
                 doc.text(field.label, margin + 3, rowY + 6.5);
-                
+
                 // Value text
                 doc.setFont('helvetica', 'normal');
                 const valueText = field.value || '';
                 const splitValue = doc.splitTextToSize(valueText, valueColWidth - 6);
                 doc.text(splitValue, margin + labelColWidth + 3, rowY + 6.5);
-                
+
                 y += rowHeight;
             });
-            
+
             return y + 8;
         };
-        
+
         // Vehicle Details Section
         const vehicleFields = [
             { label: 'Stock #', value: currentVehicle.stockNumber },
@@ -1563,34 +1563,34 @@ async function saveVehicleDetailPDF() {
             { label: 'VIN', value: currentVehicle.vin }
         ];
         yPos = createSection('Vehicle Details', vehicleFields, yPos);
-        
+
         // Pickup Information Section
         const pickupFields = [
-            { 
-                label: 'Current Status', 
-                value: currentVehicle.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') 
+            {
+                label: 'Current Status',
+                value: currentVehicle.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
             }
         ];
-        
+
         if (currentVehicle.pickupDate) {
-            pickupFields.push({ 
-                label: 'Pickup Date', 
-                value: new Date(currentVehicle.pickupDate).toLocaleDateString() 
+            pickupFields.push({
+                label: 'Pickup Date',
+                value: new Date(currentVehicle.pickupDate).toLocaleDateString()
             });
         }
-        
+
         if (currentVehicle.pickupTime) {
-            pickupFields.push({ 
-                label: 'Pickup Time', 
-                value: currentVehicle.pickupTime 
+            pickupFields.push({
+                label: 'Pickup Time',
+                value: currentVehicle.pickupTime
             });
         }
-        
+
         yPos = createSection('Pickup Information', pickupFields, yPos);
-        
+
         // Customer / Fleet Information Section
         const customerFields = [];
-        
+
         // Customer Name
         if (currentVehicle.customer && (currentVehicle.customer.firstName || currentVehicle.customer.lastName)) {
             const fullName = `${currentVehicle.customer.firstName || ''} ${currentVehicle.customer.lastName || ''}`.trim();
@@ -1598,58 +1598,58 @@ async function saveVehicleDetailPDF() {
         } else {
             customerFields.push({ label: 'Customer Name', value: '' });
         }
-        
+
         // Phone
-        customerFields.push({ 
-            label: 'Phone', 
-            value: currentVehicle.customer?.phone || '' 
+        customerFields.push({
+            label: 'Phone',
+            value: currentVehicle.customer?.phone || ''
         });
-        
+
         // Fleet Company
-        customerFields.push({ 
-            label: 'Fleet Company', 
-            value: currentVehicle.fleetCompany || '' 
+        customerFields.push({
+            label: 'Fleet Company',
+            value: currentVehicle.fleetCompany || ''
         });
-        
+
         // Operating Company
-        customerFields.push({ 
-            label: 'Operating Company', 
-            value: currentVehicle.operationCompany || '' 
+        customerFields.push({
+            label: 'Operating Company',
+            value: currentVehicle.operationCompany || ''
         });
-        
+
         yPos = createSection('Customer / Fleet Information', customerFields, yPos);
-        
+
         // Notes Section
         let notesText = '';
-        
+
         // Combine all notes
         if (currentVehicle.customer?.notes) {
             notesText += currentVehicle.customer.notes;
         }
-        
+
         if (currentVehicle.pickupNotes) {
             if (notesText) notesText += '\n\n';
             notesText += 'Pickup Notes: ' + currentVehicle.pickupNotes;
         }
-        
+
         const notesFields = [
             { label: 'Additional Notes', value: notesText }
         ];
-        
+
         // Create notes section with larger height if needed
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(0, 0, 0);
         doc.text('Notes', margin, yPos);
         yPos += 5;
-        
+
         // Draw notes box
         const notesHeight = Math.max(20, Math.min(60, notesText.length / 4));
         doc.setDrawColor(180, 180, 180);
         doc.setLineWidth(0.3);
         doc.setFillColor(255, 255, 255);
         doc.rect(margin, yPos, pageWidth - margin * 2, notesHeight, 'FD');
-        
+
         // Add notes text
         if (notesText) {
             doc.setFontSize(10);
@@ -1657,18 +1657,18 @@ async function saveVehicleDetailPDF() {
             const splitNotes = doc.splitTextToSize(notesText, pageWidth - margin * 2 - 6);
             doc.text(splitNotes, margin + 3, yPos + 6);
         }
-        
+
         // Footer
         doc.setFontSize(8);
         doc.setTextColor(120, 120, 120);
         doc.setFont('helvetica', 'normal');
         const footerText = `Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`;
         doc.text(footerText, pageWidth / 2, pageHeight - 15, { align: 'center' });
-        
+
         // Save the PDF
         const fileName = `Fleet_Vehicle_${currentVehicle.stockNumber}_${currentVehicle.year}_${currentVehicle.make}_${currentVehicle.model}.pdf`.replace(/\s+/g, '_');
         doc.save(fileName);
-        
+
     } catch (error) {
         console.error('Error generating PDF:', error);
         showNotification('Failed to generate PDF. Please try again.', 'error');
@@ -1868,7 +1868,7 @@ function updateDashboard() {
             }).join('');
         }
     }
-    
+
     // Scheduled Pickups Section
     const scheduledPickups = vehicles.filter(v => v.status === 'pickup-scheduled');
     const pickupsContainer = document.getElementById('scheduledPickups');
@@ -1893,7 +1893,7 @@ function updateDashboard() {
                             </div>
                             <div style="text-align: right; margin-left: 0.5rem;">
                                 <div style="font-size: 0.75rem; font-weight: 600; color: var(--joy-primary-500);">
-                                    ${v.pickupDate ? new Date(v.pickupDate).toLocaleDateString('en-US', {month: 'short', day: 'numeric'}) : 'No date'}
+                                    ${v.pickupDate ? new Date(v.pickupDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No date'}
                                 </div>
                                 <div style="font-size: 0.6875rem; color: var(--joy-text-tertiary);">
                                     ${v.pickupTime || 'No time'}
@@ -1984,12 +1984,12 @@ function updateDashboard() {
                         </thead>
                         <tbody>
                             ${allSelectedVehicles.slice(0, 10).map(v => {
-                                const daysOld = getDaysInStock(v);
-                                const ageColor = daysOld !== null ? getAgeColor(daysOld) : 'var(--joy-text-tertiary)';
-                                const statusClass = `status-${v.status}`;
-                                const statusText = v.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                const daysOld = getDaysInStock(v);
+                const ageColor = daysOld !== null ? getAgeColor(daysOld) : 'var(--joy-text-tertiary)';
+                const statusClass = `status-${v.status}`;
+                const statusText = v.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
-                                return `
+                return `
                                     <tr style="border-bottom: 1px solid var(--joy-divider); cursor: pointer; transition: background 0.2s;"
                                         onclick="openVehicleDetail(${v.id})"
                                         onmouseover="this.style.background='var(--joy-bg-level1)'"
@@ -2006,7 +2006,7 @@ function updateDashboard() {
                                         </td>
                                     </tr>
                                 `;
-                            }).join('')}
+            }).join('')}
                         </tbody>
                     </table>
                 </div>
@@ -2076,10 +2076,10 @@ function updateDashboard() {
                         </thead>
                         <tbody>
                             ${weeklySales.map(v => {
-                                const customerName = v.customer ? `${v.customer.firstName || ''} ${v.customer.lastName || ''}`.trim() : 'N/A';
-                                const saleDate = v.customer && v.customer.saleDate ? new Date(v.customer.saleDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
+                const customerName = v.customer ? `${v.customer.firstName || ''} ${v.customer.lastName || ''}`.trim() : 'N/A';
+                const saleDate = v.customer && v.customer.saleDate ? new Date(v.customer.saleDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
 
-                                return `
+                return `
                                     <tr style="border-bottom: 1px solid var(--joy-divider); cursor: pointer; transition: background 0.2s;"
                                         onclick="openVehicleDetail(${v.id})"
                                         onmouseover="this.style.background='var(--joy-bg-level1)'"
@@ -2099,7 +2099,7 @@ function updateDashboard() {
                                         </td>
                                     </tr>
                                 `;
-                            }).join('')}
+            }).join('')}
                         </tbody>
                     </table>
                 </div>
@@ -2123,7 +2123,7 @@ function renderCurrentPage() {
     const activePage = document.querySelector('.page.active');
     if (!activePage) return;
     const pageId = activePage.id;
-    switch(pageId) {
+    switch (pageId) {
         case 'dashboard': updateDashboard(); break;
         case 'inventory': renderInventoryPage(); break;
         case 'in-transit': renderStatusPage('in-transit', 'transitGrid', 'transitSearchInput', 'transitMakeFilter'); break;
@@ -2178,12 +2178,12 @@ function renderStatusPage(status, gridId, searchId, makeFilterId) {
     if (searchTerm) {
         filtered = filtered.filter(v => {
             return v.stockNumber.toLowerCase().includes(searchTerm) ||
-                   v.vin.toLowerCase().includes(searchTerm) ||
-                   v.make.toLowerCase().includes(searchTerm) ||
-                   v.model.toLowerCase().includes(searchTerm) ||
-                   `${v.year} ${v.make} ${v.model}`.toLowerCase().includes(searchTerm) ||
-                   (v.customer?.firstName || '').toLowerCase().includes(searchTerm) ||
-                   (v.customer?.lastName || '').toLowerCase().includes(searchTerm);
+                v.vin.toLowerCase().includes(searchTerm) ||
+                v.make.toLowerCase().includes(searchTerm) ||
+                v.model.toLowerCase().includes(searchTerm) ||
+                `${v.year} ${v.make} ${v.model}`.toLowerCase().includes(searchTerm) ||
+                (v.customer?.firstName || '').toLowerCase().includes(searchTerm) ||
+                (v.customer?.lastName || '').toLowerCase().includes(searchTerm);
         });
     }
 
@@ -2229,11 +2229,33 @@ function renderSoldPage() {
     // Apply filters
     let filtered = soldVehicles;
 
-    // Filter by month/year
+    // Get filter values
+    const startDate = document.getElementById('soldStartDateFilter')?.value;
+    const endDate = document.getElementById('soldEndDateFilter')?.value;
     const monthFilter = document.getElementById('soldMonthFilter')?.value;
     const yearFilter = document.getElementById('soldYearFilter')?.value;
 
-    if (monthFilter || yearFilter) {
+    // Date range filter takes priority over month/year
+    if (startDate || endDate) {
+        filtered = filtered.filter(v => {
+            if (!v.customer?.saleDate) return false;
+            const saleDate = new Date(v.customer.saleDate);
+            saleDate.setHours(0, 0, 0, 0); // Normalize to start of day
+
+            if (startDate) {
+                const start = new Date(startDate);
+                start.setHours(0, 0, 0, 0);
+                if (saleDate < start) return false;
+            }
+            if (endDate) {
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999); // End of day
+                if (saleDate > end) return false;
+            }
+            return true;
+        });
+    } else if (monthFilter || yearFilter) {
+        // Only apply month/year filter if date range is not set
         filtered = filtered.filter(v => {
             if (!v.customer?.saleDate) return false;
             const saleDate = new Date(v.customer.saleDate);
@@ -2248,10 +2270,10 @@ function renderSoldPage() {
     if (searchTerm) {
         filtered = filtered.filter(v => {
             return v.stockNumber.toLowerCase().includes(searchTerm) ||
-                   v.vin.toLowerCase().includes(searchTerm) ||
-                   `${v.year} ${v.make} ${v.model}`.toLowerCase().includes(searchTerm) ||
-                   (v.customer?.firstName || '').toLowerCase().includes(searchTerm) ||
-                   (v.customer?.lastName || '').toLowerCase().includes(searchTerm);
+                v.vin.toLowerCase().includes(searchTerm) ||
+                `${v.year} ${v.make} ${v.model}`.toLowerCase().includes(searchTerm) ||
+                (v.customer?.firstName || '').toLowerCase().includes(searchTerm) ||
+                (v.customer?.lastName || '').toLowerCase().includes(searchTerm);
         });
     }
 
@@ -2326,6 +2348,57 @@ function updateYearFilter() {
     }
 }
 
+// Handle date range change - clears month/year filters when date range is set
+function handleSoldDateRangeChange() {
+    const startDate = document.getElementById('soldStartDateFilter')?.value;
+    const endDate = document.getElementById('soldEndDateFilter')?.value;
+
+    // If a date range is set, clear month/year filters
+    if (startDate || endDate) {
+        const monthFilter = document.getElementById('soldMonthFilter');
+        const yearFilter = document.getElementById('soldYearFilter');
+        if (monthFilter) monthFilter.value = '';
+        if (yearFilter) yearFilter.value = '';
+    }
+
+    renderCurrentPage();
+}
+
+// Handle month/year change - clears date range filters when month/year is set
+function handleSoldMonthYearChange() {
+    const monthFilter = document.getElementById('soldMonthFilter')?.value;
+    const yearFilter = document.getElementById('soldYearFilter')?.value;
+
+    // If month or year is set, clear date range filters
+    if (monthFilter || yearFilter) {
+        const startDateFilter = document.getElementById('soldStartDateFilter');
+        const endDateFilter = document.getElementById('soldEndDateFilter');
+        if (startDateFilter) startDateFilter.value = '';
+        if (endDateFilter) endDateFilter.value = '';
+    }
+
+    renderCurrentPage();
+}
+
+// Clear all sold vehicle filters
+function clearSoldFilters() {
+    const startDateFilter = document.getElementById('soldStartDateFilter');
+    const endDateFilter = document.getElementById('soldEndDateFilter');
+    const monthFilter = document.getElementById('soldMonthFilter');
+    const yearFilter = document.getElementById('soldYearFilter');
+    const makeFilter = document.getElementById('soldMakeFilter');
+    const searchInput = document.getElementById('soldSearchInput');
+
+    if (startDateFilter) startDateFilter.value = '';
+    if (endDateFilter) endDateFilter.value = '';
+    if (monthFilter) monthFilter.value = '';
+    if (yearFilter) yearFilter.value = '';
+    if (makeFilter) makeFilter.value = '';
+    if (searchInput) searchInput.value = '';
+
+    renderCurrentPage();
+}
+
 function exportSoldVehicles() {
     // Get the currently filtered vehicles
     let filtered = soldVehicles;
@@ -2348,10 +2421,10 @@ function exportSoldVehicles() {
     if (searchTerm) {
         filtered = filtered.filter(v => {
             return v.stockNumber.toLowerCase().includes(searchTerm) ||
-                   v.vin.toLowerCase().includes(searchTerm) ||
-                   `${v.year} ${v.make} ${v.model}`.toLowerCase().includes(searchTerm) ||
-                   (v.customer?.firstName || '').toLowerCase().includes(searchTerm) ||
-                   (v.customer?.lastName || '').toLowerCase().includes(searchTerm);
+                v.vin.toLowerCase().includes(searchTerm) ||
+                `${v.year} ${v.make} ${v.model}`.toLowerCase().includes(searchTerm) ||
+                (v.customer?.firstName || '').toLowerCase().includes(searchTerm) ||
+                (v.customer?.lastName || '').toLowerCase().includes(searchTerm);
         });
     }
 
@@ -2437,10 +2510,10 @@ function renderTradeInsPage() {
     if (searchTerm) {
         filtered = filtered.filter(t => {
             return t.stockNumber.toLowerCase().includes(searchTerm) ||
-                   t.vin.toLowerCase().includes(searchTerm) ||
-                   t.make.toLowerCase().includes(searchTerm) ||
-                   t.model.toLowerCase().includes(searchTerm) ||
-                   `${t.year} ${t.make} ${t.model}`.toLowerCase().includes(searchTerm);
+                t.vin.toLowerCase().includes(searchTerm) ||
+                t.make.toLowerCase().includes(searchTerm) ||
+                t.model.toLowerCase().includes(searchTerm) ||
+                `${t.year} ${t.make} ${t.model}`.toLowerCase().includes(searchTerm);
         });
     }
 
@@ -2604,7 +2677,7 @@ function createSoldVehicleRow(vehicle) {
 function createVehicleCard(vehicle) {
     const statusClass = `status-${vehicle.status}`;
     const statusText = vehicle.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-    
+
     return `
         <div class="vehicle-card" onclick="openVehicleDetail(${vehicle.id})" style="cursor: pointer;">
             <div class="vehicle-header">
@@ -2674,7 +2747,7 @@ function renderDetailModal(vehicle) {
     const content = document.getElementById('detailContent');
 
     const isEditing = window.currentlyEditingVehicle === vehicle.id;
-    
+
     if (!isEditing) {
         // Display mode
         content.innerHTML = `
@@ -2690,18 +2763,18 @@ function renderDetailModal(vehicle) {
                 <div class="info-item"><div class="info-label">Operation Company</div><div class="info-value">${vehicle.operationCompany || 'N/A'}</div></div>
                 <div class="info-item"><div class="info-label">In Stock Date</div><div class="info-value">${vehicle.inStockDate ? new Date(vehicle.inStockDate).toLocaleDateString() : 'N/A'}</div></div>
                 <div class="info-item"><div class="info-label">Days in Stock</div><div class="info-value">${(() => {
-                    if (!vehicle.inStockDate) return 'N/A';
-                    const inStockDate = new Date(vehicle.inStockDate);
-                    const isSold = vehicle.status === 'sold' || soldVehicles.some(v => v.id === vehicle.id);
-                    const endDate = isSold && vehicle.customer?.saleDate ? new Date(vehicle.customer.saleDate) : new Date();
+                if (!vehicle.inStockDate) return 'N/A';
+                const inStockDate = new Date(vehicle.inStockDate);
+                const isSold = vehicle.status === 'sold' || soldVehicles.some(v => v.id === vehicle.id);
+                const endDate = isSold && vehicle.customer?.saleDate ? new Date(vehicle.customer.saleDate) : new Date();
 
-                    // Normalize both dates to midnight local time for accurate day calculation
-                    inStockDate.setHours(0, 0, 0, 0);
-                    endDate.setHours(0, 0, 0, 0);
+                // Normalize both dates to midnight local time for accurate day calculation
+                inStockDate.setHours(0, 0, 0, 0);
+                endDate.setHours(0, 0, 0, 0);
 
-                    const days = Math.floor((endDate - inStockDate) / (1000 * 60 * 60 * 24));
-                    return days >= 0 ? days + ' days' : 'N/A';
-                })()}</div></div>
+                const days = Math.floor((endDate - inStockDate) / (1000 * 60 * 60 * 24));
+                return days >= 0 ? days + ' days' : 'N/A';
+            })()}</div></div>
             </div>
             <div style="margin-top: 2rem; display: flex; gap: 1rem;">
                 <button class="btn btn-secondary" onclick="generateLabelById(${vehicle.id})" style="flex: 1;">🏷️ Generate Label</button>
@@ -2757,12 +2830,12 @@ function renderDetailModal(vehicle) {
                 <div class="form-group">
                     <label for="editInStockDate">In Stock Date</label>
                     <input type="date" id="editInStockDate" value="${vehicle.inStockDate ? (() => {
-                        const date = new Date(vehicle.inStockDate);
-                        const year = date.getFullYear();
-                        const month = String(date.getMonth() + 1).padStart(2, '0');
-                        const day = String(date.getDate()).padStart(2, '0');
-                        return `${year}-${month}-${day}`;
-                    })() : ''}">
+                const date = new Date(vehicle.inStockDate);
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            })() : ''}">
                 </div>
                 <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
                     <button type="submit" class="btn" style="flex: 1;">💾 Save Changes</button>
@@ -2771,7 +2844,7 @@ function renderDetailModal(vehicle) {
             </form>
         `;
     }
-    
+
     document.getElementById('detailStatus').value = vehicle.status;
 
     // Check if vehicle is sold
@@ -3080,7 +3153,7 @@ function renderStatusChart(colors, textColor) {
 
     // Exclude in-transit vehicles from status chart
     vehicles.filter(v => v.status !== 'in-transit').forEach(v => {
-        switch(v.status) {
+        switch (v.status) {
             case 'in-stock': statusData['In Stock']++; break;
             case 'pdi': statusData['PDI']++; break;
             case 'pending-pickup': statusData['Pending Pickup']++; break;
@@ -3770,7 +3843,7 @@ async function handleCSVImport(event) {
     }
 
     const reader = new FileReader();
-    reader.onload = async function(e) {
+    reader.onload = async function (e) {
         const text = e.target.result;
         const lines = text.split('\n').filter(line => line.trim());
 
@@ -4003,14 +4076,14 @@ async function handleCSVImport(event) {
 // Open status popup
 function openStatusPopup(vehicleId, event) {
     event.stopPropagation();
-    
+
     const vehicle = vehicles.find(v => v.id === vehicleId);
     if (!vehicle) return;
-    
+
     const button = event.target;
     const popup = document.getElementById('statusPopup');
     const rect = button.getBoundingClientRect();
-    
+
     // Create status options
     const statuses = [
         { value: 'in-stock', label: 'In Stock', class: 'status-in-stock' },
@@ -4020,54 +4093,54 @@ function openStatusPopup(vehicleId, event) {
         { value: 'pickup-scheduled', label: 'Pickup Scheduled', class: 'status-pickup-scheduled' },
         { value: 'sold', label: 'Sold', class: 'status-sold' }
     ];
-    
+
     popup.innerHTML = statuses.map(status => `
         <div class="status-popup-option ${vehicle.status === status.value ? 'selected' : ''}" 
              onclick="quickStatusChange(${vehicleId}, '${status.value}')">
             <span class="status-badge ${status.class}" style="margin-right: 0.5rem;">${status.label}</span>
         </div>
     `).join('');
-    
+
     // Show popup temporarily to get its height
     popup.style.visibility = 'hidden';
     popup.classList.add('active');
-    
+
     // Calculate positions
     const popupHeight = popup.offsetHeight;
     const popupWidth = popup.offsetWidth;
     const viewportHeight = window.innerHeight;
     const viewportWidth = window.innerWidth;
-    
+
     let top = rect.bottom + window.scrollY + 5;
     let left = rect.left + window.scrollX;
-    
+
     // Check if popup goes off bottom of screen
     if (rect.bottom + popupHeight + 5 > viewportHeight) {
         // Position above button instead
         top = rect.top + window.scrollY - popupHeight - 5;
     }
-    
+
     // Check if popup goes off right of screen
     if (left + popupWidth > viewportWidth) {
         // Align to right edge of button
         left = rect.right + window.scrollX - popupWidth;
     }
-    
+
     // Make sure it doesn't go off left edge
     if (left < 0) {
         left = 10;
     }
-    
+
     // Make sure it doesn't go off top edge
     if (top < window.scrollY) {
         top = window.scrollY + 10;
     }
-    
+
     // Position popup
     popup.style.top = top + 'px';
     popup.style.left = left + 'px';
     popup.style.visibility = 'visible';
-    
+
     // Close popup when clicking outside
     setTimeout(() => {
         document.addEventListener('click', closeStatusPopup);
@@ -4083,26 +4156,26 @@ function closeStatusPopup() {
 // Quick status change from card dropdown
 async function quickStatusChange(vehicleId, newStatus) {
     closeStatusPopup(); // Close the popup immediately
-    
+
     if (!newStatus) return;
-    
+
     const vehicle = vehicles.find(v => v.id === vehicleId);
     if (!vehicle) return;
-    
+
     currentVehicle = vehicle;
-    
+
     // If changing to sold, show sold modal
     if (newStatus === 'sold') {
         openSoldModal();
         return;
     }
-    
+
     // If changing to pickup-scheduled, show pickup schedule modal
     if (newStatus === 'pickup-scheduled') {
         openPickupScheduleModal();
         return;
     }
-    
+
     // Regular status change
     vehicle.status = newStatus;
     try {
@@ -4315,7 +4388,7 @@ function navigateTo(pageId) {
 
 function formatDate(dateString) { if (!dateString) return 'N/A'; return new Date(dateString).toLocaleDateString(); }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     checkAuth();
 
     // Initialize mobile sidebar
@@ -4324,36 +4397,36 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add event listeners only if elements exist
     const loginForm = document.getElementById('loginForm');
     if (loginForm) loginForm.addEventListener('submit', login);
-    
+
     const vehicleForm = document.getElementById('vehicleForm');
     if (vehicleForm) vehicleForm.addEventListener('submit', addVehicle);
-    
+
     const customerForm = document.getElementById('customerForm');
     if (customerForm) customerForm.addEventListener('submit', saveCustomerInfo);
-    
+
     const tradeInForm = document.getElementById('tradeInForm');
     if (tradeInForm) tradeInForm.addEventListener('submit', addTradeIn);
-    
+
     const pickupScheduleForm = document.getElementById('pickupScheduleForm');
     if (pickupScheduleForm) pickupScheduleForm.addEventListener('submit', schedulePickup);
-    
+
     const soldForm = document.getElementById('soldForm');
     if (soldForm) soldForm.addEventListener('submit', handleSoldSubmit);
-    
+
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) logoutBtn.addEventListener('click', logout);
 
     // User dropdown toggle
     const userInfoClick = document.getElementById('userInfoClick');
     if (userInfoClick) {
-        userInfoClick.addEventListener('click', function(e) {
+        userInfoClick.addEventListener('click', function (e) {
             e.stopPropagation();
             toggleUserDropdown();
         });
     }
 
     // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         const userDropdown = document.getElementById('userDropdown');
         const userInfoClick = document.getElementById('userInfoClick');
         if (userDropdown && userInfoClick && !userInfoClick.contains(e.target)) {
@@ -4362,37 +4435,37 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', function(e) { 
-            e.preventDefault(); 
-            const pageId = this.getAttribute('data-page'); 
-            switchPage(pageId); 
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            const pageId = this.getAttribute('data-page');
+            switchPage(pageId);
         });
     });
-    
+
     if (document.getElementById('searchInput')) {
-        document.getElementById('searchInput').addEventListener('input', function(e) { 
-            currentFilter.search = e.target.value; 
-            renderCurrentPage(); 
+        document.getElementById('searchInput').addEventListener('input', function (e) {
+            currentFilter.search = e.target.value;
+            renderCurrentPage();
         });
     }
-    
+
     if (document.getElementById('makeFilter')) {
-        document.getElementById('makeFilter').addEventListener('change', function(e) { 
-            currentFilter.make = e.target.value; 
-            renderCurrentPage(); 
+        document.getElementById('makeFilter').addEventListener('change', function (e) {
+            currentFilter.make = e.target.value;
+            renderCurrentPage();
         });
     }
-    
+
     if (document.getElementById('statusFilter')) {
-        document.getElementById('statusFilter').addEventListener('change', function(e) { 
-            currentFilter.status = e.target.value; 
-            renderCurrentPage(); 
+        document.getElementById('statusFilter').addEventListener('change', function (e) {
+            currentFilter.status = e.target.value;
+            renderCurrentPage();
         });
     }
-    
+
     document.querySelectorAll('.modal').forEach(modal => {
-        modal.addEventListener('click', function(e) { 
-            if (e.target === this) this.classList.remove('active'); 
+        modal.addEventListener('click', function (e) {
+            if (e.target === this) this.classList.remove('active');
         });
     });
 });
@@ -4434,11 +4507,11 @@ function renderPaymentsPage() {
     if (searchTerm) {
         filtered = filtered.filter(v => {
             return v.stockNumber.toLowerCase().includes(searchTerm) ||
-                   v.vin.toLowerCase().includes(searchTerm) ||
-                   `${v.year} ${v.make} ${v.model}`.toLowerCase().includes(searchTerm) ||
-                   (v.customer?.firstName || '').toLowerCase().includes(searchTerm) ||
-                   (v.customer?.lastName || '').toLowerCase().includes(searchTerm) ||
-                   (v.customer?.paymentReference || '').toLowerCase().includes(searchTerm);
+                v.vin.toLowerCase().includes(searchTerm) ||
+                `${v.year} ${v.make} ${v.model}`.toLowerCase().includes(searchTerm) ||
+                (v.customer?.firstName || '').toLowerCase().includes(searchTerm) ||
+                (v.customer?.lastName || '').toLowerCase().includes(searchTerm) ||
+                (v.customer?.paymentReference || '').toLowerCase().includes(searchTerm);
         });
     }
 
@@ -4479,16 +4552,15 @@ function renderPaymentsPage() {
                 <td style="padding: 1rem;">${vehicle.year} ${vehicle.make} ${vehicle.model}</td>
                 <td style="padding: 1rem;">${customerName}</td>
                 <td style="padding: 1rem;">${saleDate}</td>
-                <td style="padding: 1rem; text-align: right; font-weight: 600; font-family: monospace;">$${saleAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td style="padding: 1rem; text-align: right; font-weight: 600; font-family: monospace;">$${saleAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                 <td style="padding: 1rem;">
-                    <span class="status-badge ${
-                        paymentMethod === 'ACH' ? 'status-in-stock' :
-                        paymentMethod === 'Check' ? 'status-pending-pickup' :
-                        paymentMethod === 'Credit Card' ? 'status-pickup-scheduled' :
+                    <span class="status-badge ${paymentMethod === 'ACH' ? 'status-in-stock' :
+                paymentMethod === 'Check' ? 'status-pending-pickup' :
+                    paymentMethod === 'Credit Card' ? 'status-pickup-scheduled' :
                         paymentMethod === 'Wire Transfer' ? 'status-pdi' :
-                        paymentMethod === 'Cash' ? 'status-sold' :
-                        'status-pdi'
-                    }">${paymentMethod}</span>
+                            paymentMethod === 'Cash' ? 'status-sold' :
+                                'status-pdi'
+            }">${paymentMethod}</span>
                 </td>
                 <td style="padding: 1rem; font-family: monospace;">${paymentRef}</td>
                 <td style="padding: 1rem;">
@@ -4504,7 +4576,7 @@ function renderPaymentsPage() {
             <td colspan="4" style="padding: 1rem; text-align: right; font-weight: 700; font-size: 1.1rem;">
                 Total (${filtered.length} payment${filtered.length !== 1 ? 's' : ''}):
             </td>
-            <td style="padding: 1rem; text-align: right; font-weight: 700; font-size: 1.1rem; font-family: monospace; color: var(--accent);">$${totalAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+            <td style="padding: 1rem; text-align: right; font-weight: 700; font-size: 1.1rem; font-family: monospace; color: var(--accent);">$${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
             <td colspan="3"></td>
         </tr>
     `;
@@ -4614,7 +4686,7 @@ function renderPaymentAnalytics() {
                 <span style="font-size: 1.5rem;">📅</span>
             </div>
             <div style="font-size: 2rem; font-weight: 700; color: var(--joy-text-primary); margin-bottom: 0.5rem; font-family: monospace;">
-                $${currentMonthTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                $${currentMonthTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
             <div style="font-size: 0.875rem; color: var(--joy-text-secondary); margin-bottom: 1rem;">
                 ${currentMonthCount} payment${currentMonthCount !== 1 ? 's' : ''}
@@ -4644,7 +4716,7 @@ function renderPaymentAnalytics() {
                 <span style="font-size: 1.5rem;">📆</span>
             </div>
             <div style="font-size: 2rem; font-weight: 700; color: var(--joy-text-primary); margin-bottom: 0.5rem; font-family: monospace;">
-                $${prevMonthTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                $${prevMonthTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
             <div style="font-size: 0.875rem; color: var(--joy-text-secondary);">
                 ${prevMonthCount} payment${prevMonthCount !== 1 ? 's' : ''}
@@ -4660,7 +4732,7 @@ function renderPaymentAnalytics() {
                 <span style="font-size: 1.5rem;">📊</span>
             </div>
             <div style="font-size: 2rem; font-weight: 700; color: var(--joy-text-primary); margin-bottom: 0.5rem; font-family: monospace;">
-                $${currentYearTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                $${currentYearTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
             <div style="font-size: 0.875rem; color: var(--joy-text-secondary); margin-bottom: 1rem;">
                 ${currentYearCount} payment${currentYearCount !== 1 ? 's' : ''}
@@ -4690,7 +4762,7 @@ function renderPaymentAnalytics() {
                 <span style="font-size: 1.5rem;">📈</span>
             </div>
             <div style="font-size: 2rem; font-weight: 700; color: var(--joy-text-primary); margin-bottom: 0.5rem; font-family: monospace;">
-                $${prevYearTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                $${prevYearTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
             <div style="font-size: 0.875rem; color: var(--joy-text-secondary);">
                 ${prevYearCount} payment${prevYearCount !== 1 ? 's' : ''}
@@ -4732,11 +4804,11 @@ function exportPayments() {
     if (searchTerm) {
         filtered = filtered.filter(v => {
             return v.stockNumber.toLowerCase().includes(searchTerm) ||
-                   v.vin.toLowerCase().includes(searchTerm) ||
-                   `${v.year} ${v.make} ${v.model}`.toLowerCase().includes(searchTerm) ||
-                   (v.customer?.firstName || '').toLowerCase().includes(searchTerm) ||
-                   (v.customer?.lastName || '').toLowerCase().includes(searchTerm) ||
-                   (v.customer?.paymentReference || '').toLowerCase().includes(searchTerm);
+                v.vin.toLowerCase().includes(searchTerm) ||
+                `${v.year} ${v.make} ${v.model}`.toLowerCase().includes(searchTerm) ||
+                (v.customer?.firstName || '').toLowerCase().includes(searchTerm) ||
+                (v.customer?.lastName || '').toLowerCase().includes(searchTerm) ||
+                (v.customer?.paymentReference || '').toLowerCase().includes(searchTerm);
         });
     }
 
@@ -5021,10 +5093,31 @@ function exportSold() {
     let filtered = soldVehicles;
 
     // Apply same filters as renderSoldPage
+    const startDate = document.getElementById('soldStartDateFilter')?.value;
+    const endDate = document.getElementById('soldEndDateFilter')?.value;
     const monthFilter = document.getElementById('soldMonthFilter')?.value;
     const yearFilter = document.getElementById('soldYearFilter')?.value;
 
-    if (monthFilter || yearFilter) {
+    // Date range filter takes priority over month/year
+    if (startDate || endDate) {
+        filtered = filtered.filter(v => {
+            if (!v.customer?.saleDate) return false;
+            const saleDate = new Date(v.customer.saleDate);
+            saleDate.setHours(0, 0, 0, 0);
+
+            if (startDate) {
+                const start = new Date(startDate);
+                start.setHours(0, 0, 0, 0);
+                if (saleDate < start) return false;
+            }
+            if (endDate) {
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999);
+                if (saleDate > end) return false;
+            }
+            return true;
+        });
+    } else if (monthFilter || yearFilter) {
         filtered = filtered.filter(v => {
             if (!v.customer?.saleDate) return false;
             const saleDate = new Date(v.customer.saleDate);
@@ -5038,10 +5131,10 @@ function exportSold() {
     if (searchTerm) {
         filtered = filtered.filter(v => {
             return v.stockNumber.toLowerCase().includes(searchTerm) ||
-                   v.vin.toLowerCase().includes(searchTerm) ||
-                   `${v.year} ${v.make} ${v.model}`.toLowerCase().includes(searchTerm) ||
-                   (v.customer?.firstName || '').toLowerCase().includes(searchTerm) ||
-                   (v.customer?.lastName || '').toLowerCase().includes(searchTerm);
+                v.vin.toLowerCase().includes(searchTerm) ||
+                `${v.year} ${v.make} ${v.model}`.toLowerCase().includes(searchTerm) ||
+                (v.customer?.firstName || '').toLowerCase().includes(searchTerm) ||
+                (v.customer?.lastName || '').toLowerCase().includes(searchTerm);
         });
     }
 
