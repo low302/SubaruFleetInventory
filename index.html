@@ -2993,6 +2993,215 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Label Tools Section -->
+                    <div>
+                        <h3
+                            style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--joy-text-primary); border-bottom: 2px solid var(--joy-divider); padding-bottom: 0.5rem;">
+                            Label Tools
+                        </h3>
+
+                        <!-- Batch Label Printing -->
+                        <div
+                            style="background: var(--joy-background-level1); padding: 1.5rem; border-radius: var(--joy-radius-md); border: 1px solid var(--joy-border);">
+                            <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                                <div style="font-size: 2rem;">🏷️</div>
+                                <div style="flex: 1;">
+                                    <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">Label Tool</h4>
+                                    <p
+                                        style="font-size: 0.875rem; color: var(--joy-text-tertiary); margin-bottom: 1rem;">
+                                        Generate and print multiple labels at once. Select Key Tags or Folder Tags, specify quantity per vehicle, then choose vehicles to print.
+                                    </p>
+                                    <button class="btn btn-secondary" onclick="openLabelToolModal()"
+                                        style="width: 100%;">
+                                        Open Label Tool
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Label Tool Modal -->
+    <div id="labelToolModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>🏷️ Label Tool</h2>
+                <button class="close-btn" onclick="closeLabelToolModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--joy-text-primary);">
+                        Label Type
+                    </label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <button id="labelToolKeyTag" class="label-tool-type-btn" onclick="selectLabelToolType('key')" style="
+                            padding: 1.25rem;
+                            border-radius: var(--joy-radius-md);
+                            border: 2px solid var(--joy-border);
+                            background: var(--joy-background-level1);
+                            color: var(--joy-text-primary);
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            gap: 0.5rem;
+                        ">
+                            <span style="font-size: 1.5rem;">🔑</span>
+                            <span style="font-weight: 600;">Key Tag</span>
+                            <span style="font-size: 0.75rem; color: var(--joy-text-tertiary);">OL875 - 30 per sheet</span>
+                        </button>
+                        <button id="labelToolFolderTag" class="label-tool-type-btn" onclick="selectLabelToolType('folder')" style="
+                            padding: 1.25rem;
+                            border-radius: var(--joy-radius-md);
+                            border: 2px solid var(--joy-border);
+                            background: var(--joy-background-level1);
+                            color: var(--joy-text-primary);
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            gap: 0.5rem;
+                        ">
+                            <span style="font-size: 1.5rem;">📁</span>
+                            <span style="font-weight: 600;">Folder Tag</span>
+                            <span style="font-size: 0.75rem; color: var(--joy-text-tertiary);">OL125 - 10 per sheet</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="labelToolQuantity" style="display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--joy-text-primary);">
+                        Labels per Vehicle
+                    </label>
+                    <input type="number" id="labelToolQuantity" min="1" max="10" value="1" style="
+                        width: 100%;
+                        padding: 0.75rem 1rem;
+                        border-radius: var(--joy-radius-sm);
+                        border: 1px solid var(--joy-border);
+                        background: var(--joy-background-level1);
+                        color: var(--joy-text-primary);
+                        font-size: 1rem;
+                    ">
+                    <p style="font-size: 0.75rem; color: var(--joy-text-tertiary); margin-top: 0.25rem;">
+                        Number of labels to print for each selected vehicle (1-10)
+                    </p>
+                </div>
+
+                <button id="labelToolNextBtn" class="btn btn-primary" onclick="openLabelToolVehicleSelector()" style="width: 100%;" disabled>
+                    Select Vehicles
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Label Tool Vehicle Selector Modal -->
+    <div id="labelToolVehicleSelectorModal" class="modal">
+        <div class="modal-content" style="max-width: 900px; max-height: 90vh;">
+            <div class="modal-header">
+                <h2>🏷️ Select Vehicles for Labels</h2>
+                <button class="close-btn" onclick="closeLabelToolVehicleSelector()">&times;</button>
+            </div>
+            <div class="modal-body" style="display: flex; flex-direction: column; max-height: calc(90vh - 120px);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-shrink: 0;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <span id="labelToolTypeIndicator" style="
+                            padding: 0.375rem 0.75rem;
+                            background: var(--joy-primary-500);
+                            color: white;
+                            border-radius: var(--joy-radius-sm);
+                            font-size: 0.875rem;
+                            font-weight: 600;
+                        "></span>
+                        <span id="labelToolQuantityIndicator" style="
+                            font-size: 0.875rem;
+                            color: var(--joy-text-secondary);
+                        "></span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <button class="btn btn-secondary" onclick="selectAllLabelToolVehicles()" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                            Select All
+                        </button>
+                        <button class="btn btn-secondary" onclick="deselectAllLabelToolVehicles()" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                            Deselect All
+                        </button>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1rem; flex-shrink: 0;">
+                    <input type="text" id="labelToolVehicleSearch" placeholder="Search by stock #, VIN, make, model..." oninput="filterLabelToolVehicles()" style="
+                        width: 100%;
+                        padding: 0.75rem 1rem;
+                        border-radius: var(--joy-radius-sm);
+                        border: 1px solid var(--joy-border);
+                        background: var(--joy-background-level1);
+                        color: var(--joy-text-primary);
+                        font-size: 0.875rem;
+                    ">
+                </div>
+
+                <div id="labelToolVehicleList" style="
+                    flex: 1;
+                    overflow-y: auto;
+                    border: 1px solid var(--joy-border);
+                    border-radius: var(--joy-radius-md);
+                    background: var(--joy-background-level1);
+                "></div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--joy-border); flex-shrink: 0;">
+                    <span id="labelToolSelectionCount" style="font-size: 0.875rem; color: var(--joy-text-secondary);">
+                        0 vehicles selected (0 labels total)
+                    </span>
+                    <div style="display: flex; gap: 0.75rem;">
+                        <button class="btn btn-secondary" onclick="closeLabelToolVehicleSelector()">
+                            Cancel
+                        </button>
+                        <button id="labelToolGenerateBtn" class="btn btn-primary" onclick="generateBatchLabels()" disabled>
+                            Generate Labels
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Batch Label Print Modal -->
+    <div id="batchLabelPrintModal" class="modal">
+        <div class="modal-content" style="max-width: 900px; max-height: 90vh;">
+            <div class="modal-header">
+                <h2>🖨️ Print Labels</h2>
+                <button class="close-btn" onclick="closeBatchLabelPrintModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="display: flex; flex-direction: column; max-height: calc(90vh - 120px);">
+                <div style="margin-bottom: 1rem; flex-shrink: 0;">
+                    <p style="font-size: 0.875rem; color: var(--joy-text-secondary);">
+                        Labels have been arranged on the sheet layout below. Click "Print All" to print the entire sheet.
+                    </p>
+                </div>
+
+                <div id="batchLabelPreview" style="
+                    flex: 1;
+                    overflow: auto;
+                    background: var(--joy-background-level1);
+                    border: 1px solid var(--joy-border);
+                    border-radius: var(--joy-radius-md);
+                    padding: 1rem;
+                    display: flex;
+                    justify-content: center;
+                "></div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--joy-border); flex-shrink: 0;">
+                    <button class="btn btn-secondary" onclick="closeBatchLabelPrintModal()">
+                        Close
+                    </button>
+                    <button class="btn btn-primary" onclick="printBatchLabels()">
+                        🖨️ Print All
+                    </button>
                 </div>
             </div>
         </div>

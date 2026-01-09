@@ -5433,3 +5433,518 @@ function exportToExcel(items) {
 
     showNotification(`Exported ${items.length} item${items.length !== 1 ? 's' : ''} to ${filename}`, 'success');
 }
+
+// ==================== LABEL TOOL FUNCTIONS ====================
+
+let labelToolState = {
+    type: null, // 'key' or 'folder'
+    quantity: 1,
+    selectedVehicles: new Set(),
+    filteredVehicles: []
+};
+
+function openLabelToolModal() {
+    // Reset state
+    labelToolState.type = null;
+    labelToolState.quantity = 1;
+    labelToolState.selectedVehicles.clear();
+
+    // Reset UI
+    document.getElementById('labelToolQuantity').value = 1;
+    document.getElementById('labelToolKeyTag').style.borderColor = 'var(--joy-border)';
+    document.getElementById('labelToolKeyTag').style.background = 'var(--joy-background-level1)';
+    document.getElementById('labelToolFolderTag').style.borderColor = 'var(--joy-border)';
+    document.getElementById('labelToolFolderTag').style.background = 'var(--joy-background-level1)';
+    document.getElementById('labelToolNextBtn').disabled = true;
+
+    document.getElementById('labelToolModal').classList.add('active');
+}
+
+function closeLabelToolModal() {
+    document.getElementById('labelToolModal').classList.remove('active');
+}
+
+function selectLabelToolType(type) {
+    labelToolState.type = type;
+
+    const keyBtn = document.getElementById('labelToolKeyTag');
+    const folderBtn = document.getElementById('labelToolFolderTag');
+
+    if (type === 'key') {
+        keyBtn.style.borderColor = 'var(--joy-primary-500)';
+        keyBtn.style.background = 'rgba(10, 132, 255, 0.1)';
+        folderBtn.style.borderColor = 'var(--joy-border)';
+        folderBtn.style.background = 'var(--joy-background-level1)';
+    } else {
+        folderBtn.style.borderColor = 'var(--joy-primary-500)';
+        folderBtn.style.background = 'rgba(10, 132, 255, 0.1)';
+        keyBtn.style.borderColor = 'var(--joy-border)';
+        keyBtn.style.background = 'var(--joy-background-level1)';
+    }
+
+    document.getElementById('labelToolNextBtn').disabled = false;
+}
+
+function openLabelToolVehicleSelector() {
+    // Get quantity
+    const quantityInput = document.getElementById('labelToolQuantity');
+    labelToolState.quantity = Math.min(10, Math.max(1, parseInt(quantityInput.value) || 1));
+    quantityInput.value = labelToolState.quantity;
+
+    // Close the config modal
+    closeLabelToolModal();
+
+    // Update indicators
+    const typeText = labelToolState.type === 'key' ? 'Key Tag (OL875)' : 'Folder Tag (OL125)';
+    document.getElementById('labelToolTypeIndicator').textContent = typeText;
+    document.getElementById('labelToolQuantityIndicator').textContent = `${labelToolState.quantity} label(s) per vehicle`;
+
+    // Reset selection
+    labelToolState.selectedVehicles.clear();
+    document.getElementById('labelToolVehicleSearch').value = '';
+
+    // Filter to only in-stock vehicles (not in-transit, not sold)
+    labelToolState.filteredVehicles = vehicles.filter(v =>
+        v.status !== 'in-transit' && v.status !== 'sold'
+    );
+
+    // Render vehicle list
+    renderLabelToolVehicleList();
+    updateLabelToolSelectionCount();
+
+    // Open the selector modal
+    document.getElementById('labelToolVehicleSelectorModal').classList.add('active');
+}
+
+function closeLabelToolVehicleSelector() {
+    document.getElementById('labelToolVehicleSelectorModal').classList.remove('active');
+}
+
+function renderLabelToolVehicleList() {
+    const container = document.getElementById('labelToolVehicleList');
+    const searchTerm = document.getElementById('labelToolVehicleSearch').value.toLowerCase();
+
+    let vehiclesToShow = labelToolState.filteredVehicles;
+
+    if (searchTerm) {
+        vehiclesToShow = vehiclesToShow.filter(v =>
+            v.stockNumber?.toLowerCase().includes(searchTerm) ||
+            v.vin?.toLowerCase().includes(searchTerm) ||
+            v.make?.toLowerCase().includes(searchTerm) ||
+            v.model?.toLowerCase().includes(searchTerm) ||
+            v.year?.toString().includes(searchTerm) ||
+            v.color?.toLowerCase().includes(searchTerm)
+        );
+    }
+
+    if (vehiclesToShow.length === 0) {
+        container.innerHTML = `
+            <div style="padding: 2rem; text-align: center; color: var(--joy-text-tertiary);">
+                ${searchTerm ? 'No vehicles match your search' : 'No vehicles in inventory'}
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = vehiclesToShow.map(v => {
+        const isSelected = labelToolState.selectedVehicles.has(v.id);
+        return `
+            <div class="label-tool-vehicle-item" onclick="toggleLabelToolVehicle(${v.id})" style="
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                padding: 0.875rem 1rem;
+                border-bottom: 1px solid var(--joy-border);
+                cursor: pointer;
+                transition: background 0.15s ease;
+                background: ${isSelected ? 'rgba(10, 132, 255, 0.1)' : 'transparent'};
+            ">
+                <div style="
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 6px;
+                    border: 2px solid ${isSelected ? 'var(--joy-primary-500)' : 'var(--joy-border)'};
+                    background: ${isSelected ? 'var(--joy-primary-500)' : 'transparent'};
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                    transition: all 0.15s ease;
+                ">
+                    ${isSelected ? '<span style="color: white; font-size: 14px;">✓</span>' : ''}
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 600; color: var(--joy-text-primary); margin-bottom: 0.25rem;">
+                        Stock #${v.stockNumber} - ${v.year} ${v.make} ${v.model}
+                    </div>
+                    <div style="font-size: 0.8125rem; color: var(--joy-text-tertiary);">
+                        VIN: ${v.vin} | ${v.color || 'N/A'} | ${v.trim || 'N/A'}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function toggleLabelToolVehicle(vehicleId) {
+    if (labelToolState.selectedVehicles.has(vehicleId)) {
+        labelToolState.selectedVehicles.delete(vehicleId);
+    } else {
+        labelToolState.selectedVehicles.add(vehicleId);
+    }
+    renderLabelToolVehicleList();
+    updateLabelToolSelectionCount();
+}
+
+function selectAllLabelToolVehicles() {
+    const searchTerm = document.getElementById('labelToolVehicleSearch').value.toLowerCase();
+    let vehiclesToSelect = labelToolState.filteredVehicles;
+
+    if (searchTerm) {
+        vehiclesToSelect = vehiclesToSelect.filter(v =>
+            v.stockNumber?.toLowerCase().includes(searchTerm) ||
+            v.vin?.toLowerCase().includes(searchTerm) ||
+            v.make?.toLowerCase().includes(searchTerm) ||
+            v.model?.toLowerCase().includes(searchTerm) ||
+            v.year?.toString().includes(searchTerm) ||
+            v.color?.toLowerCase().includes(searchTerm)
+        );
+    }
+
+    vehiclesToSelect.forEach(v => labelToolState.selectedVehicles.add(v.id));
+    renderLabelToolVehicleList();
+    updateLabelToolSelectionCount();
+}
+
+function deselectAllLabelToolVehicles() {
+    labelToolState.selectedVehicles.clear();
+    renderLabelToolVehicleList();
+    updateLabelToolSelectionCount();
+}
+
+function filterLabelToolVehicles() {
+    renderLabelToolVehicleList();
+}
+
+function updateLabelToolSelectionCount() {
+    const count = labelToolState.selectedVehicles.size;
+    const totalLabels = count * labelToolState.quantity;
+    const maxPerSheet = labelToolState.type === 'key' ? 30 : 10;
+    const sheets = Math.ceil(totalLabels / maxPerSheet);
+
+    document.getElementById('labelToolSelectionCount').textContent =
+        `${count} vehicle${count !== 1 ? 's' : ''} selected (${totalLabels} label${totalLabels !== 1 ? 's' : ''} total, ${sheets} sheet${sheets !== 1 ? 's' : ''})`;
+
+    document.getElementById('labelToolGenerateBtn').disabled = count === 0;
+}
+
+function generateBatchLabels() {
+    const selectedIds = Array.from(labelToolState.selectedVehicles);
+    if (selectedIds.length === 0) {
+        showNotification('Please select at least one vehicle', 'error');
+        return;
+    }
+
+    const selectedVehicles = selectedIds.map(id => vehicles.find(v => v.id === id)).filter(Boolean);
+
+    // Close vehicle selector
+    closeLabelToolVehicleSelector();
+
+    // Generate labels based on type
+    if (labelToolState.type === 'key') {
+        generateBatchKeyLabels(selectedVehicles);
+    } else {
+        generateBatchFolderLabels(selectedVehicles);
+    }
+}
+
+function generateBatchKeyLabels(selectedVehicles) {
+    const preview = document.getElementById('batchLabelPreview');
+    const quantity = labelToolState.quantity;
+
+    // Create all labels (vehicle repeated by quantity)
+    const allLabels = [];
+    selectedVehicles.forEach(vehicle => {
+        for (let i = 0; i < quantity; i++) {
+            allLabels.push(vehicle);
+        }
+    });
+
+    // OL875: 3 columns × 10 rows = 30 per sheet
+    const labelsPerSheet = 30;
+    const sheets = [];
+
+    for (let i = 0; i < allLabels.length; i += labelsPerSheet) {
+        sheets.push(allLabels.slice(i, i + labelsPerSheet));
+    }
+
+    // Generate preview HTML
+    let previewHtml = '<div class="batch-label-sheets" id="batchLabelSheets">';
+
+    sheets.forEach((sheetLabels, sheetIndex) => {
+        previewHtml += `
+            <div class="batch-label-sheet batch-key-sheet" data-sheet="${sheetIndex}" style="
+                width: 8.5in;
+                height: 11in;
+                background: white;
+                position: relative;
+                margin-bottom: 1rem;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                page-break-after: always;
+            ">
+                <div style="
+                    position: absolute;
+                    top: 0.25rem;
+                    left: 0.25rem;
+                    font-size: 0.625rem;
+                    color: #999;
+                    z-index: 10;
+                ">Sheet ${sheetIndex + 1} of ${sheets.length}</div>
+        `;
+
+        sheetLabels.forEach((vehicle, labelIndex) => {
+            const position = OL875_POSITIONS[labelIndex];
+            previewHtml += generateKeyLabelHtml(vehicle, position);
+        });
+
+        previewHtml += '</div>';
+    });
+
+    previewHtml += '</div>';
+    preview.innerHTML = previewHtml;
+
+    // Open print modal
+    document.getElementById('batchLabelPrintModal').classList.add('active');
+}
+
+function generateBatchFolderLabels(selectedVehicles) {
+    const preview = document.getElementById('batchLabelPreview');
+    const quantity = labelToolState.quantity;
+
+    // Create all labels (vehicle repeated by quantity)
+    const allLabels = [];
+    selectedVehicles.forEach(vehicle => {
+        for (let i = 0; i < quantity; i++) {
+            allLabels.push(vehicle);
+        }
+    });
+
+    // OL125: 2 columns × 5 rows = 10 per sheet
+    const labelsPerSheet = 10;
+    const sheets = [];
+
+    for (let i = 0; i < allLabels.length; i += labelsPerSheet) {
+        sheets.push(allLabels.slice(i, i + labelsPerSheet));
+    }
+
+    // Generate preview HTML
+    let previewHtml = '<div class="batch-label-sheets" id="batchLabelSheets">';
+
+    sheets.forEach((sheetLabels, sheetIndex) => {
+        previewHtml += `
+            <div class="batch-label-sheet batch-folder-sheet" data-sheet="${sheetIndex}" style="
+                width: 8.5in;
+                height: 11in;
+                background: white;
+                position: relative;
+                margin-bottom: 1rem;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                page-break-after: always;
+            ">
+                <div style="
+                    position: absolute;
+                    top: 0.25rem;
+                    left: 0.25rem;
+                    font-size: 0.625rem;
+                    color: #999;
+                    z-index: 10;
+                ">Sheet ${sheetIndex + 1} of ${sheets.length}</div>
+        `;
+
+        sheetLabels.forEach((vehicle, labelIndex) => {
+            const position = OL125_POSITIONS[labelIndex];
+            previewHtml += generateFolderLabelHtml(vehicle, position);
+        });
+
+        previewHtml += '</div>';
+    });
+
+    previewHtml += '</div>';
+    preview.innerHTML = previewHtml;
+
+    // Generate QR codes for each label
+    setTimeout(() => {
+        document.querySelectorAll('.batch-folder-qr').forEach(qrContainer => {
+            const vin = qrContainer.dataset.vin;
+            if (vin && qrContainer.children.length === 0) {
+                new QRCode(qrContainer, {
+                    text: vin,
+                    width: 80,
+                    height: 80,
+                    colorDark: '#1d1d1f',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            }
+        });
+    }, 100);
+
+    // Open print modal
+    document.getElementById('batchLabelPrintModal').classList.add('active');
+}
+
+function generateKeyLabelHtml(vehicle, position) {
+    const vinLast8 = vehicle.vin ? vehicle.vin.slice(-8) : '';
+    return `
+        <div class="batch-key-label" style="
+            position: absolute;
+            top: ${position.top};
+            left: ${position.left};
+            width: 2.5935in;
+            height: 1in;
+            box-sizing: border-box;
+            padding: 6px 9px;
+            display: flex;
+            gap: 8px;
+            font-family: 'Ubuntu', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: rgba(51, 65, 85, 0.95);
+            border-radius: 6px;
+            align-items: center;
+        ">
+            <div style="
+                background: rgba(255, 255, 255, 0.9);
+                color: #0f172a;
+                padding: 6px 9px;
+                border-radius: 4px;
+                min-width: 72px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                text-align: center;
+                line-height: 1.05;
+            ">
+                <div style="font-size: 9px; font-weight: 600; color: #334155; letter-spacing: 0.02em;">Stock #</div>
+                <div style="font-size: 15px; font-weight: 800; color: #0f172a; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${vehicle.stockNumber || ''}</div>
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; justify-content: center; line-height: 1.1;">
+                <div style="font-size: 11px; font-weight: 700; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
+                <div style="font-size: 9px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">VIN: ...${vinLast8}</div>
+                <div style="font-size: 9px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${vehicle.color || ''}</div>
+                <div style="font-size: 9px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${vehicle.fleetCompany || ''}</div>
+                <div style="font-size: 9px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${vehicle.operationCompany || ''}</div>
+            </div>
+        </div>
+    `;
+}
+
+function generateFolderLabelHtml(vehicle, position) {
+    const qrId = `qr-${vehicle.id}-${Math.random().toString(36).substr(2, 9)}`;
+    return `
+        <div class="batch-folder-label" style="
+            position: absolute;
+            top: ${position.top};
+            left: ${position.left};
+            width: 4in;
+            height: 2in;
+            box-sizing: border-box;
+            padding: 12px;
+            display: flex;
+            gap: 12px;
+            font-family: 'Ubuntu', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: rgba(51, 65, 85, 0.95);
+        ">
+            <div style="flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                <div class="batch-folder-qr" id="${qrId}" data-vin="${vehicle.vin || ''}" style="background: white; padding: 4px; border-radius: 4px;"></div>
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0;">
+                <div style="font-size: 18px; font-weight: 700; color: #1d1d1f; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Stock #${vehicle.stockNumber || ''}</div>
+                <div style="font-size: 14px; font-weight: 600; color: #424245; margin-bottom: 8px; line-height: 1.2;">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
+                <div style="font-size: 11px; color: #86868b; line-height: 1.4;">
+                    <div><strong>VIN:</strong> ${vehicle.vin || ''}</div>
+                    <div><strong>Trim:</strong> ${vehicle.trim || 'N/A'} | <strong>Color:</strong> ${vehicle.color || 'N/A'}</div>
+                    <div><strong>Op Co:</strong> ${vehicle.operationCompany || 'N/A'} | <strong>Fleet:</strong> ${vehicle.fleetCompany || 'N/A'}</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function closeBatchLabelPrintModal() {
+    document.getElementById('batchLabelPrintModal').classList.remove('active');
+}
+
+function printBatchLabels() {
+    const sheetsContainer = document.getElementById('batchLabelSheets');
+    if (!sheetsContainer) return;
+
+    // Clone and prepare for print
+    const printContainer = sheetsContainer.cloneNode(true);
+    printContainer.id = 'batchPrintContainer';
+    printContainer.classList.add('batch-printing');
+
+    // Remove sheet number indicators for print
+    printContainer.querySelectorAll('[style*="font-size: 0.625rem"]').forEach(el => el.remove());
+
+    document.body.appendChild(printContainer);
+
+    // Hide modal content
+    closeBatchLabelPrintModal();
+
+    setTimeout(() => {
+        window.print();
+
+        setTimeout(() => {
+            const container = document.getElementById('batchPrintContainer');
+            if (container) container.remove();
+        }, 500);
+    }, 200);
+}
+
+// Add print styles for batch labels
+const batchLabelStyles = document.createElement('style');
+batchLabelStyles.textContent = `
+    @media print {
+        #batchPrintContainer {
+            display: block !important;
+        }
+
+        #batchPrintContainer .batch-label-sheet {
+            width: 8.5in !important;
+            height: 11in !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            page-break-after: always !important;
+            position: relative !important;
+            background: white !important;
+        }
+
+        #batchPrintContainer .batch-label-sheet:last-child {
+            page-break-after: auto !important;
+        }
+
+        #batchPrintContainer .batch-key-label,
+        #batchPrintContainer .batch-folder-label {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        body > *:not(#batchPrintContainer) {
+            display: none !important;
+        }
+
+        @page {
+            size: letter;
+            margin: 0;
+        }
+    }
+
+    .batch-printing {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 99999;
+        background: white;
+    }
+`;
+document.head.appendChild(batchLabelStyles);
