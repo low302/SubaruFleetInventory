@@ -17,18 +17,18 @@ app.use(cors({
     origin: function (origin, callback) {
         // Allow requests with no origin (mobile apps, curl, etc)
         if (!origin) return callback(null, true);
-        
+
         // Allow localhost on any port
         if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
             return callback(null, true);
         }
-        
+
         // Allow any IP address on local network (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
         const localNetworkPattern = /^https?:\/\/(192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3})(:\d+)?$/;
         if (origin && localNetworkPattern.test(origin)) {
             return callback(null, true);
         }
-        
+
         // For development, allow all origins (comment out in production if needed)
         return callback(null, true);
     },
@@ -202,7 +202,7 @@ function initializeDatabase() {
 
         // Create default admin user (username: Zaid, password: 1234)
         const hashedPassword = bcrypt.hashSync('1234', 10);
-        db.run(`INSERT OR IGNORE INTO users (username, password) VALUES (?, ?)`, 
+        db.run(`INSERT OR IGNORE INTO users (username, password) VALUES (?, ?)`,
             ['Zaid', hashedPassword],
             (err) => {
                 if (err) {
@@ -229,7 +229,7 @@ function isAuthenticated(req, res, next) {
 // Login
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
-    
+
     console.log('Login attempt:', username, 'from origin:', req.headers.origin);
 
     db.get('SELECT * FROM users WHERE username = ?', [username], (err, user) => {
@@ -257,14 +257,14 @@ app.post('/api/login', (req, res) => {
             // Set session data
             req.session.userId = user.id;
             req.session.username = user.username;
-            
+
             // Save session explicitly before responding
             req.session.save((err) => {
                 if (err) {
                     console.error('Session save error:', err);
                     return res.status(500).json({ error: 'Session creation failed' });
                 }
-                
+
                 console.log('Login successful for user:', username, 'Session ID:', req.sessionID);
                 res.json({ success: true, username: user.username });
             });
@@ -340,7 +340,7 @@ app.post('/api/inventory', isAuthenticated, (req, res) => {
         vehicle.documents ? JSON.stringify(vehicle.documents) : '[]'
     ];
 
-    db.run(sql, params, function(err) {
+    db.run(sql, params, function (err) {
         if (err) {
             console.error('Error adding vehicle:', err);
             return res.status(500).json({ error: err.message });
@@ -381,7 +381,7 @@ app.put('/api/inventory/:id', isAuthenticated, (req, res) => {
         vehicle.id
     ];
 
-    db.run(sql, params, function(err) {
+    db.run(sql, params, function (err) {
         if (err) {
             console.error('Error updating vehicle:', err);
             return res.status(500).json({ error: err.message });
@@ -393,7 +393,7 @@ app.put('/api/inventory/:id', isAuthenticated, (req, res) => {
 
 // Delete vehicle
 app.delete('/api/inventory/:id', isAuthenticated, (req, res) => {
-    db.run('DELETE FROM inventory WHERE id = ?', [req.params.id], function(err) {
+    db.run('DELETE FROM inventory WHERE id = ?', [req.params.id], function (err) {
         if (err) {
             console.error('Error deleting vehicle:', err);
             return res.status(500).json({ error: err.message });
@@ -405,7 +405,7 @@ app.delete('/api/inventory/:id', isAuthenticated, (req, res) => {
 
 // Fix in-stock dates for in-transit vehicles (utility endpoint)
 app.post('/api/inventory/fix-intransit-dates', isAuthenticated, (req, res) => {
-    db.run('UPDATE inventory SET inStockDate = NULL WHERE status = ?', ['in-transit'], function(err) {
+    db.run('UPDATE inventory SET inStockDate = NULL WHERE status = ?', ['in-transit'], function (err) {
         if (err) {
             console.error('Error fixing in-transit dates:', err);
             return res.status(500).json({ error: err.message });
@@ -459,7 +459,7 @@ app.post('/api/sold-vehicles', isAuthenticated, (req, res) => {
         vehicle.tradeInId || null
     ];
 
-    db.run(sql, params, function(err) {
+    db.run(sql, params, function (err) {
         if (err) {
             console.error('Error adding sold vehicle:', err);
             return res.status(500).json({ error: err.message });
@@ -471,7 +471,7 @@ app.post('/api/sold-vehicles', isAuthenticated, (req, res) => {
 
 // Delete sold vehicle
 app.delete('/api/sold-vehicles/:id', isAuthenticated, (req, res) => {
-    db.run('DELETE FROM sold_vehicles WHERE id = ?', [req.params.id], function(err) {
+    db.run('DELETE FROM sold_vehicles WHERE id = ?', [req.params.id], function (err) {
         if (err) {
             console.error('Error deleting sold vehicle:', err);
             return res.status(500).json({ error: err.message });
@@ -508,7 +508,7 @@ app.put('/api/sold-vehicles/:id', isAuthenticated, (req, res) => {
         vehicle.id
     ];
 
-    db.run(sql, params, function(err) {
+    db.run(sql, params, function (err) {
         if (err) {
             console.error('Error updating sold vehicle:', err);
             return res.status(500).json({ error: err.message });
@@ -537,7 +537,7 @@ app.post('/api/trade-ins', isAuthenticated, (req, res) => {
     const sql = `INSERT INTO trade_ins 
         (id, stockNumber, vin, year, make, model, trim, color, mileage, notes, pickedUp, pickedUpDate, dateAdded)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-    
+
     const params = [
         vehicle.id,
         vehicle.stockNumber || null,
@@ -554,7 +554,7 @@ app.post('/api/trade-ins', isAuthenticated, (req, res) => {
         vehicle.dateAdded
     ];
 
-    db.run(sql, params, function(err) {
+    db.run(sql, params, function (err) {
         if (err) {
             console.error('Error adding trade-in:', err);
             return res.status(500).json({ error: err.message });
@@ -572,7 +572,7 @@ app.put('/api/trade-ins/:id', isAuthenticated, (req, res) => {
         color = ?, mileage = ?, notes = ?, pickedUp = ?, pickedUpDate = ?,
         updated_at = CURRENT_TIMESTAMP
         WHERE id = ?`;
-    
+
     const params = [
         vehicle.stockNumber || null,
         vehicle.vin,
@@ -588,7 +588,7 @@ app.put('/api/trade-ins/:id', isAuthenticated, (req, res) => {
         vehicle.id
     ];
 
-    db.run(sql, params, function(err) {
+    db.run(sql, params, function (err) {
         if (err) {
             console.error('Error updating trade-in:', err);
             return res.status(500).json({ error: err.message });
@@ -600,7 +600,7 @@ app.put('/api/trade-ins/:id', isAuthenticated, (req, res) => {
 
 // Delete trade-in
 app.delete('/api/trade-ins/:id', isAuthenticated, (req, res) => {
-    db.run('DELETE FROM trade_ins WHERE id = ?', [req.params.id], function(err) {
+    db.run('DELETE FROM trade_ins WHERE id = ?', [req.params.id], function (err) {
         if (err) {
             console.error('Error deleting trade-in:', err);
             return res.status(500).json({ error: err.message });
@@ -651,7 +651,7 @@ app.post('/api/documents/upload', isAuthenticated, upload.single('file'), (req, 
             document.uploadDate
         ];
 
-        db.run(sql, params, function(err) {
+        db.run(sql, params, function (err) {
             if (err) {
                 console.error('Error saving document metadata:', err);
                 // Delete uploaded file if database insert fails
@@ -758,7 +758,7 @@ app.delete('/api/documents/delete/:id', isAuthenticated, (req, res) => {
         }
 
         // Delete the database record
-        db.run('DELETE FROM documents WHERE id = ?', [documentId], function(err) {
+        db.run('DELETE FROM documents WHERE id = ?', [documentId], function (err) {
             if (err) {
                 console.error('Error deleting document record:', err);
                 return res.status(500).json({ error: 'Failed to delete document' });
@@ -766,6 +766,74 @@ app.delete('/api/documents/delete/:id', isAuthenticated, (req, res) => {
 
             console.log('Document deleted successfully:', doc.fileName);
             res.json({ success: true });
+        });
+    });
+});
+
+// ==================== EXPORT DATA ROUTE ====================
+
+// Export all data
+app.get('/api/export', isAuthenticated, (req, res) => {
+    const exportData = {
+        exportInfo: {
+            exportDate: new Date().toISOString(),
+            version: '1.0',
+            source: 'SubaruFleetInventory'
+        },
+        inventory: [],
+        soldVehicles: [],
+        tradeIns: [],
+        documents: []
+    };
+
+    // Get inventory
+    db.all('SELECT * FROM inventory ORDER BY dateAdded DESC', [], (err, inventoryRows) => {
+        if (err) {
+            console.error('Error exporting inventory:', err);
+            return res.status(500).json({ error: 'Failed to export inventory data' });
+        }
+
+        exportData.inventory = inventoryRows.map(row => ({
+            ...row,
+            customer: row.customer ? JSON.parse(row.customer) : null,
+            documents: row.documents ? JSON.parse(row.documents) : []
+        }));
+
+        // Get sold vehicles
+        db.all('SELECT * FROM sold_vehicles ORDER BY created_at DESC', [], (err, soldRows) => {
+            if (err) {
+                console.error('Error exporting sold vehicles:', err);
+                return res.status(500).json({ error: 'Failed to export sold vehicles data' });
+            }
+
+            exportData.soldVehicles = soldRows.map(row => ({
+                ...row,
+                customer: row.customer ? JSON.parse(row.customer) : null,
+                documents: row.documents ? JSON.parse(row.documents) : []
+            }));
+
+            // Get trade-ins
+            db.all('SELECT * FROM trade_ins ORDER BY dateAdded DESC', [], (err, tradeInRows) => {
+                if (err) {
+                    console.error('Error exporting trade-ins:', err);
+                    return res.status(500).json({ error: 'Failed to export trade-ins data' });
+                }
+
+                exportData.tradeIns = tradeInRows;
+
+                // Get documents
+                db.all('SELECT * FROM documents ORDER BY uploadDate DESC', [], (err, docRows) => {
+                    if (err) {
+                        console.error('Error exporting documents:', err);
+                        return res.status(500).json({ error: 'Failed to export documents data' });
+                    }
+
+                    exportData.documents = docRows;
+
+                    console.log(`Export complete: ${exportData.inventory.length} inventory, ${exportData.soldVehicles.length} sold, ${exportData.tradeIns.length} trade-ins, ${exportData.documents.length} documents`);
+                    res.json(exportData);
+                });
+            });
         });
     });
 });

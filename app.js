@@ -1602,8 +1602,8 @@ async function saveVehicleDetailPDF() {
         yPos = drawFullWidthRow('Operation Co.:', currentVehicle.operationCompany || '', yPos);
 
         // Customer Name
-        const customerName = currentVehicle.customer 
-            ? `${currentVehicle.customer.firstName || ''} ${currentVehicle.customer.lastName || ''}`.trim() 
+        const customerName = currentVehicle.customer
+            ? `${currentVehicle.customer.firstName || ''} ${currentVehicle.customer.lastName || ''}`.trim()
             : '';
         yPos = drawFullWidthRow('Customer:', customerName, yPos);
 
@@ -4904,6 +4904,60 @@ async function fixInTransitDates() {
 // Make function available globally for console access
 window.fixInTransitDates = fixInTransitDates;
 
+// Export all data to JSON file for backup or migration
+async function exportAllData() {
+    try {
+        showNotification('Exporting data...', 'info');
+
+        const response = await fetch(`${API_BASE}/export`, {
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to export data');
+        }
+
+        const exportData = await response.json();
+
+        // Create a formatted JSON string
+        const jsonString = JSON.stringify(exportData, null, 2);
+
+        // Create a blob and download
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        // Generate filename with date
+        const date = new Date();
+        const dateStr = date.toISOString().split('T')[0];
+        const filename = `SubaruFleetInventory_Export_${dateStr}.json`;
+
+        // Create download link and trigger download
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        // Show summary
+        const summary = `Export complete!\n\n` +
+            `• Inventory: ${exportData.inventory.length} vehicles\n` +
+            `• Sold Vehicles: ${exportData.soldVehicles.length} vehicles\n` +
+            `• Trade-Ins: ${exportData.tradeIns.length} vehicles\n` +
+            `• Documents: ${exportData.documents.length} files`;
+
+        showNotification(summary, 'success');
+
+    } catch (error) {
+        console.error('Error exporting data:', error);
+        showNotification('Failed to export data: ' + error.message, 'error');
+    }
+}
+
+// Make function available globally
+window.exportAllData = exportAllData;
+
 // Batch clear in-stock dates for recently added vehicles
 async function batchClearInStockDates() {
     const count = prompt('How many recently added vehicles should have their in-stock dates cleared?');
@@ -5979,7 +6033,7 @@ batchLabelStyles.textContent = `
 document.head.appendChild(batchLabelStyles);
 
 // ESC key handler for Label Tool modals
-document.addEventListener('keydown', function(e) {
+document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
         const batchPrintModal = document.getElementById('batchLabelPrintModal');
         const vehicleSelectorModal = document.getElementById('labelToolVehicleSelectorModal');

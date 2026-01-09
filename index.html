@@ -2974,7 +2974,7 @@
 
                         <!-- Remove Duplicates -->
                         <div
-                            style="background: var(--joy-background-level1); padding: 1.5rem; border-radius: var(--joy-radius-md); border: 1px solid var(--joy-border);">
+                            style="background: var(--joy-background-level1); padding: 1.5rem; border-radius: var(--joy-radius-md); border: 1px solid var(--joy-border); margin-bottom: 1rem;">
                             <div style="display: flex; align-items: flex-start; gap: 1rem;">
                                 <div style="font-size: 2rem;">🔍</div>
                                 <div style="flex: 1;">
@@ -2988,6 +2988,26 @@
                                     <button class="btn btn-secondary" onclick="openRemoveDuplicatesModal()"
                                         style="width: 100%;">
                                         Scan & Remove Duplicates
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Export All Data -->
+                        <div
+                            style="background: var(--joy-background-level1); padding: 1.5rem; border-radius: var(--joy-radius-md); border: 1px solid var(--joy-border);">
+                            <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                                <div style="font-size: 2rem;">📦</div>
+                                <div style="flex: 1;">
+                                    <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">Export All Data</h4>
+                                    <p
+                                        style="font-size: 0.875rem; color: var(--joy-text-tertiary); margin-bottom: 1rem;">
+                                        Export all inventory, sold vehicles, trade-ins, and document metadata to a JSON file.
+                                        Use this for backup or migration to a new version.
+                                    </p>
+                                    <button class="btn btn-secondary" onclick="exportAllData()"
+                                        style="width: 100%;">
+                                        📥 Export All Data
                                     </button>
                                 </div>
                             </div>
