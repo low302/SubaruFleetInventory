@@ -5837,13 +5837,11 @@ function generateKeyLabelHtml(vehicle, position) {
             display: flex;
             gap: 8px;
             font-family: 'Ubuntu', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: rgba(51, 65, 85, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 6px;
+            background: #ffffff;
             align-items: center;
         ">
             <div style="
-                background: rgba(255, 255, 255, 0.9);
+                background: #f1f5f9;
                 color: #0f172a;
                 padding: 6px 9px;
                 border-radius: 4px;
@@ -5853,17 +5851,16 @@ function generateKeyLabelHtml(vehicle, position) {
                 justify-content: center;
                 text-align: center;
                 line-height: 1.05;
-                box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
             ">
                 <div style="font-size: 9px; font-weight: 600; color: #334155; letter-spacing: 0.02em;">Stock #</div>
                 <div style="font-size: 15px; font-weight: 800; color: #0f172a; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${vehicle.stockNumber || ''}</div>
             </div>
             <div style="flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; justify-content: center; line-height: 1.1;">
-                <div style="font-size: 11px; font-weight: 700; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
-                <div style="font-size: 9px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">VIN: ...${vinLast8}</div>
-                <div style="font-size: 9px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${vehicle.color || ''}</div>
-                <div style="font-size: 9px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${vehicle.fleetCompany || ''}</div>
-                <div style="font-size: 9px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${vehicle.operationCompany || ''}</div>
+                <div style="font-size: 11px; font-weight: 700; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
+                <div style="font-size: 9px; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">VIN: ...${vinLast8}</div>
+                <div style="font-size: 9px; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${vehicle.color || ''}</div>
+                <div style="font-size: 9px; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${vehicle.fleetCompany || ''}</div>
+                <div style="font-size: 9px; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${vehicle.operationCompany || ''}</div>
             </div>
         </div>
     `;
@@ -5883,16 +5880,15 @@ function generateFolderLabelHtml(vehicle, position) {
             display: flex;
             gap: 12px;
             font-family: 'Ubuntu', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: rgba(51, 65, 85, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: #ffffff;
         ">
             <div style="flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
-                <div class="batch-folder-qr" id="${qrId}" data-vin="${vehicle.vin || ''}" style="background: white; padding: 4px; border-radius: 4px;"></div>
+                <div class="batch-folder-qr" id="${qrId}" data-vin="${vehicle.vin || ''}"></div>
             </div>
             <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0;">
-                <div style="font-size: 18px; font-weight: 700; color: #1d1d1f; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Stock #${vehicle.stockNumber || ''}</div>
-                <div style="font-size: 14px; font-weight: 600; color: #424245; margin-bottom: 8px; line-height: 1.2;">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
-                <div style="font-size: 11px; color: #86868b; line-height: 1.4;">
+                <div style="font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Stock #${vehicle.stockNumber || ''}</div>
+                <div style="font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 8px; line-height: 1.2;">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
+                <div style="font-size: 11px; color: #374151; line-height: 1.4;">
                     <div><strong>VIN:</strong> ${vehicle.vin || ''}</div>
                     <div><strong>Trim:</strong> ${vehicle.trim || 'N/A'} | <strong>Color:</strong> ${vehicle.color || 'N/A'}</div>
                     <div><strong>Op Co:</strong> ${vehicle.operationCompany || 'N/A'} | <strong>Fleet:</strong> ${vehicle.fleetCompany || 'N/A'}</div>
