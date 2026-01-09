@@ -4453,6 +4453,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('click', function (e) {
+            // Skip click-to-close for modals with no-click-close class
+            if (this.classList.contains('no-click-close')) return;
             if (e.target === this) this.classList.remove('active');
         });
     });
@@ -5503,10 +5505,8 @@ function openLabelToolVehicleSelector() {
     labelToolState.selectedVehicles.clear();
     document.getElementById('labelToolVehicleSearch').value = '';
 
-    // Filter to only in-stock vehicles (not in-transit, not sold)
-    labelToolState.filteredVehicles = vehicles.filter(v =>
-        v.status !== 'in-transit' && v.status !== 'sold'
-    );
+    // Include all inventory vehicles (PDI, In-Transit, In-Stock, etc. - not sold)
+    labelToolState.filteredVehicles = vehicles.filter(v => v.status !== 'sold');
 
     // Render vehicle list
     renderLabelToolVehicleList();
@@ -5533,13 +5533,14 @@ function renderLabelToolVehicleList() {
             v.make?.toLowerCase().includes(searchTerm) ||
             v.model?.toLowerCase().includes(searchTerm) ||
             v.year?.toString().includes(searchTerm) ||
-            v.color?.toLowerCase().includes(searchTerm)
+            v.color?.toLowerCase().includes(searchTerm) ||
+            v.status?.toLowerCase().includes(searchTerm)
         );
     }
 
     if (vehiclesToShow.length === 0) {
         container.innerHTML = `
-            <div style="padding: 2rem; text-align: center; color: var(--joy-text-tertiary);">
+            <div style="padding: 1.5rem; text-align: center; color: var(--joy-text-tertiary); font-size: 0.875rem;">
                 ${searchTerm ? 'No vehicles match your search' : 'No vehicles in inventory'}
             </div>
         `;
@@ -5548,21 +5549,22 @@ function renderLabelToolVehicleList() {
 
     container.innerHTML = vehiclesToShow.map(v => {
         const isSelected = labelToolState.selectedVehicles.has(v.id);
+        const statusBadge = getStatusBadgeHtml(v.status);
         return `
             <div class="label-tool-vehicle-item" onclick="toggleLabelToolVehicle(${v.id})" style="
                 display: flex;
                 align-items: center;
-                gap: 1rem;
-                padding: 0.875rem 1rem;
+                gap: 0.75rem;
+                padding: 0.5rem 0.75rem;
                 border-bottom: 1px solid var(--joy-border);
                 cursor: pointer;
                 transition: background 0.15s ease;
                 background: ${isSelected ? 'rgba(10, 132, 255, 0.1)' : 'transparent'};
             ">
                 <div style="
-                    width: 24px;
-                    height: 24px;
-                    border-radius: 6px;
+                    width: 18px;
+                    height: 18px;
+                    border-radius: 4px;
                     border: 2px solid ${isSelected ? 'var(--joy-primary-500)' : 'var(--joy-border)'};
                     background: ${isSelected ? 'var(--joy-primary-500)' : 'transparent'};
                     display: flex;
@@ -5571,19 +5573,47 @@ function renderLabelToolVehicleList() {
                     flex-shrink: 0;
                     transition: all 0.15s ease;
                 ">
-                    ${isSelected ? '<span style="color: white; font-size: 14px;">✓</span>' : ''}
+                    ${isSelected ? '<span style="color: white; font-size: 11px;">✓</span>' : ''}
                 </div>
-                <div style="flex: 1; min-width: 0;">
-                    <div style="font-weight: 600; color: var(--joy-text-primary); margin-bottom: 0.25rem;">
-                        Stock #${v.stockNumber} - ${v.year} ${v.make} ${v.model}
-                    </div>
-                    <div style="font-size: 0.8125rem; color: var(--joy-text-tertiary);">
-                        VIN: ${v.vin} | ${v.color || 'N/A'} | ${v.trim || 'N/A'}
-                    </div>
+                <div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-weight: 600; color: var(--joy-text-primary); font-size: 0.8125rem; white-space: nowrap;">
+                        #${v.stockNumber}
+                    </span>
+                    <span style="color: var(--joy-text-secondary); font-size: 0.8125rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        ${v.year} ${v.make} ${v.model}
+                    </span>
+                    <span style="color: var(--joy-text-tertiary); font-size: 0.75rem; white-space: nowrap;">
+                        ${v.color || ''}
+                    </span>
                 </div>
+                ${statusBadge}
             </div>
         `;
     }).join('');
+}
+
+function getStatusBadgeHtml(status) {
+    const statusConfig = {
+        'in-stock': { label: 'In-Stock', bg: 'rgba(52, 211, 153, 0.2)', color: '#34d399' },
+        'in-transit': { label: 'In-Transit', bg: 'rgba(251, 191, 36, 0.2)', color: '#fbbf24' },
+        'pdi': { label: 'PDI', bg: 'rgba(96, 165, 250, 0.2)', color: '#60a5fa' },
+        'pickup-scheduled': { label: 'Pickup', bg: 'rgba(167, 139, 250, 0.2)', color: '#a78bfa' }
+    };
+
+    const config = statusConfig[status] || { label: status || 'Unknown', bg: 'rgba(148, 163, 184, 0.2)', color: '#94a3b8' };
+
+    return `
+        <span style="
+            padding: 0.125rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            background: ${config.bg};
+            color: ${config.color};
+            white-space: nowrap;
+            flex-shrink: 0;
+        ">${config.label}</span>
+    `;
 }
 
 function toggleLabelToolVehicle(vehicleId) {
@@ -5807,12 +5837,12 @@ function generateKeyLabelHtml(vehicle, position) {
             display: flex;
             gap: 8px;
             font-family: 'Ubuntu', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: rgba(51, 65, 85, 0.95);
+            background: #334155;
             border-radius: 6px;
             align-items: center;
         ">
             <div style="
-                background: rgba(255, 255, 255, 0.9);
+                background: #ffffff;
                 color: #0f172a;
                 padding: 6px 9px;
                 border-radius: 4px;
@@ -5851,15 +5881,15 @@ function generateFolderLabelHtml(vehicle, position) {
             display: flex;
             gap: 12px;
             font-family: 'Ubuntu', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: rgba(51, 65, 85, 0.95);
+            background: #334155;
         ">
             <div style="flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
-                <div class="batch-folder-qr" id="${qrId}" data-vin="${vehicle.vin || ''}" style="background: white; padding: 4px; border-radius: 4px;"></div>
+                <div class="batch-folder-qr" id="${qrId}" data-vin="${vehicle.vin || ''}" style="background: #ffffff; padding: 4px; border-radius: 4px;"></div>
             </div>
             <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0;">
-                <div style="font-size: 18px; font-weight: 700; color: #1d1d1f; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Stock #${vehicle.stockNumber || ''}</div>
-                <div style="font-size: 14px; font-weight: 600; color: #424245; margin-bottom: 8px; line-height: 1.2;">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
-                <div style="font-size: 11px; color: #86868b; line-height: 1.4;">
+                <div style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Stock #${vehicle.stockNumber || ''}</div>
+                <div style="font-size: 14px; font-weight: 600; color: #e2e8f0; margin-bottom: 8px; line-height: 1.2;">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
+                <div style="font-size: 11px; color: #cbd5e1; line-height: 1.4;">
                     <div><strong>VIN:</strong> ${vehicle.vin || ''}</div>
                     <div><strong>Trim:</strong> ${vehicle.trim || 'N/A'} | <strong>Color:</strong> ${vehicle.color || 'N/A'}</div>
                     <div><strong>Op Co:</strong> ${vehicle.operationCompany || 'N/A'} | <strong>Fleet:</strong> ${vehicle.fleetCompany || 'N/A'}</div>
@@ -5948,3 +5978,20 @@ batchLabelStyles.textContent = `
     }
 `;
 document.head.appendChild(batchLabelStyles);
+
+// ESC key handler for Label Tool modals
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const batchPrintModal = document.getElementById('batchLabelPrintModal');
+        const vehicleSelectorModal = document.getElementById('labelToolVehicleSelectorModal');
+        const labelToolModal = document.getElementById('labelToolModal');
+
+        if (batchPrintModal?.classList.contains('active')) {
+            closeBatchLabelPrintModal();
+        } else if (vehicleSelectorModal?.classList.contains('active')) {
+            closeLabelToolVehicleSelector();
+        } else if (labelToolModal?.classList.contains('active')) {
+            closeLabelToolModal();
+        }
+    }
+});
